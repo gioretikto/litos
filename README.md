@@ -2,7 +2,7 @@
 
 litos is a simple text editor for the [Xfce](https://www.xfce.org) desktop environment.
 
-**litos** aims to be an easy-to-use and fast editor. Our target is an
+**litos** aims to be an easy-to-use and fast editor. My target is an
 editor for quickly editing text files, providing shortcuts for inserting HTML tags. I try to use the latest
 GTK features available, which means that if GTK adds something new in a major
 release that is useful for the editor, we will likely bump the GTK dependency
