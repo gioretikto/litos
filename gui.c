@@ -82,11 +82,21 @@ void open_file(char *filename)
         return;
     }
     
-    GtkSourceView *source_view = tab_get_sourceview(gtk_notebook_get_current_page(notebook));
+    int page;
+    
+    GtkSourceView *source_view;
 
-	GtkTextBuffer *current_buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view));
+    if ((page = gtk_notebook_get_current_page(notebook)) == 0){
+    
+       	source_view = tab_get_sourceview(page);
+    
+  		GtkTextBuffer *current_buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view));
 	
-	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
+		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
+    }
+
+	else
+		menu_newtab();
 }
 
 void open_dialog()
