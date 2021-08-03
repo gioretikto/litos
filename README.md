@@ -1,4 +1,4 @@
-# litos (v. 1.0 Experimental version)
+# litos (v. 1.2 Experimental version)
 
 litos is a simple text editor for the [Xfce](https://www.xfce.org) desktop environment.
 
