@@ -10,6 +10,7 @@
 GtkWidget *window;
 GtkNotebook *notebook;
 GtkSourceBuffer *buffer;
+_Bool changed[10] = {FALSE};
 
 void open_file(char *filename);
 void menu_newtab(char *filename);
@@ -17,16 +18,32 @@ void menu_save(void);
 void save_as_dialog();
 void save_as_file(GtkFileChooser *chooser);
 void save_file(const gchar *filename);
+static gboolean saveornot_before_close(gint page);
 
 void open_dialog();
 void close_tab();
+void monitor_change() { changed[gtk_notebook_get_current_page(notebook)] = TRUE;}
+gboolean get_notebook_no_pages(void);
 
 void action_open_dialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; open_dialog();}
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; menu_save();}
 void action_save_as_dialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; save_as_dialog();}
 void action_new_tab(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; menu_newtab (LABEL_UNSAVED);}
 void action_close_tab(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; close_tab();}
-void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app) { (void)action; (void)parameter; g_application_quit (G_APPLICATION (app));}
+void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
+{
+	(void)action;
+	(void)parameter;
+	gint i;
+
+	for (i = 0; i <= get_notebook_no_pages(); i++)
+	{
+ 		if (changed[i] == TRUE)
+			saveornot_before_close(i);
+ 	}
+
+	g_application_quit (G_APPLICATION (app));  
+}
 
 const GActionEntry app_entries[] = {
     {"new", action_new_tab, NULL, NULL, NULL, {0,0,0}},
@@ -106,10 +123,12 @@ void close_tab()
     if (get_notebook_no_pages())
 		return;
 
-    gtk_notebook_remove_page(
-      notebook,
-      gtk_notebook_get_current_page(notebook)
-    );
+	gint page = gtk_notebook_get_current_page(notebook);
+	
+	if (changed[page] == TRUE)
+		saveornot_before_close(page);
+	else
+	    gtk_notebook_remove_page(notebook, page);
 }
 
 void open_file(char *filename)
@@ -199,6 +218,8 @@ void menu_save(void)
 
     else
 		save_file(get_current_tab_label_text());
+		
+	changed[gtk_notebook_get_current_page(notebook)] = FALSE;
 }
 
 void save_file(const gchar *filename)
@@ -357,6 +378,9 @@ void menu_newtab(char *filename)
     gtk_notebook_set_tab_reorderable(notebook, tabbox, TRUE);
 
 	gtk_widget_show_all(GTK_WIDGET(tabbox));
+	
+	g_signal_connect (buffer, "notify::text", G_CALLBACK (monitor_change), NULL);
+
 }
 
 void create_menu (GtkApplication *app)
@@ -401,4 +425,35 @@ activate (GtkApplication* app,
     menu_newtab(LABEL_UNSAVED);
 
     gtk_widget_show_all (window);
+}
+
+static gboolean saveornot_before_close(gint page)
+{
+	GtkWidget *message_dialog;
+	gint res;
+	
+	const gchar *filename = get_current_tab_label_text();
+
+	message_dialog = gtk_message_dialog_new(GTK_WINDOW(window), GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING,
+                      GTK_BUTTONS_NONE, "Save changes to document %s before closing?", filename);
+	gtk_dialog_add_buttons (GTK_DIALOG(message_dialog), "Close without Saving", GTK_RESPONSE_REJECT,
+                                                      "Cancel", GTK_RESPONSE_CANCEL, "Save", GTK_RESPONSE_ACCEPT,  NULL);
+	res = gtk_dialog_run(GTK_DIALOG(message_dialog));
+	gtk_widget_destroy(message_dialog);
+
+	switch (res) {
+		case GTK_RESPONSE_ACCEPT:
+			menu_save();
+			break;
+		case GTK_RESPONSE_REJECT:
+			gtk_notebook_remove_page(notebook, page);
+			break;
+		case GTK_RESPONSE_CANCEL:
+			return TRUE;
+			break;
+		default: /*close bottun was pressed*/
+			g_print("The bottun(Close without Saving/Cancel/Save) was not pressed.");
+	}
+	
+	return TRUE;	
 }
