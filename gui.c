@@ -35,8 +35,12 @@ void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer 
 	(void)action;
 	(void)parameter;
 	gint i;
+	
+	gint pages = gtk_notebook_get_n_pages(notebook);
+	
+    g_print("The total number of Pages: %d\n",pages);
 
-	for (i = 0; i <= get_notebook_no_pages(); i++)
+	for (i = 0; i < pages; i++)
 	{
  		if (changed[i] == TRUE)
 			saveornot_before_close(i);
@@ -50,7 +54,7 @@ const GActionEntry app_entries[] = {
 	{"open", action_open_dialog, NULL, NULL, NULL, {0,0,0}},
 	{"save", action_save_dialog, NULL, NULL, NULL, {0,0,0}},
 	{"save_as", action_save_as_dialog, NULL, NULL, NULL, {0,0,0}},
-	{"close", action_close_tab, NULL, NULL, NULL, {0,0,0}},
+	{"close_tab", action_close_tab, NULL, NULL, NULL, {0,0,0}},
     {"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
 };
 
@@ -106,8 +110,8 @@ GtkSourceView* tab_get_sourceview(int page)
     g_print("Page: %d\n",page);
  
     GList *children = get_tabbox_children(
-      notebook,
-      page
+		notebook,
+		page
     );
 
     return GTK_SOURCE_VIEW(gtk_bin_get_child(GTK_BIN(g_list_nth_data(children, 0))));
@@ -138,7 +142,8 @@ void open_file(char *filename)
    	char* contents;
     read_file_status = g_file_get_contents(filename, &contents, NULL, &error);
 
-    if (read_file_status == FALSE) {
+    if (read_file_status == FALSE)
+    {
     	g_error("error opening file: %s\n",error && error->message ? error->message : "No Detail");
         return;
     }
@@ -150,8 +155,8 @@ void open_file(char *filename)
 
   	current_buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view));
 
-    if ((gtk_text_buffer_get_char_count(current_buffer))== 0) {
-    
+    if ((gtk_text_buffer_get_char_count(current_buffer))== 0)
+    {    
 		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
 		gtk_notebook_set_tab_label_text(
 			notebook,
@@ -172,10 +177,13 @@ void open_file(char *filename)
 		);		
 	}
 
-	else {
+	else
+	{
 		menu_newtab(filename);
 		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(buffer), contents, -1);
 	}
+	
+	changed[gtk_notebook_get_current_page(notebook)] = FALSE;
 }
 
 void open_dialog()
@@ -256,7 +264,6 @@ void save_as_file(GtkFileChooser *chooser)
 	char* contents = gtk_text_buffer_get_text(current_buffer, &begin, &end, 0);
 	g_file_replace_contents(loc, contents, strlen(contents), NULL, TRUE, G_FILE_CREATE_NONE, NULL, NULL, NULL);
 
-
 	char *filename;
 	filename = gtk_file_chooser_get_filename (chooser);
 
@@ -310,11 +317,6 @@ void save_as_dialog()
 	gtk_widget_destroy (dialog);
 }
 
-void action_quit()
-{
-	gtk_main_quit();
-}
-
 GtkWidget* new_sourceview()
 {
 	GtkWidget *source_view;
@@ -335,7 +337,7 @@ void menu_newtab(char *filename)
 {
     GtkWidget *scrolled_window;
     GtkWidget *tabbox;
-
+    
     GtkWidget *source_view = new_sourceview();
 
     tabbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
@@ -358,26 +360,25 @@ void menu_newtab(char *filename)
                                     GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     g_object_unref (provider);
 	
-
 	gtk_container_add(GTK_CONTAINER(scrolled_window), source_view);
 
 	gtk_container_add (GTK_CONTAINER(tabbox), scrolled_window);
+	
+	gtk_widget_show_all(GTK_WIDGET(tabbox));
 
-    gtk_notebook_append_page_menu(
+	gtk_notebook_append_page_menu(
 		notebook,
 		tabbox,
 		gtk_label_new(filename),
 		gtk_label_new(filename)
     );
 
-    gtk_notebook_set_current_page(
+    gtk_notebook_set_tab_reorderable(notebook, tabbox, TRUE);
+	
+	gtk_notebook_set_current_page(
 		notebook,
 		gtk_notebook_get_n_pages(notebook) - 1
     );
-
-    gtk_notebook_set_tab_reorderable(notebook, tabbox, TRUE);
-
-	gtk_widget_show_all(GTK_WIDGET(tabbox));
 	
 	g_signal_connect (buffer, "notify::text", G_CALLBACK (monitor_change), NULL);
 
@@ -430,9 +431,13 @@ activate (GtkApplication* app,
 static gboolean saveornot_before_close(gint page)
 {
 	GtkWidget *message_dialog;
+
 	gint res;
-	
-	const gchar *filename = get_current_tab_label_text();
+
+	const gchar *filename = gtk_notebook_get_tab_label_text(
+								notebook,
+								gtk_notebook_get_nth_page (notebook, page)
+							);
 
 	message_dialog = gtk_message_dialog_new(GTK_WINDOW(window), GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING,
                       GTK_BUTTONS_NONE, "Save changes to document %s before closing?", filename);
@@ -441,7 +446,8 @@ static gboolean saveornot_before_close(gint page)
 	res = gtk_dialog_run(GTK_DIALOG(message_dialog));
 	gtk_widget_destroy(message_dialog);
 
-	switch (res) {
+	switch (res)
+	{
 		case GTK_RESPONSE_ACCEPT:
 			menu_save();
 			break;
