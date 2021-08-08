@@ -1,7 +1,6 @@
 #include <gtk/gtk.h>
 
 extern void activate (GtkApplication* app, gpointer user_data);
-void create_menu (GtkApplication *app);
 
 int
 main (int    argc,

@@ -5,6 +5,9 @@
 #include <glib.h>
 
 #define CURRENT_PAGE -2
+#define CANCEL 3
+#define SAVE 2
+#define CLOSE 1
 #define LABEL_UNSAVED "unsaved"
 
 GtkWidget *window;
@@ -18,12 +21,13 @@ void menu_save(void);
 void save_as_dialog();
 void save_as_file(GtkFileChooser *chooser);
 void save_file(const gchar *filename);
-static gboolean saveornot_before_close(gint page);
+unsigned int saveornot_before_close(gint page);
 
 void open_dialog();
 void close_tab();
 void monitor_change() { changed[gtk_notebook_get_current_page(notebook)] = TRUE;}
 gboolean get_notebook_no_pages(void);
+void highlight_buffer(char *filename);
 
 void action_open_dialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; open_dialog();}
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; menu_save();}
@@ -36,17 +40,20 @@ void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer 
 	(void)parameter;
 	gint i;
 	
-	gint pages = gtk_notebook_get_n_pages(notebook);
+	unsigned int res;
 	
-    g_print("The total number of Pages: %d\n",pages);
-
-	for (i = 0; i < pages; i++)
+	for (i = 0; i < gtk_notebook_get_n_pages(notebook); i++)
 	{
- 		if (changed[i] == TRUE)
-			saveornot_before_close(i);
+ 		if (changed[i] == TRUE) {
+			res = saveornot_before_close(i);
+
+		    if(res == CLOSE)
+		    	i--;
+		}
  	}
 
-	g_application_quit (G_APPLICATION (app));  
+	if (res == CLOSE || res == SAVE)
+		g_application_quit (G_APPLICATION (app));
 }
 
 const GActionEntry app_entries[] = {
@@ -156,7 +163,7 @@ void open_file(char *filename)
   	current_buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view));
 
     if ((gtk_text_buffer_get_char_count(current_buffer))== 0)
-    {    
+    {
 		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
 		gtk_notebook_set_tab_label_text(
 			notebook,
@@ -166,7 +173,7 @@ void open_file(char *filename)
 			),
 			filename
 		);
-        
+
 		gtk_notebook_set_menu_label_text(
 			notebook,
 			gtk_notebook_get_nth_page(
@@ -174,7 +181,9 @@ void open_file(char *filename)
 			gtk_notebook_get_current_page(notebook)
 			),
 			filename
-		);		
+		);
+		
+		highlight_buffer(filename);
 	}
 
 	else
@@ -242,12 +251,12 @@ void save_file(const gchar *filename)
 	gtk_text_buffer_get_bounds (current_buffer, &start, &end);
 
 	content = gtk_text_buffer_get_text (current_buffer, &start, &end, FALSE);
-	
+
 	if (!g_file_set_contents (filename, content, -1, NULL))
 		g_warning ("The file '%s' could not be written!", filename);
 
 	g_free (content);
-	
+
 }
 
 void save_as_file(GtkFileChooser *chooser)
@@ -275,7 +284,7 @@ void save_as_file(GtkFileChooser *chooser)
 		),
 		filename
 	);
-        
+
 	gtk_notebook_set_menu_label_text(
 		notebook,
 		gtk_notebook_get_nth_page(
@@ -284,7 +293,7 @@ void save_as_file(GtkFileChooser *chooser)
 		),
 		filename
 	);
-    	
+
    	g_free (filename);
 
 	g_object_unref(loc);
@@ -317,18 +326,37 @@ void save_as_dialog()
 	gtk_widget_destroy (dialog);
 }
 
-GtkWidget* new_sourceview()
+void highlight_buffer(char *filename)
+{
+	
+	if (strcmp(filename,LABEL_UNSAVED) != 0)
+	{	
+		GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();
+	
+		GtkSourceLanguage *lang = gtk_source_language_manager_guess_language(lm, filename, NULL);
+	
+		gtk_source_buffer_set_language (buffer, lang);
+		gtk_source_buffer_set_highlight_syntax (buffer, TRUE);
+	}
+}
+
+GtkWidget* new_sourceview(char *filename)
 {
 	GtkWidget *source_view;
-
-    buffer = gtk_source_buffer_new (NULL);
-	gtk_source_buffer_set_style_scheme (buffer,
-	gtk_source_style_scheme_manager_get_scheme (
-	gtk_source_style_scheme_manager_get_default (), "solarized-dark"));
-
+	
+	buffer = gtk_source_buffer_new (NULL);
+	
 	source_view = gtk_source_view_new_with_buffer (buffer);
+	
+	gtk_source_buffer_set_style_scheme (buffer,
+    gtk_source_style_scheme_manager_get_scheme (
+    gtk_source_style_scheme_manager_get_default (), "solarized-dark"));
 
 	gtk_source_view_set_show_line_numbers (GTK_SOURCE_VIEW((source_view)), TRUE);
+
+	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(source_view), GTK_WRAP_WORD_CHAR);
+
+	highlight_buffer(filename);
 
     return source_view;
 }
@@ -337,8 +365,8 @@ void menu_newtab(char *filename)
 {
     GtkWidget *scrolled_window;
     GtkWidget *tabbox;
-    
-    GtkWidget *source_view = new_sourceview();
+
+    GtkWidget *source_view = new_sourceview(filename);
 
     tabbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
 
@@ -349,7 +377,7 @@ void menu_newtab(char *filename)
 	GTK_POLICY_AUTOMATIC);
 
 	gtk_widget_set_hexpand (scrolled_window, TRUE);
-	
+
 	GtkCssProvider *provider = gtk_css_provider_new ();
     gtk_css_provider_load_from_data (provider,
                                      "textview { font-family: Monospace; font-size: 11pt; }",
@@ -359,11 +387,11 @@ void menu_newtab(char *filename)
                                     GTK_STYLE_PROVIDER (provider),
                                     GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     g_object_unref (provider);
-	
+
 	gtk_container_add(GTK_CONTAINER(scrolled_window), source_view);
 
 	gtk_container_add (GTK_CONTAINER(tabbox), scrolled_window);
-	
+
 	gtk_widget_show_all(GTK_WIDGET(tabbox));
 
 	gtk_notebook_append_page_menu(
@@ -374,12 +402,12 @@ void menu_newtab(char *filename)
     );
 
     gtk_notebook_set_tab_reorderable(notebook, tabbox, TRUE);
-	
+
 	gtk_notebook_set_current_page(
 		notebook,
 		gtk_notebook_get_n_pages(notebook) - 1
     );
-	
+
 	g_signal_connect (buffer, "notify::text", G_CALLBACK (monitor_change), NULL);
 
 }
@@ -395,7 +423,7 @@ void create_menu (GtkApplication *app)
 	g_menu_append(fm, "Open	", "app.open");
 	g_menu_append(fm, "Save	", "app.save");
 	g_menu_append(fm, "Save	As", "app.save_as");
-	g_menu_append(fm, "Close Tab	", "app.close");
+	g_menu_append(fm, "Close Tab	", "app.close_tab");
 	g_menu_append(fm, "Close Window	", "app.quit");
 	g_menu_append_submenu (m, "File", G_MENU_MODEL(fm));
 	gtk_application_set_menubar(GTK_APPLICATION(app), G_MENU_MODEL(m));
@@ -424,11 +452,13 @@ activate (GtkApplication* app,
     create_menu(app);
 
     menu_newtab(LABEL_UNSAVED);
+    
+    g_signal_connect (G_OBJECT (window), "delete-event", G_CALLBACK (action_quit_activated), app);
 
     gtk_widget_show_all (window);
 }
 
-static gboolean saveornot_before_close(gint page)
+unsigned int saveornot_before_close(gint page)
 {
 	GtkWidget *message_dialog;
 
@@ -450,16 +480,18 @@ static gboolean saveornot_before_close(gint page)
 	{
 		case GTK_RESPONSE_ACCEPT:
 			menu_save();
+			return SAVE;
 			break;
 		case GTK_RESPONSE_REJECT:
 			gtk_notebook_remove_page(notebook, page);
+			return CLOSE;
 			break;
 		case GTK_RESPONSE_CANCEL:
-			return TRUE;
+			return CANCEL;
 			break;
 		default: /*close bottun was pressed*/
 			g_print("The bottun(Close without Saving/Cancel/Save) was not pressed.");
 	}
-	
-	return TRUE;	
+
+	return 0;	
 }
