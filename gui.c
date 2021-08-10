@@ -38,16 +38,17 @@ void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer 
 {
 	(void)action;
 	(void)parameter;
+
 	gint i;
-	
-	unsigned int res;
-	
+	unsigned int res = CLOSE;
+
 	for (i = 0; i < gtk_notebook_get_n_pages(notebook); i++)
 	{
- 		if (changed[i] == TRUE) {
+ 		if (changed[i] == TRUE) 
+ 		{
 			res = saveornot_before_close(i);
 
-		    if(res == CLOSE)
+		    if (res == CLOSE)
 		    	i--;
 		}
  	}
@@ -162,7 +163,7 @@ void open_file(char *filename)
 
   	current_buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view));
 
-    if ((gtk_text_buffer_get_char_count(current_buffer))== 0)
+    if ((gtk_text_buffer_get_char_count(current_buffer)) == 0)
     {
 		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
 		gtk_notebook_set_tab_label_text(
@@ -340,7 +341,7 @@ void highlight_buffer(char *filename)
 	}
 }
 
-GtkWidget* new_sourceview(char *filename)
+GtkWidget* new_sourceview()
 {
 	GtkWidget *source_view;
 	
@@ -356,8 +357,6 @@ GtkWidget* new_sourceview(char *filename)
 
 	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(source_view), GTK_WRAP_WORD_CHAR);
 
-	highlight_buffer(filename);
-
     return source_view;
 }
 
@@ -366,7 +365,9 @@ void menu_newtab(char *filename)
     GtkWidget *scrolled_window;
     GtkWidget *tabbox;
 
-    GtkWidget *source_view = new_sourceview(filename);
+    GtkWidget *source_view = new_sourceview();
+
+   	highlight_buffer(filename);
 
     tabbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
 
@@ -435,9 +436,7 @@ void create_menu (GtkApplication *app)
 	g_object_unref (m);
 }
 
-void
-activate (GtkApplication* app,
-          gpointer        user_data)
+void activate (GtkApplication* app, gpointer user_data)
 {
 	window = gtk_application_window_new (app);
 	gtk_window_set_title (GTK_WINDOW (window), "Litos");
