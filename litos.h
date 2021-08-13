@@ -5,6 +5,7 @@
 #include <gtksourceview/gtksource.h>
 
 GtkWidget *window;
+GtkWidget *headbar;
 GtkNotebook *notebook;
 GtkSourceBuffer *buffer;
 GtkWidget* new_sourceview();

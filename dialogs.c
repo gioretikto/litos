@@ -15,6 +15,7 @@ void save_file(const gchar *filename);
 
 void open_dialog();
 void close_tab();
+void menu_findreplaceall(void);
 
 unsigned int saveornot_before_close(gint page);
 gboolean get_notebook_no_pages(void);
@@ -23,11 +24,6 @@ const gchar* get_current_tab_label_text();
 void highlight_buffer(char *filename);
 GtkSourceView* tab_get_sourceview(int page);
 
-void action_open_dialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; open_dialog();}
-void action_save_dialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; menu_save();}
-void action_save_as_dialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; save_as_dialog();}
-void action_new_tab(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; menu_newtab ("unsaved");}
-void action_close_tab(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; close_tab();}
 void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
 {
 	(void)action;
@@ -51,15 +47,6 @@ void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer 
 		g_application_quit (G_APPLICATION (app));
 }
 
-const GActionEntry app_entries[] = {
-    {"new", action_new_tab, NULL, NULL, NULL, {0,0,0}},
-	{"open", action_open_dialog, NULL, NULL, NULL, {0,0,0}},
-	{"save", action_save_dialog, NULL, NULL, NULL, {0,0,0}},
-	{"save_as", action_save_as_dialog, NULL, NULL, NULL, {0,0,0}},
-	{"close_tab", action_close_tab, NULL, NULL, NULL, {0,0,0}},
-    {"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
-};
-
 struct {
   const gchar *action;
   const gchar *accels[2];
@@ -70,6 +57,7 @@ struct {
   { "app.quit", { "<Control>q", NULL} },
   { "app.save", { "<Control>s", NULL} },
   { "app.save_as", { "<Shift><Control>s", NULL} },
+  { "app.find_replace", { "<Control>r", NULL} },
   { "win.close", { "<Control>w", NULL} },
   { "win.cut", { "<Control>x", NULL} },
   { "win.copy", { "<Control>c", NULL} },
@@ -104,7 +92,8 @@ void open_dialog()
 		g_free (filename);
 	}
 
-	 gtk_widget_destroy (dialog);		  
+	gtk_widget_grab_focus(gtk_notebook_get_nth_page (notebook, gtk_notebook_get_current_page(notebook)));
+	gtk_widget_destroy (dialog);
 }
 
 void save_as_dialog()
@@ -135,27 +124,12 @@ void save_as_dialog()
 
 }
 
-void create_menu (GtkApplication *app)
+void set_acels (GtkApplication *app)
 {
-	GMenu *m, *fm;
 	long unsigned int i;
-
-	m = g_menu_new ();
-	fm = g_menu_new();
-	g_menu_append(fm, "New	", "app.new");
-	g_menu_append(fm, "Open	", "app.open");
-	g_menu_append(fm, "Save	", "app.save");
-	g_menu_append(fm, "Save	As", "app.save_as");
-	g_menu_append(fm, "Close Tab	", "app.close_tab");
-	g_menu_append(fm, "Close Window	", "app.quit");
-	g_menu_append_submenu (m, "File", G_MENU_MODEL(fm));
-	gtk_application_set_menubar(GTK_APPLICATION(app), G_MENU_MODEL(m));
-
-	g_action_map_add_action_entries(G_ACTION_MAP(app), app_entries, G_N_ELEMENTS(app_entries), app);
-  		for (i = 0; i < G_N_ELEMENTS(action_accels); i++)
-			gtk_application_set_accels_for_action(GTK_APPLICATION(app), action_accels[i].action, action_accels[i].accels);
-
-	g_object_unref (m);
+	
+	for (i = 0; i < G_N_ELEMENTS(action_accels); i++)
+		gtk_application_set_accels_for_action(GTK_APPLICATION(app), action_accels[i].action, action_accels[i].accels);
 }
 
 unsigned int saveornot_before_close(gint page)
@@ -262,8 +236,6 @@ void open_file(char *filename)
 	changed[gtk_notebook_get_current_page(notebook)] = FALSE;
 }
 
-
-
 void menu_save(void)
 {
     if (get_notebook_no_pages())
@@ -310,10 +282,7 @@ GtkSourceView* tab_get_sourceview(int page)
     if (page == CURRENT_PAGE)
 		page = gtk_notebook_get_current_page(notebook);
 
-    GList *children = get_tabbox_children(
-		notebook,
-		page
-    );
+    GList *children = get_tabbox_children(notebook,	page);
 
     return GTK_SOURCE_VIEW(gtk_bin_get_child(GTK_BIN(g_list_nth_data(children, 0))));
 }
@@ -415,4 +384,18 @@ void highlight_buffer(char *filename)
 		gtk_source_buffer_set_highlight_syntax (buffer, TRUE);
 	}
 }
+
+void about_dialog(void)
+{
+	const gchar *authors[] = {"Giovanni Resta", "giovannirestadev@gmail.com", NULL};
 	
+	gtk_show_about_dialog (NULL,
+                       "program-name", "Litos",
+                       "version", "0.0.1",
+    				   "license-type", GTK_LICENSE_GPL_3_0,
+    				   "website", "https://github.com/gioretikto/litos",
+					   "authors", authors,
+    				   "logo-icon-name", "start-here",
+                       "title", ("Litos"),
+                       NULL);
+}
