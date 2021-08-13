@@ -16,6 +16,7 @@ void save_file(const gchar *filename);
 void open_dialog();
 void close_tab();
 void menu_findreplaceall(void);
+void menu_newtab(char *filename);
 
 unsigned int saveornot_before_close(gint page);
 gboolean get_notebook_no_pages(void);
@@ -65,6 +66,11 @@ struct {
   { "win.selectall", { "<Control>a", NULL} }
 };
 
+void my_grab_focus()
+{
+	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE)));
+}
+
 void open_dialog()
 {
 	GtkWidget *dialog;
@@ -92,7 +98,8 @@ void open_dialog()
 		g_free (filename);
 	}
 
-	gtk_widget_grab_focus(gtk_notebook_get_nth_page (notebook, gtk_notebook_get_current_page(notebook)));
+	my_grab_focus();
+
 	gtk_widget_destroy (dialog);
 }
 
@@ -179,8 +186,15 @@ void close_tab()
 
 	if (changed[page] == TRUE)
 		saveornot_before_close(page);
-	else
-	    gtk_notebook_remove_page(notebook, page);
+
+	else{
+	    gtk_notebook_remove_page(notebook, page);	    
+	    if (get_notebook_no_pages())
+    	{
+			menu_newtab("unsaved");
+			return;
+		}
+	}
 }
 
 void open_file(char *filename)
@@ -248,6 +262,7 @@ void menu_save(void)
 		save_file(get_current_tab_label_text());
 		
 	changed[gtk_notebook_get_current_page(notebook)] = FALSE;
+	my_grab_focus();
 }
 
 const gchar* get_current_tab_label_text()

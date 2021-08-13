@@ -3,6 +3,7 @@
 void monitor_change() { changed[gtk_notebook_get_current_page(notebook)] = TRUE;}
 void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app);
 
+void close_tab();
 void open_dialog();
 void save_as_dialog();
 
@@ -110,11 +111,12 @@ void activate (GtkApplication* app, gpointer user_data)
 {
 	(void)user_data;
 
-    GtkWidget *about_button, *find_replace_button;
+    GtkWidget *about_button, *find_replace_button, *close_tab_button;
 
 	window = gtk_application_window_new (app);
 	headbar = gtk_header_bar_new();	
 
+	close_tab_button = gtk_button_new_with_label("Close Tab");
 	about_button = gtk_button_new_with_label("About");
 
     gtk_header_bar_set_title (GTK_HEADER_BAR (headbar), "Litos");
@@ -138,6 +140,7 @@ void activate (GtkApplication* app, gpointer user_data)
 	//gtk_popover_new (NULL);
 
 	gtk_container_add(GTK_CONTAINER (headbar), file_menu_button);
+	gtk_container_add(GTK_CONTAINER (headbar), close_tab_button);
 	gtk_container_add(GTK_CONTAINER (headbar), find_replace_button);
 	gtk_container_add(GTK_CONTAINER (headbar), about_button);
 
@@ -152,6 +155,7 @@ void activate (GtkApplication* app, gpointer user_data)
     init_find_replace_popover(GTK_MENU_BUTTON(find_replace_button));
 
     g_signal_connect (G_OBJECT (window), "delete-event", G_CALLBACK (action_quit_activated), app);
+   	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), NULL);
     g_signal_connect (find_replace_button, "clicked", G_CALLBACK (menu_findreplaceall), NULL);
 	g_signal_connect (about_button, "clicked", G_CALLBACK (about_dialog), NULL);
 
