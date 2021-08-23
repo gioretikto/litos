@@ -1,8 +1,5 @@
 #include "litos.h"
 
-void monitor_change() { changed[gtk_notebook_get_current_page(notebook)] = TRUE;}
-void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app);
-
 void close_tab();
 void open_dialog();
 void save_as_dialog();
@@ -16,8 +13,18 @@ void init_find_replace_popover(GtkMenuButton *find_replace_button);
 void menu_newtab(char *filename);
 void menu_findreplaceall(void);
 void menu_save(void);
+void find_button_clicked ();
+void my_grab_focus();
+
+void monitor_change() { changed[gtk_notebook_get_current_page(notebook)] = TRUE;}
+void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app);
 
 _Bool changed[10] = {FALSE};
+
+GtkWidget *window;
+GtkNotebook *notebook;
+GtkWidget *headbar;
+GtkSourceBuffer *buffer;
 
 void menu_newtab(char *filename)
 {
@@ -84,8 +91,6 @@ create_popover (GtkWidget       *parent,
 	gtk_menu_button_set_popover (GTK_MENU_BUTTON(parent), popover);
 	gtk_container_set_border_width (GTK_CONTAINER (popover), 6);
   
-	/*File menu content*/
-
   	GtkWidget *file_box, *new_tab_button, *open_button, *save_button, *save_as_button;
 
   	file_box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
@@ -125,8 +130,6 @@ void activate (GtkApplication* app, gpointer user_data)
 	gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (headbar), TRUE);
 	gtk_window_maximize (GTK_WINDOW (window));
 
-	/*File menu*/
-
     GtkWidget *file_menu_button;
     
 	file_menu_button = gtk_menu_button_new ();
@@ -135,9 +138,7 @@ void activate (GtkApplication* app, gpointer user_data)
 	create_popover(file_menu_button, GTK_POS_TOP);
 
 	gtk_button_set_image (GTK_BUTTON (file_menu_button), gtk_image_new_from_icon_name ("open-menu-symbolic", GTK_ICON_SIZE_BUTTON));
-	gtk_button_set_label (GTK_BUTTON (find_replace_button), "Find and Replace");
-
-	//gtk_popover_new (NULL);
+	gtk_button_set_image (GTK_BUTTON (find_replace_button), gtk_image_new_from_icon_name ("edit-find-replace", GTK_ICON_SIZE_BUTTON));
 
 	gtk_container_add(GTK_CONTAINER (headbar), file_menu_button);
 	gtk_container_add(GTK_CONTAINER (headbar), close_tab_button);
@@ -148,16 +149,17 @@ void activate (GtkApplication* app, gpointer user_data)
 
     gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(notebook));
 
-    set_acels(app);
-
     menu_newtab("unsaved");
+    my_grab_focus();
     
     init_find_replace_popover(GTK_MENU_BUTTON(find_replace_button));
 
     g_signal_connect (G_OBJECT (window), "delete-event", G_CALLBACK (action_quit_activated), app);
    	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), NULL);
-    g_signal_connect (find_replace_button, "clicked", G_CALLBACK (menu_findreplaceall), NULL);
+    g_signal_connect (find_replace_button, "clicked", G_CALLBACK (find_button_clicked), NULL);
 	g_signal_connect (about_button, "clicked", G_CALLBACK (about_dialog), NULL);
+	
+    set_acels(app);
 
     gtk_widget_show_all (window);
 }

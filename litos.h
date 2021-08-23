@@ -4,9 +4,9 @@
 #include <glib.h>
 #include <gtksourceview/gtksource.h>
 
-GtkWidget *window;
-GtkWidget *headbar;
-GtkNotebook *notebook;
-GtkSourceBuffer *buffer;
+extern GtkWidget *window;
+extern GtkWidget *headbar;
+extern GtkNotebook *notebook;
+extern GtkSourceBuffer *buffer;
 GtkWidget* new_sourceview();
 extern _Bool changed[10];

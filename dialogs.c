@@ -17,6 +17,7 @@ void open_dialog();
 void close_tab();
 void menu_findreplaceall(void);
 void menu_newtab(char *filename);
+void find_button_clicked ();
 
 unsigned int saveornot_before_close(gint page);
 gboolean get_notebook_no_pages(void);
@@ -24,7 +25,14 @@ gboolean check_equals_unsaved(void);
 const gchar* get_current_tab_label_text();
 void highlight_buffer(char *filename);
 GtkSourceView* tab_get_sourceview(int page);
+GtkTextBuffer* get_current_buffer();
 
+void action_find_replace(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; find_button_clicked();}
+void action_open_dialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; open_dialog();}
+void action_save_dialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; menu_save();}
+void action_save_as_dialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; save_as_dialog();}
+void action_new_tab(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; menu_newtab ("unsaved");}
+void action_close_tab(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; close_tab();}
 void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
 {
 	(void)action;
@@ -32,10 +40,12 @@ void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer 
 
 	gint i;
 	unsigned int res = CLOSE;
+	
+	GtkTextBuffer *current_buffer = get_current_buffer();
 
 	for (i = 0; i < gtk_notebook_get_n_pages(notebook); i++)
 	{
- 		if (changed[i] == TRUE) 
+ 		if (changed[i] == TRUE && (gtk_text_buffer_get_char_count(current_buffer)) !=0) 
  		{
 			res = saveornot_before_close(i);
 
@@ -47,6 +57,16 @@ void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer 
 	if (res == CLOSE || res == SAVE)
 		g_application_quit (G_APPLICATION (app));
 }
+
+const GActionEntry app_entries[] = {
+    {"new", action_new_tab, NULL, NULL, NULL, {0,0,0}},
+	{"open", action_open_dialog, NULL, NULL, NULL, {0,0,0}},
+	{"save", action_save_dialog, NULL, NULL, NULL, {0,0,0}},
+	{"save_as", action_save_as_dialog, NULL, NULL, NULL, {0,0,0}},
+	{"find_replace", action_find_replace, NULL, NULL, NULL, {0,0,0}},
+	{"close_tab", action_close_tab, NULL, NULL, NULL, {0,0,0}},
+    {"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
+};
 
 struct {
   const gchar *action;
@@ -73,6 +93,9 @@ void my_grab_focus()
 
 void open_dialog()
 {
+	if(gtk_notebook_get_n_pages(notebook) == 0)
+		menu_newtab("unsaved");
+
 	GtkWidget *dialog;
 	GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
 	gint res;
@@ -135,6 +158,7 @@ void set_acels (GtkApplication *app)
 {
 	long unsigned int i;
 	
+	g_action_map_add_action_entries(G_ACTION_MAP(app), app_entries, G_N_ELEMENTS(app_entries), app);
 	for (i = 0; i < G_N_ELEMENTS(action_accels); i++)
 		gtk_application_set_accels_for_action(GTK_APPLICATION(app), action_accels[i].action, action_accels[i].accels);
 }
@@ -177,9 +201,24 @@ unsigned int saveornot_before_close(gint page)
 	return 0;	
 }
 
+GtkTextBuffer* get_current_buffer()
+{
+
+	GtkSourceView *source_view;
+	GtkTextBuffer *current_buffer;
+
+	source_view = tab_get_sourceview(CURRENT_PAGE);
+
+  	current_buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view));
+  	
+  	return current_buffer;
+}
+
 void close_tab()
 {
-    if (get_notebook_no_pages())
+	GtkTextBuffer *current_buffer = get_current_buffer();
+	
+    if (get_notebook_no_pages() || (gtk_text_buffer_get_char_count(current_buffer)) == 0)
 		return;
 
 	gint page = gtk_notebook_get_current_page(notebook);
@@ -189,11 +228,6 @@ void close_tab()
 
 	else{
 	    gtk_notebook_remove_page(notebook, page);	    
-	    if (get_notebook_no_pages())
-    	{
-			menu_newtab("unsaved");
-			return;
-		}
 	}
 }
 
@@ -210,12 +244,7 @@ void open_file(char *filename)
 			return;
     }
 
-	GtkSourceView *source_view;
-	GtkTextBuffer *current_buffer;
-
-	source_view = tab_get_sourceview(CURRENT_PAGE);
-
-  	current_buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view));
+	GtkTextBuffer *current_buffer = get_current_buffer();
 
     if ((gtk_text_buffer_get_char_count(current_buffer)) == 0)
     {
@@ -387,8 +416,7 @@ void save_as_file(GtkFileChooser *chooser)
 }
 
 void highlight_buffer(char *filename)
-{
-	
+{	
 	if (strcmp(filename,"unsaved") != 0)
 	{	
 		GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();

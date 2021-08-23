@@ -12,9 +12,12 @@ and integrate this new feature in **litos**.
 
 Mousepad depends on the following packages:
 
-* [GTK](https://www.gtk.org) >=3.20.0
+* gcc
+* make
+* pkg-config
+* libgtk-3-dev [GTK](https://www.gtk.org) >=3.20.0
 * [GLib](https://wiki.gnome.org/Projects/GLib) >=2.42.0
-* [GtkSourceView](https://wiki.gnome.org/Projects/GtkSourceView) >=4.0
+* libgtksourceview-4-dev [GtkSourceView](https://wiki.gnome.org/Projects/GtkSourceView) >=4.0
 
 ### Installation
 
