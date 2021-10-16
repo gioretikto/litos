@@ -59,12 +59,13 @@ void find_button_clicked ()
 	selected = gtk_text_buffer_get_selection_bounds(buffer_selected, 
             &start_sel, &end_sel);
 	
-	if (selected) {
+	if (selected)
+	{
         gtk_text_buffer_get_start_iter(buffer_selected, &start_find);
         gtk_text_buffer_get_end_iter(buffer_selected, &end_find);
 
-        /*gtk_text_buffer_remove_tag_by_name(buffer_selected, "gray_bg", 
-            &start_find, &end_find);*/
+        gtk_text_buffer_remove_tag_by_name(buffer_selected, "gray_bg", 
+            &start_find, &end_find);
         text = (gchar *) gtk_text_buffer_get_text(buffer_selected, &start_sel,
             &end_sel, FALSE);
 

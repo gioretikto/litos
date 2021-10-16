@@ -6,48 +6,51 @@
 #define CLOSE 1
 #define CURRENT_PAGE -2
 
-void open_file(char *filename);
-void menu_newtab(char *filename);
-void menu_save(void);
-void save_as_dialog();
-void save_as_file(GtkFileChooser *chooser);
-void save_file(const gchar *filename);
+void open_file(char *filename, struct lit *litos);
+void menu_save(struct lit *litos);
+void save_as_dialog(struct lit *litos);
+void save_as_file(GtkFileChooser *chooser, struct lit *litos);
+void save_file(const gchar *filename, struct lit *litos);
 
-void open_dialog();
-void close_tab();
+void open_dialog(struct lit *litos);
+void close_tab(struct lit *litos);
 void menu_findreplaceall(void);
-void menu_newtab(char *filename);
+void menu_newtab(char *filename, struct lit *litos);
 void find_button_clicked ();
 
-unsigned int saveornot_before_close(gint page);
-gboolean get_notebook_no_pages(void);
-gboolean check_equals_unsaved(void);
+unsigned int saveornot_before_close(gint page, struct lit *litos);
+gboolean get_notebook_no_pages(struct lit *litos);
+gboolean check_equals_unsaved(struct lit *litos);
 const gchar* get_current_tab_label_text();
-void highlight_buffer(char *filename);
-GtkSourceView* tab_get_sourceview(int page);
-GtkTextBuffer* get_current_buffer();
+void highlight_buffer(char *filename, struct lit *litos);
+GtkSourceView* tab_get_sourceview(int page, struct lit *litos);
+GtkTextBuffer* get_current_buffer(struct lit *litos);
 
-void action_find_replace(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; find_button_clicked();}
-void action_open_dialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; open_dialog();}
-void action_save_dialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; menu_save();}
-void action_save_as_dialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; save_as_dialog();}
-void action_new_tab(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; menu_newtab ("unsaved");}
-void action_close_tab(GSimpleAction *action, GVariant *parameter, gpointer user_data) { (void)user_data; (void)action; (void)parameter; close_tab();}
-void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
+void action_find_replace(GSimpleAction *action, GVariant *parameter, gpointer user_data) {(void)user_data; (void)action; (void)parameter; find_button_clicked();}
+void action_open_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; open_dialog(userData);}
+void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(userData);}
+void action_save_as_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter;  save_as_dialog(userData);}
+void action_new_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_newtab ("unsaved", userData);}
+void action_close_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; close_tab(userData);}
+
+void action_quit_activated(GSimpleAction *action, GVariant *parameter, void* userData)
 {
 	(void)action;
 	(void)parameter;
 
 	gint i;
+
 	unsigned int res = CLOSE;
 	
-	GtkTextBuffer *current_buffer = get_current_buffer();
+	struct lit *litos = (struct lit*)userData;
 
-	for (i = 0; i < gtk_notebook_get_n_pages(notebook); i++)
+	GtkTextBuffer *current_buffer = get_current_buffer(litos);
+
+	for (i = 0; i < gtk_notebook_get_n_pages(litos->notebook); i++)
 	{
- 		if (changed[i] == TRUE && (gtk_text_buffer_get_char_count(current_buffer)) !=0) 
+ 		if (litos->changed[i] == TRUE && (gtk_text_buffer_get_char_count(current_buffer)) != 0)
  		{
-			res = saveornot_before_close(i);
+			res = saveornot_before_close(i, litos);
 
 		    if (res == CLOSE)
 		    	i--;
@@ -55,7 +58,7 @@ void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer 
  	}
 
 	if (res == CLOSE || res == SAVE)
-		g_application_quit (G_APPLICATION (app));
+		g_application_quit (G_APPLICATION (litos->app));
 }
 
 const GActionEntry app_entries[] = {
@@ -86,22 +89,24 @@ struct {
   { "win.selectall", { "<Control>a", NULL} }
 };
 
-void my_grab_focus()
+void my_grab_focus(struct lit *litos)
 {
-	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE)));
+	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
 }
 
-void open_dialog()
+void open_dialog(struct lit *litos)
 {
-	if(gtk_notebook_get_n_pages(notebook) == 0)
-		menu_newtab("unsaved");
+	if (gtk_notebook_get_n_pages(litos->notebook) == 0)
+		menu_newtab("unsaved", litos);
 
 	GtkWidget *dialog;
+
 	GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+
 	gint res;
 
 	dialog = gtk_file_chooser_dialog_new ("Open File",
-                                      GTK_WINDOW(window),
+                                      GTK_WINDOW(litos->window),
                                       action,
                                       _("_Cancel"),
                                       GTK_RESPONSE_CANCEL,
@@ -117,24 +122,26 @@ void open_dialog()
 		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
 		filename = gtk_file_chooser_get_filename (chooser);
 		g_print("%s\n",filename);
-   		open_file (filename);
+   		open_file (filename, litos);
 		g_free (filename);
 	}
 
-	my_grab_focus();
+	my_grab_focus(litos);
 
 	gtk_widget_destroy (dialog);
 }
 
-void save_as_dialog()
+void save_as_dialog(struct lit *litos)
 {
 	GtkWidget *dialog;
 	GtkFileChooser *chooser;
+
 	GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
+
 	gint res;
 
 	dialog = gtk_file_chooser_dialog_new ("Save File",
-		                                  GTK_WINDOW(window),
+		                                  GTK_WINDOW(litos->window),
 		                                  action,
 		                                  _("_Cancel"),
 		                                  GTK_RESPONSE_CANCEL,
@@ -148,10 +155,9 @@ void save_as_dialog()
 	res = gtk_dialog_run (GTK_DIALOG (dialog));
 
 	if (res == GTK_RESPONSE_ACCEPT)
-		save_as_file (chooser);
+		save_as_file (chooser, litos);
 
 	gtk_widget_destroy (dialog);
-
 }
 
 void set_acels (GtkApplication *app)
@@ -159,41 +165,48 @@ void set_acels (GtkApplication *app)
 	long unsigned int i;
 	
 	g_action_map_add_action_entries(G_ACTION_MAP(app), app_entries, G_N_ELEMENTS(app_entries), app);
+
 	for (i = 0; i < G_N_ELEMENTS(action_accels); i++)
 		gtk_application_set_accels_for_action(GTK_APPLICATION(app), action_accels[i].action, action_accels[i].accels);
 }
 
-unsigned int saveornot_before_close(gint page)
+unsigned int saveornot_before_close(gint page, struct lit *litos)
 {
 	GtkWidget *message_dialog;
 
 	gint res;
 
 	const gchar *filename = gtk_notebook_get_tab_label_text(
-								notebook,
-								gtk_notebook_get_nth_page (notebook, page)
+								litos->notebook,
+								gtk_notebook_get_nth_page (litos->notebook, page)
 							);
 
-	message_dialog = gtk_message_dialog_new(GTK_WINDOW(window), GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING,
+	message_dialog = gtk_message_dialog_new(GTK_WINDOW(litos->window), GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING,
                       GTK_BUTTONS_NONE, "Save changes to document %s before closing?", filename);
+
 	gtk_dialog_add_buttons (GTK_DIALOG(message_dialog), "Close without Saving", GTK_RESPONSE_REJECT,
                                                       "Cancel", GTK_RESPONSE_CANCEL, "Save", GTK_RESPONSE_ACCEPT,  NULL);
+
 	res = gtk_dialog_run(GTK_DIALOG(message_dialog));
+
 	gtk_widget_destroy(message_dialog);
 
 	switch (res)
 	{
 		case GTK_RESPONSE_ACCEPT:
-			menu_save();
+			menu_save(litos);
 			return SAVE;
 			break;
+
 		case GTK_RESPONSE_REJECT:
-			gtk_notebook_remove_page(notebook, page);
+			gtk_notebook_remove_page(litos->notebook, page);
 			return CLOSE;
 			break;
+
 		case GTK_RESPONSE_CANCEL:
 			return CANCEL;
 			break;
+
 		default: /*close bottun was pressed*/
 			g_print("The bottun(Close without Saving/Cancel/Save) was not pressed.");
 	}
@@ -201,41 +214,42 @@ unsigned int saveornot_before_close(gint page)
 	return 0;	
 }
 
-GtkTextBuffer* get_current_buffer()
+GtkTextBuffer* get_current_buffer(struct lit *litos)
 {
-
 	GtkSourceView *source_view;
 	GtkTextBuffer *current_buffer;
 
-	source_view = tab_get_sourceview(CURRENT_PAGE);
+	source_view = tab_get_sourceview(CURRENT_PAGE, litos);
 
   	current_buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view));
   	
   	return current_buffer;
 }
 
-void close_tab()
+void close_tab(struct lit *litos)
 {
-	GtkTextBuffer *current_buffer = get_current_buffer();
+	GtkTextBuffer *current_buffer = get_current_buffer(litos);
 	
-    if (get_notebook_no_pages() || (gtk_text_buffer_get_char_count(current_buffer)) == 0)
+    if (get_notebook_no_pages(litos) || (gtk_text_buffer_get_char_count(current_buffer)) == 0)
 		return;
 
-	gint page = gtk_notebook_get_current_page(notebook);
+	gint page = gtk_notebook_get_current_page(litos->notebook);
 
-	if (changed[page] == TRUE)
-		saveornot_before_close(page);
+	if (litos->changed[page] == TRUE)
+		saveornot_before_close(page, litos);
 
-	else{
-	    gtk_notebook_remove_page(notebook, page);	    
+	else
+	{
+	    gtk_notebook_remove_page(litos->notebook, page);	    
 	}
 }
 
-void open_file(char *filename)
+void open_file(char *filename, struct lit *litos)
 {
     gboolean read_file_status;
    	GError *error;
    	char* contents;
+
     read_file_status = g_file_get_contents(filename, &contents, NULL, &error);
 
     if (read_file_status == FALSE)
@@ -244,63 +258,65 @@ void open_file(char *filename)
 			return;
     }
 
-	GtkTextBuffer *current_buffer = get_current_buffer();
+	GtkTextBuffer *current_buffer = get_current_buffer(litos);
 
     if ((gtk_text_buffer_get_char_count(current_buffer)) == 0)
     {
 		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
+
 		gtk_notebook_set_tab_label_text(
-			notebook,
+			litos->notebook,
 			gtk_notebook_get_nth_page(
-		        notebook,
-		        gtk_notebook_get_current_page(notebook)
+		        litos->notebook,
+		        gtk_notebook_get_current_page(litos->notebook)
 			),
 			filename
 		);
 
 		gtk_notebook_set_menu_label_text(
-			notebook,
+			litos->notebook,
 			gtk_notebook_get_nth_page(
-			notebook,
-			gtk_notebook_get_current_page(notebook)
+			litos->notebook,
+			gtk_notebook_get_current_page(litos->notebook)
 			),
 			filename
 		);
 		
-		highlight_buffer(filename);
+		highlight_buffer(filename, litos);
 	}
 
 	else
 	{
-		menu_newtab(filename);
-		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(buffer), contents, -1);
+		menu_newtab(filename, litos);
+		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(litos->buffer), contents, -1);
 	}
 
-	changed[gtk_notebook_get_current_page(notebook)] = FALSE;
+	litos->changed[gtk_notebook_get_current_page(litos->notebook)] = FALSE;
 }
 
-void menu_save(void)
+void menu_save(struct lit *litos)
 {
-    if (get_notebook_no_pages())
+    if (get_notebook_no_pages(litos))
 		return;
 
-    if (check_equals_unsaved())
-		save_as_dialog();
+    if (check_equals_unsaved(litos))
+		save_as_dialog(litos);
 
     else
-		save_file(get_current_tab_label_text());
+		save_file(get_current_tab_label_text(), litos);
 		
-	changed[gtk_notebook_get_current_page(notebook)] = FALSE;
-	my_grab_focus();
+	litos->changed[gtk_notebook_get_current_page(litos->notebook)] = FALSE;
+
+	my_grab_focus(litos);
 }
 
-const gchar* get_current_tab_label_text()
+const gchar* get_current_tab_label_text(struct lit *litos)
 {
     return gtk_notebook_get_menu_label_text(
-		notebook,
+		litos->notebook,
 		gtk_notebook_get_nth_page(
-	        notebook,
-	        gtk_notebook_get_current_page(notebook)
+	        litos->notebook,
+	        gtk_notebook_get_current_page(litos->notebook)
 		)
     );
 }
@@ -313,38 +329,38 @@ GList* get_tabbox_children(GtkNotebook *tabnotebook, const gint page)
     )));
 }
 
-gboolean check_equals_unsaved(void)
+gboolean check_equals_unsaved(struct lit *litos)
 {
     return g_strcmp0(
-		get_current_tab_label_text(),
+		get_current_tab_label_text(litos),
 		"unsaved"
     ) == 0;
 }
 
-GtkSourceView* tab_get_sourceview(int page)
+GtkSourceView* tab_get_sourceview(int page, struct lit *litos)
 {
     if (page == CURRENT_PAGE)
-		page = gtk_notebook_get_current_page(notebook);
+		page = gtk_notebook_get_current_page(litos->notebook);
 
-    GList *children = get_tabbox_children(notebook,	page);
+    GList *children = get_tabbox_children(litos->notebook,page);
 
     return GTK_SOURCE_VIEW(gtk_bin_get_child(GTK_BIN(g_list_nth_data(children, 0))));
 }
 
-gboolean get_notebook_no_pages(void)
+gboolean get_notebook_no_pages(struct lit *litos)
 {
-    return gtk_notebook_get_n_pages(notebook) <= 0;
+    return gtk_notebook_get_n_pages(litos->notebook) <= 0;
 }
 
-GtkWidget* new_sourceview()
+GtkWidget* MyNewSourceview(struct lit *litos)
 {
 	GtkWidget *source_view;
 
-	buffer = gtk_source_buffer_new (NULL);
+	litos->buffer = gtk_source_buffer_new (NULL);
 
-	source_view = gtk_source_view_new_with_buffer (buffer);
+	source_view = gtk_source_view_new_with_buffer (litos->buffer);
 
-	gtk_source_buffer_set_style_scheme (buffer,
+	gtk_source_buffer_set_style_scheme (litos->buffer,
     gtk_source_style_scheme_manager_get_scheme (
     gtk_source_style_scheme_manager_get_default (), "solarized-dark"));
 
@@ -355,12 +371,13 @@ GtkWidget* new_sourceview()
     return source_view;
 }
 
-void save_file(const gchar *filename)
+void save_file(const gchar *filename, struct lit *litos)
 {
 	GtkTextIter start, end;
+
 	gchar *content;
 
-	GtkTextView *text_view = GTK_TEXT_VIEW(tab_get_sourceview(CURRENT_PAGE));
+	GtkTextView *text_view = GTK_TEXT_VIEW(tab_get_sourceview(CURRENT_PAGE, litos));
 
 	GtkTextBuffer *current_buffer = gtk_text_view_get_buffer (text_view);
 
@@ -372,40 +389,42 @@ void save_file(const gchar *filename)
 		g_warning ("The file '%s' could not be written!", filename);
 
 	g_free (content);
-
 }
 
-void save_as_file(GtkFileChooser *chooser)
+void save_as_file(GtkFileChooser *chooser, struct lit *litos)
 {
 	GFile *loc = gtk_file_chooser_get_file(chooser);
 	GtkTextIter begin, end;
 
-	GtkTextView *text_view = GTK_TEXT_VIEW(tab_get_sourceview(CURRENT_PAGE));
+	GtkTextView *text_view = GTK_TEXT_VIEW(tab_get_sourceview(CURRENT_PAGE, litos));
 
 	GtkTextBuffer *current_buffer = gtk_text_view_get_buffer (text_view);
 
 	gtk_text_buffer_get_start_iter(current_buffer, &begin);
 	gtk_text_buffer_get_end_iter(current_buffer, &end);
+
 	char* contents = gtk_text_buffer_get_text(current_buffer, &begin, &end, 0);
+
 	g_file_replace_contents(loc, contents, strlen(contents), NULL, TRUE, G_FILE_CREATE_NONE, NULL, NULL, NULL);
 
 	char *filename;
+
 	filename = gtk_file_chooser_get_filename (chooser);
 
     gtk_notebook_set_tab_label_text(
-    	notebook,
+    	litos->notebook,
     	gtk_notebook_get_nth_page(
-            notebook,
-            gtk_notebook_get_current_page(notebook)
+            litos->notebook,
+            gtk_notebook_get_current_page(litos->notebook)
 		),
 		filename
 	);
 
 	gtk_notebook_set_menu_label_text(
-		notebook,
+		litos->notebook,
 		gtk_notebook_get_nth_page(
-		notebook,
-		gtk_notebook_get_current_page(notebook)
+		litos->notebook,
+		gtk_notebook_get_current_page(litos->notebook)
 		),
 		filename
 	);
@@ -415,7 +434,7 @@ void save_as_file(GtkFileChooser *chooser)
 	g_object_unref(loc);
 }
 
-void highlight_buffer(char *filename)
+void highlight_buffer(char *filename, struct lit *litos)
 {	
 	if (strcmp(filename,"unsaved") != 0)
 	{	
@@ -423,8 +442,8 @@ void highlight_buffer(char *filename)
 	
 		GtkSourceLanguage *lang = gtk_source_language_manager_guess_language(lm, filename, NULL);
 	
-		gtk_source_buffer_set_language (buffer, lang);
-		gtk_source_buffer_set_highlight_syntax (buffer, TRUE);
+		gtk_source_buffer_set_language (litos->buffer, lang);
+		gtk_source_buffer_set_highlight_syntax (litos->buffer, TRUE);
 	}
 }
 

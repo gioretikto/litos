@@ -4,9 +4,13 @@
 #include <glib.h>
 #include <gtksourceview/gtksource.h>
 
-extern GtkWidget *window;
-extern GtkWidget *headbar;
-extern GtkNotebook *notebook;
-extern GtkSourceBuffer *buffer;
-GtkWidget* new_sourceview();
-extern _Bool changed[10];
+struct lit{
+	GtkWidget *window;
+	GtkNotebook *notebook;
+	GtkWidget *headbar;
+	GtkSourceBuffer *buffer;
+	_Bool changed[10];
+	GtkApplication *app;	
+};
+
+GtkWidget* MyNewSourceview(struct lit *litos);
