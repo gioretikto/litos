@@ -112,8 +112,6 @@ void activate (GtkApplication* app, gpointer userData)
 	litos->window = gtk_application_window_new (app);
 	litos->headbar = gtk_header_bar_new();
 
-	litos->app = app;
-
 	close_tab_button = gtk_button_new_with_label("Close Tab");
 	about_button = gtk_button_new_with_label("About");
 
@@ -148,12 +146,12 @@ void activate (GtkApplication* app, gpointer userData)
     
     init_find_replace_popover(GTK_MENU_BUTTON(find_replace_button));
 
-    g_signal_connect (G_OBJECT (litos->window), "delete-event", G_CALLBACK (action_quit_activated), app);
+    g_signal_connect (G_OBJECT (litos->window), "delete-event", G_CALLBACK (action_quit_activated), litos->app);
    	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), litos);
     g_signal_connect (find_replace_button, "clicked", G_CALLBACK (find_button_clicked), NULL);
 	g_signal_connect (about_button, "clicked", G_CALLBACK (about_dialog), NULL);
 	
-    set_acels(app);
+    set_acels(litos->app);
 
     gtk_widget_show_all (litos->window);
 }
