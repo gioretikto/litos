@@ -1,7 +1,7 @@
 #include "litos.h"
 
 void close_tab (GtkButton *button, gpointer userData);
-void open_dialog(struct lit *litos);
+void open_dialog (GtkWidget *widget, gpointer userData);
 void save_as_dialog(struct lit *litos);
 
 void set_acels (GtkApplication *app);
@@ -12,7 +12,7 @@ void about_dialog(void);
 void init_find_replace_popover(GtkMenuButton *find_replace_button);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void menu_findreplaceall(void);
-void menu_save(struct lit *litos);
+void menu_save (GtkWidget *widget, gpointer userData);
 void find_button_clicked ();
 void my_grab_focus(struct lit *litos);
 void create_popover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
