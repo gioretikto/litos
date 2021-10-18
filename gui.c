@@ -4,7 +4,7 @@ void close_tab (GtkButton *button, gpointer userData);
 void open_dialog (GtkWidget *widget, gpointer userData);
 void save_as_dialog(struct lit *litos);
 
-void set_acels (GtkApplication *app);
+void set_acels (struct lit *litos);
 
 void highlight_buffer(struct lit *litos);
 void init_find_replace_popover();
@@ -65,81 +65,14 @@ void activate (GtkApplication* app, gpointer userData)
     
     init_find_replace_popover(GTK_MENU_BUTTON(find_replace_button));
 
-    g_signal_connect (G_OBJECT (litos->window), "delete-event", G_CALLBACK (action_quit_activated), app);
+    g_signal_connect (G_OBJECT (litos->window), "delete-event", G_CALLBACK (action_quit_activated), litos);
    	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), litos);
     g_signal_connect (find_replace_button, "clicked", G_CALLBACK (find_button_clicked), NULL);
 	g_signal_connect (about_button, "clicked", G_CALLBACK (about_dialog), NULL);
 	
-    set_acels(app);
+    set_acels(litos);
 
     gtk_widget_show_all (litos->window);
-}
-
-
-void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)
-{
-	(void)gobject;
-
-	(void)pspec;
-
-	struct lit *litos = (struct lit*)userData;
-
-	litos->changed[gtk_notebook_get_current_page(litos->notebook)] = TRUE;
-}
-
-void menu_newtab (GtkWidget *widget, gpointer userData)
-{
-	(void)widget;
-
-	struct lit *litos = (struct lit*)userData;
-
-    GtkWidget *scrolled_window;
-
-    GtkWidget *tabbox;
-
-    GtkWidget *source_view = MyNewSourceview(litos);
-
-    tabbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
-
-    scrolled_window = gtk_scrolled_window_new (NULL, NULL);
-
-    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
-	GTK_POLICY_AUTOMATIC,
-	GTK_POLICY_AUTOMATIC);
-
-	gtk_widget_set_hexpand (scrolled_window, TRUE);
-
-	GtkCssProvider *provider = gtk_css_provider_new ();
-    gtk_css_provider_load_from_data (provider,
-                                     "textview { font-family: Monospace; font-size: 11pt; }",
-                                     -1,
-                                     NULL);
-    gtk_style_context_add_provider (gtk_widget_get_style_context (source_view),
-                                    GTK_STYLE_PROVIDER (provider),
-                                    GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-    g_object_unref (provider);
-
-	gtk_container_add(GTK_CONTAINER(scrolled_window), source_view);
-
-	gtk_container_add (GTK_CONTAINER(tabbox), scrolled_window);
-
-	gtk_widget_show_all(GTK_WIDGET(tabbox));
-
-	gtk_notebook_append_page_menu(
-		litos->notebook,
-		tabbox,
-		gtk_label_new(litos->filename),
-		gtk_label_new(litos->filename)
-    );
-
-    gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);
-
-	gtk_notebook_set_current_page(
-		litos->notebook,
-		gtk_notebook_get_n_pages(litos->notebook) - 1
-    );
-
-	g_signal_connect (litos->buffer, "notify::text", G_CALLBACK (monitor_change), litos);
 }
 
 void create_popover (GtkWidget *parent, GtkPositionType pos, struct lit *litos)
@@ -168,6 +101,7 @@ void create_popover (GtkWidget *parent, GtkPositionType pos, struct lit *litos)
 
 	g_signal_connect (new_tab_button, "clicked", G_CALLBACK (menu_newtab), litos);
 	g_signal_connect (open_button, "clicked", G_CALLBACK (open_dialog), litos);
+	g_signal_connect (save_as_button, "clicked", G_CALLBACK (save_as_dialog), litos);
 	g_signal_connect (save_button, "clicked", G_CALLBACK (menu_save), litos);
 
 	gtk_widget_show_all (file_box);

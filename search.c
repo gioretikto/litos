@@ -44,6 +44,7 @@ void init_find_replace_popover(GtkMenuButton *find_replace_button)
 void find_button_clicked ()
 {
 	gchar *text;
+
 	GtkTextBuffer *buffer_selected;
 
     GtkTextIter start_sel, end_sel;
@@ -82,7 +83,7 @@ void find_button_clicked ()
         }
         
             g_free(text);
-            gtk_text_buffer_remove_tag_by_name(buffer_selected, "gray_bg", 
+            gtk_text_buffer_remove_tag_by_name(buffer_selected, "gray_bg",
             &start_find, &end_find);
       }
       

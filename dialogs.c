@@ -91,6 +91,7 @@ void open_dialog (GtkWidget *widget, gpointer userData)
 void save_as_dialog(struct lit *litos)
 {
 	GtkWidget *dialog;
+
 	GtkFileChooser *chooser;
 
 	GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
