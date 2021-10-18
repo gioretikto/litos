@@ -15,7 +15,7 @@ struct lit{
 	GtkSourceBuffer *buffer;
 	_Bool changed[MAX_TAB];
 	GtkApplication *app;
-	char *filename;
+	char *filename[MAX_TAB];
 };
 
 GtkWidget* MyNewSourceview(struct lit *litos);

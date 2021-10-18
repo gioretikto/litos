@@ -50,6 +50,9 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 			g_print("The bottun(Close without Saving/Cancel/Save) was not pressed.");
 	}
 
+	if (litos->filename[page] != NULL)
+		g_free(litos->filename[page]);
+
 	return 0;	
 }
 
@@ -79,7 +82,7 @@ void open_dialog (GtkWidget *widget, gpointer userData)
 	if (res == GTK_RESPONSE_ACCEPT)
 	{
 		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-		litos->filename = gtk_file_chooser_get_filename (chooser);
+		litos->filename[gtk_notebook_get_current_page(litos->notebook)] = gtk_file_chooser_get_filename (chooser);
    		open_file (litos);
 	}
 

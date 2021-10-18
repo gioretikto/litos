@@ -7,7 +7,7 @@ void open_file(struct lit *litos);
 void menu_save (GtkWidget *widget, gpointer userData);
 void save_as_dialog(struct lit *litos);
 void save_as_file(GtkFileChooser *chooser, struct lit *litos);
-void save_file(struct lit *litos);
+void save_file(gint page, struct lit *litos);
 
 void close_tab (GtkButton *button, gpointer userData);
 void menu_findreplaceall(gpointer user_data);
@@ -15,7 +15,6 @@ void menu_newtab (GtkWidget *widget, gpointer userData);
 void find_button_clicked ();
 
 unsigned int saveornot_before_close(gint page, struct lit *litos);
-gboolean check_equals_unsaved(struct lit *litos);
 const gchar* get_current_tab_label_text();
 void highlight_buffer(struct lit *litos);
 GtkSourceView* tab_get_sourceview(int page, struct lit *litos);
@@ -128,7 +127,12 @@ void close_tab (GtkButton *button, gpointer userData)
 		saveornot_before_close(page, litos);
 
 	else
-	    gtk_notebook_remove_page(litos->notebook, page);	    
+	    gtk_notebook_remove_page(litos->notebook, page);
+
+	litos->changed[page] = FALSE;
+
+	if (litos->filename[page] != NULL)
+		g_free(litos->filename[page]);
 }
 
 
@@ -138,14 +142,16 @@ void menu_save (GtkWidget *widget, gpointer userData)
 
 	struct lit *litos = (struct lit*)userData;
 
-	if (check_equals_unsaved(litos))
+	gint page = gtk_notebook_get_current_page(litos->notebook);
+
+	litos->changed[page] = FALSE;
+
+	if (litos->filename[gtk_notebook_get_current_page(litos->notebook)] == NULL)
 		save_as_dialog(litos);
 
     else
-		save_file(litos);
+		save_file(page, litos);
 		
-	litos->changed[gtk_notebook_get_current_page(litos->notebook)] = FALSE;
-
 	my_grab_focus(litos);
 }
 
@@ -155,7 +161,9 @@ void open_file(struct lit *litos)
    	GError *error;
    	char* contents;
 
-    read_file_status = g_file_get_contents(litos->filename, &contents, NULL, &error);
+	gint page = gtk_notebook_get_current_page(litos->notebook);
+
+    read_file_status = g_file_get_contents(litos->filename[page], &contents, NULL, &error);
 
     if (read_file_status == FALSE)
     {
@@ -173,18 +181,18 @@ void open_file(struct lit *litos)
 			litos->notebook,
 			gtk_notebook_get_nth_page(
 		        litos->notebook,
-		        gtk_notebook_get_current_page(litos->notebook)
+		        page
 			),
-			litos->filename
+			litos->filename[page]
 		);
 
 		gtk_notebook_set_menu_label_text(
 			litos->notebook,
 			gtk_notebook_get_nth_page(
 			litos->notebook,
-			gtk_notebook_get_current_page(litos->notebook)
+			page
 			),
-			litos->filename
+			litos->filename[page]
 		);
 		
 		highlight_buffer(litos);
@@ -218,14 +226,6 @@ GList* get_tabbox_children(GtkNotebook *tabnotebook, const gint page)
     )));
 }
 
-gboolean check_equals_unsaved(struct lit *litos)
-{
-    return g_strcmp0(
-		get_current_tab_label_text(litos),
-		"Unsaved"
-    ) == 0;
-}
-
 GtkSourceView* tab_get_sourceview(int page, struct lit *litos)
 {
     if (page == CURRENT_PAGE)
@@ -255,7 +255,7 @@ GtkWidget* MyNewSourceview(struct lit *litos)
     return source_view;
 }
 
-void save_file(struct lit *litos)
+void save_file(gint page, struct lit *litos)
 {
 	GtkTextIter start, end;
 
@@ -269,8 +269,15 @@ void save_file(struct lit *litos)
 
 	content = gtk_text_buffer_get_text (current_buffer, &start, &end, FALSE);
 
-	if (!g_file_set_contents (litos->filename, content, -1, NULL))
-		g_warning ("The file '%s' could not be written!", litos->filename);
+	char *filename = NULL;
+
+	if(litos->filename[page] == NULL)
+		filename = "Unsaved";
+	else
+		filename = litos->filename[page];
+
+	if (!g_file_set_contents (filename, content, -1, NULL))
+		g_warning ("The file '%s' could not be written!", filename);
 
 	g_free (content);
 }
@@ -292,15 +299,15 @@ void save_as_file(GtkFileChooser *chooser, struct lit *litos)
 
 	g_file_replace_contents(loc, contents, strlen(contents), NULL, TRUE, G_FILE_CREATE_NONE, NULL, NULL, NULL);
 
-	char *filename;
+	char *filename = gtk_file_chooser_get_filename (chooser);
 
-	filename = gtk_file_chooser_get_filename (chooser);
+	gint page = gtk_notebook_get_current_page(litos->notebook);
 
     gtk_notebook_set_tab_label_text(
     	litos->notebook,
     	gtk_notebook_get_nth_page(
             litos->notebook,
-            gtk_notebook_get_current_page(litos->notebook)
+            page
 		),
 		filename
 	);
@@ -309,23 +316,26 @@ void save_as_file(GtkFileChooser *chooser, struct lit *litos)
 		litos->notebook,
 		gtk_notebook_get_nth_page(
 		litos->notebook,
-		gtk_notebook_get_current_page(litos->notebook)
+		page
 		),
 		filename
 	);
 
-   	g_free (filename);
+	litos->filename[page] = filename;
 
 	g_object_unref(loc);
 }
 
 void highlight_buffer(struct lit *litos) /* Apply different font styles depending on file extension .html .c, etc */
-{	
-	if (strcmp(litos->filename,"Unsaved") != 0)
+{
+
+	gint page = gtk_notebook_get_current_page(litos->notebook);
+
+	if (strcmp(litos->filename[page],"Unsaved") != 0)
 	{	
 		GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();
 	
-		GtkSourceLanguage *lang = gtk_source_language_manager_guess_language(lm, litos->filename, NULL);
+		GtkSourceLanguage *lang = gtk_source_language_manager_guess_language(lm, litos->filename[page], NULL);
 	
 		gtk_source_buffer_set_language (litos->buffer, lang);
 		gtk_source_buffer_set_highlight_syntax (litos->buffer, TRUE);
@@ -381,11 +391,15 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 
 	gtk_widget_show_all(GTK_WIDGET(tabbox));
 
+	gint page = gtk_notebook_get_current_page(litos->notebook);
+
+	page++;
+
 	gtk_notebook_append_page_menu(
 		litos->notebook,
 		tabbox,
-		gtk_label_new(litos->filename),
-		gtk_label_new(litos->filename)
+		gtk_label_new("Unsaved"),
+		gtk_label_new("Unsaved")
     );
 
     gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);

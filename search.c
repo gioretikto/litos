@@ -81,7 +81,7 @@ void find_button_clicked ()
           gtk_text_buffer_get_iter_at_offset(buffer_selected,
               &start_find, offset);
         }
-        
+
             g_free(text);
             gtk_text_buffer_remove_tag_by_name(buffer_selected, "gray_bg",
             &start_find, &end_find);

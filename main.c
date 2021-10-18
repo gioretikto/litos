@@ -17,7 +17,10 @@ main (int    argc,
 	int i;
 
 	for (i = 0; i < MAX_TAB; i++)
+	{
 		litos.changed[i] = FALSE;
+		litos.filename[i] = NULL;
+	}
 
 	app = gtk_application_new ("org.litos.gtk", G_APPLICATION_FLAGS_NONE);
 

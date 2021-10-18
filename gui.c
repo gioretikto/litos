@@ -26,8 +26,6 @@ void activate (GtkApplication* app, gpointer userData)
 
 	litos->app = app;
 
-	litos->filename = "Unsaved";
-
 	litos->window = gtk_application_window_new (app);
 	litos->headbar = gtk_header_bar_new();
 
