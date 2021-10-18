@@ -7,22 +7,25 @@ int
 main (int    argc,
       char **argv)
 {
+
 	int status;
+
+	GtkApplication* app;
 
 	struct lit litos;
 
 	int i;
 
-	for (i = 0; i < 10; i++)
+	for (i = 0; i < MAX_TAB; i++)
 		litos.changed[i] = FALSE;
 
-	litos.app = gtk_application_new ("org.litos.gtk", G_APPLICATION_FLAGS_NONE);
+	app = gtk_application_new ("org.litos.gtk", G_APPLICATION_FLAGS_NONE);
 
-	g_signal_connect (litos.app, "activate", G_CALLBACK (activate), &litos);
+	g_signal_connect (app, "activate", G_CALLBACK (activate), &litos);
 
-	status = g_application_run (G_APPLICATION (litos.app), argc, argv);
+	status = g_application_run (G_APPLICATION (app), argc, argv);
 
-	g_object_unref (litos.app);
+	g_object_unref (app);
 
 	return status;
 }

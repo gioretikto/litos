@@ -4,13 +4,18 @@
 #include <glib.h>
 #include <gtksourceview/gtksource.h>
 
+#define MAX_TAB 10
+#define SAVE 2
+#define CLOSE 1
+
 struct lit{
 	GtkWidget *window;
 	GtkNotebook *notebook;
 	GtkWidget *headbar;
 	GtkSourceBuffer *buffer;
-	_Bool changed[10];
-	GtkApplication *app;	
+	_Bool changed[MAX_TAB];
+	GtkApplication *app;
+	char *filename;
 };
 
 GtkWidget* MyNewSourceview(struct lit *litos);
