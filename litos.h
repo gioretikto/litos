@@ -13,7 +13,7 @@ struct lit{
 	GtkNotebook *notebook;
 	GtkWidget *headbar;
 	GtkSourceBuffer *buffer;
-	_Bool changed[MAX_TAB];
+	_Bool fileSaved[MAX_TAB];
 	GtkApplication *app;
 	char *filename[MAX_TAB];
 };

@@ -9,6 +9,15 @@ void save_file(struct lit *litos);
 void my_grab_focus(struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
 
+void freePage(int page, struct lit *litos)
+{
+	if (litos->filename[page] != NULL)
+	{
+		g_free(litos->filename[page]);
+		litos->filename[page] = NULL;
+	}
+}
+
 unsigned int saveornot_before_close(gint page, struct lit *litos)
 {
 	GtkWidget *message_dialog;
@@ -34,11 +43,13 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 	{
 		case GTK_RESPONSE_ACCEPT:
 			menu_save(NULL, litos);
+			freePage(page, litos);
 			return SAVE;
 			break;
 
 		case GTK_RESPONSE_REJECT:
 			gtk_notebook_remove_page(litos->notebook, page);
+			freePage(page, litos);
 			return CLOSE;
 			break;
 
@@ -51,9 +62,12 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 	}
 
 	if (litos->filename[page] != NULL)
+	{
 		g_free(litos->filename[page]);
+		litos->filename[page] = NULL;
+	}
 
-	return 0;	
+	return 0;
 }
 
 void open_dialog (GtkWidget *widget, gpointer userData)

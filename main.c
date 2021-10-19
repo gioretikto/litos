@@ -18,7 +18,7 @@ main (int    argc,
 
 	for (i = 0; i < MAX_TAB; i++)
 	{
-		litos.changed[i] = FALSE;
+		litos.fileSaved[i] = TRUE;
 		litos.filename[i] = NULL;
 	}
 

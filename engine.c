@@ -21,6 +21,7 @@ GtkSourceView* tab_get_sourceview(int page, struct lit *litos);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 
 void open_dialog (GtkWidget *widget, gpointer userData);
+void freePage(int page, struct lit *litos);
 
 void action_find_replace(GSimpleAction *action, GVariant *parameter, gpointer user_data) {(void)user_data; (void)action; (void)parameter; find_button_clicked();}
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(NULL, userData);}
@@ -40,11 +41,9 @@ void action_quit_activated(GSimpleAction *action, GVariant *parameter, void* use
 	
 	struct lit *litos = (struct lit*)userData;
 
-	GtkTextBuffer *current_buffer = get_current_buffer(litos);
-
 	for (i = 0; i < gtk_notebook_get_n_pages(litos->notebook); i++)
 	{
- 		if (litos->changed[i] == TRUE && (gtk_text_buffer_get_char_count(current_buffer)) != 0)
+ 		if (litos->fileSaved[i] == FALSE)
  		{
 			res = saveornot_before_close(i, litos);
 
@@ -123,13 +122,13 @@ void close_tab (GtkButton *button, gpointer userData)
 
 	gint page = gtk_notebook_get_current_page(litos->notebook);
 
-	if (litos->changed[page] == TRUE)
+	if (litos->fileSaved[page] == FALSE)
 		saveornot_before_close(page, litos);
 
 	else
 	    gtk_notebook_remove_page(litos->notebook, page);
 
-	litos->changed[page] = FALSE;
+	litos->fileSaved[page] = TRUE;
 
 	if (litos->filename[page] != NULL)
 		g_free(litos->filename[page]);
@@ -144,7 +143,7 @@ void menu_save (GtkWidget *widget, gpointer userData)
 
 	gint page = gtk_notebook_get_current_page(litos->notebook);
 
-	litos->changed[page] = FALSE;
+	litos->fileSaved[page] = TRUE;
 
 	if (litos->filename[gtk_notebook_get_current_page(litos->notebook)] == NULL)
 		save_as_dialog(litos);
@@ -203,8 +202,6 @@ void open_file(struct lit *litos)
     	menu_newtab(NULL, litos);
 		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(litos->buffer), contents, -1);
 	}
-
-	litos->changed[gtk_notebook_get_current_page(litos->notebook)] = FALSE;
 }
 
 const gchar* get_current_tab_label_text(struct lit *litos)
@@ -350,7 +347,7 @@ void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)
 
 	struct lit *litos = (struct lit*)userData;
 
-	litos->changed[gtk_notebook_get_current_page(litos->notebook)] = TRUE;
+	litos->fileSaved[gtk_notebook_get_current_page(litos->notebook)] = FALSE;
 }
 
 void menu_newtab (GtkWidget *widget, gpointer userData)
