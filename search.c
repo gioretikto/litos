@@ -1,17 +1,12 @@
 #include "litos.h"
 
-gboolean get_notebook_no_pages(void);
-void find_button_clicked ();
-GtkTextBuffer* get_current_buffer();
+GtkTextBuffer* get_current_buffer(struct lit *litos);
 void find_button_clicked (GtkButton *button, gpointer userData);
-void my_grab_focus();
-
-GtkWidget *popover;
-GtkWidget *search_entry;
+void my_grab_focus(struct lit *litos);
 
 void init_find_replace_popover(GtkMenuButton *find_replace_button)
-{	
-	GtkWidget *vbox, *hbox_find, *hbox_replace, *label_find, *find_button;
+{
+	GtkWidget *vbox, *hbox_find, *hbox_replace, *label_find, *find_button, *popover, *search_entry;
 	
 	search_entry = gtk_entry_new ();
 	
@@ -44,7 +39,8 @@ void init_find_replace_popover(GtkMenuButton *find_replace_button)
 void find_button_clicked (GtkButton *button, gpointer userData)
 {
 	(void)button;
-	(void)userData;
+
+	struct lit *litos = (struct lit*)userData;
 
 	gchar *text;
 
@@ -55,7 +51,7 @@ void find_button_clicked (GtkButton *button, gpointer userData)
 	GtkTextIter start_match, end_match;
 	gboolean selected = FALSE;
 
-	buffer_selected = get_current_buffer();
+	buffer_selected = get_current_buffer(litos);
 
 	gtk_text_buffer_create_tag(buffer_selected, "gray_bg",
       "background", "#657b83", NULL);

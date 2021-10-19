@@ -65,7 +65,7 @@ void activate (GtkApplication* app, gpointer userData)
 
     g_signal_connect (G_OBJECT (litos->window), "delete-event", G_CALLBACK (action_quit_activated), litos);
    	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), litos);
-    g_signal_connect (find_replace_button, "clicked", G_CALLBACK (find_button_clicked), NULL);
+    g_signal_connect (find_replace_button, "clicked", G_CALLBACK (find_button_clicked), litos);
 	g_signal_connect (about_button, "clicked", G_CALLBACK (about_dialog), NULL);
 	
     set_acels(litos);
