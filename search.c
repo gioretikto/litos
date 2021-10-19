@@ -44,14 +44,12 @@ void find_button_clicked (GtkButton *button, gpointer userData)
 
 	gchar *text;
 
-	GtkTextBuffer *buffer_selected;
+	GtkTextBuffer *buffer_selected = get_current_buffer(litos);;
 
     GtkTextIter start_sel, end_sel;
 	GtkTextIter start_find, end_find;
 	GtkTextIter start_match, end_match;
 	gboolean selected = FALSE;
-
-	buffer_selected = get_current_buffer(litos);
 
 	gtk_text_buffer_create_tag(buffer_selected, "gray_bg",
       "background", "#657b83", NULL);
@@ -86,6 +84,6 @@ void find_button_clicked (GtkButton *button, gpointer userData)
 		&start_find, &end_find);
 	}
       
-      else
-      	return;
+	else
+		return;
 }
