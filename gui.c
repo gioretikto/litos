@@ -8,12 +8,12 @@ void set_acels (struct lit *litos);
 
 void highlight_buffer(struct lit *litos);
 void init_find_replace_popover();
-void about_dialog(void);
+void about_dialog (GtkButton *button, gpointer userData);
 void init_find_replace_popover(GtkMenuButton *find_replace_button);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void menu_findreplaceall(void);
 void menu_save (GtkWidget *widget, gpointer userData);
-void find_button_clicked ();
+void find_button_clicked (GtkButton *button, gpointer userData);
 void my_grab_focus(struct lit *litos);
 void create_popover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
 void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app);

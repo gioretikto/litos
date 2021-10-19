@@ -135,8 +135,11 @@ void save_as_dialog(struct lit *litos)
 	gtk_widget_destroy (dialog);
 }
 
-void about_dialog(void)
+void about_dialog (GtkButton *button, gpointer userData)
 {
+	(void)button;
+	(void)userData;
+
 	const gchar *authors[] = {"Giovanni Resta", "giovannirestadev@gmail.com", NULL};
 	
 	gtk_show_about_dialog (NULL,

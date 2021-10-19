@@ -1,4 +1,3 @@
-#include <string.h>
 #include "litos.h"
 
 #define CURRENT_PAGE -2
@@ -12,7 +11,7 @@ void save_file(gint page, struct lit *litos);
 void close_tab (GtkButton *button, gpointer userData);
 void menu_findreplaceall(gpointer user_data);
 void menu_newtab (GtkWidget *widget, gpointer userData);
-void find_button_clicked ();
+void find_button_clicked (GtkButton *button, gpointer userData);
 
 unsigned int saveornot_before_close(gint page, struct lit *litos);
 const gchar* get_current_tab_label_text();
@@ -23,7 +22,7 @@ GtkTextBuffer* get_current_buffer(struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
 void freePage(int page, struct lit *litos);
 
-void action_find_replace(GSimpleAction *action, GVariant *parameter, gpointer user_data) {(void)user_data; (void)action; (void)parameter; find_button_clicked();}
+void action_find_replace(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; find_button_clicked(NULL, NULL);}
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(NULL, userData);}
 void action_new_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_newtab (NULL, userData);}
 void action_close_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; close_tab(NULL, userData);}
@@ -76,7 +75,7 @@ struct {
   { "app.quit", { "<Control>q", NULL} },
   { "app.save", { "<Control>s", NULL} },
   { "app.save_as", { "<Shift><Control>s", NULL} },
-  { "app.find_replace", { "<Control>r", NULL} },
+  { "app.find_replace", { "<Control>f", NULL} },
   { "win.close", { "<Control>w", NULL} },
   { "win.cut", { "<Control>x", NULL} },
   { "win.copy", { "<Control>c", NULL} },

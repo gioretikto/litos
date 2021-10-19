@@ -3,7 +3,7 @@
 gboolean get_notebook_no_pages(void);
 void find_button_clicked ();
 GtkTextBuffer* get_current_buffer();
-void find_button_clicked ();
+void find_button_clicked (GtkButton *button, gpointer userData);
 void my_grab_focus();
 
 GtkWidget *popover;
@@ -41,8 +41,11 @@ void init_find_replace_popover(GtkMenuButton *find_replace_button)
 }
 
 /* Called when find button is clicked. */
-void find_button_clicked ()
+void find_button_clicked (GtkButton *button, gpointer userData)
 {
+	(void)button;
+	(void)userData;
+
 	gchar *text;
 
 	GtkTextBuffer *buffer_selected;
@@ -54,10 +57,10 @@ void find_button_clicked ()
 
 	buffer_selected = get_current_buffer();
 
-	gtk_text_buffer_create_tag(buffer_selected, "gray_bg", 
+	gtk_text_buffer_create_tag(buffer_selected, "gray_bg",
       "background", "#657b83", NULL);
 
-	selected = gtk_text_buffer_get_selection_bounds(buffer_selected, 
+	selected = gtk_text_buffer_get_selection_bounds(buffer_selected,
             &start_sel, &end_sel);
 	
 	if (selected)
@@ -65,7 +68,7 @@ void find_button_clicked ()
         gtk_text_buffer_get_start_iter(buffer_selected, &start_find);
         gtk_text_buffer_get_end_iter(buffer_selected, &end_find);
 
-        gtk_text_buffer_remove_tag_by_name(buffer_selected, "gray_bg", 
+        gtk_text_buffer_remove_tag_by_name(buffer_selected, "gray_bg",
             &start_find, &end_find);
         text = (gchar *) gtk_text_buffer_get_text(buffer_selected, &start_sel,
             &end_sel, FALSE);
@@ -82,10 +85,10 @@ void find_button_clicked ()
               &start_find, offset);
         }
 
-            g_free(text);
-            gtk_text_buffer_remove_tag_by_name(buffer_selected, "gray_bg",
-            &start_find, &end_find);
-      }
+		g_free(text);
+		gtk_text_buffer_remove_tag_by_name(buffer_selected, "gray_bg",
+		&start_find, &end_find);
+	}
       
       else
       	return;
