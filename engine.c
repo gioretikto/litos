@@ -22,7 +22,7 @@ GtkTextBuffer* get_current_buffer(struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
 void freePage(int page, struct lit *litos);
 
-void action_find_replace(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; find_button_clicked(NULL, NULL);}
+void action_find_replace(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; find_button_clicked(NULL, userData);}
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(NULL, userData);}
 void action_new_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_newtab (NULL, userData);}
 void action_close_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; close_tab(NULL, userData);}

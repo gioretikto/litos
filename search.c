@@ -7,11 +7,11 @@ void my_grab_focus(struct lit *litos);
 void init_find_replace_popover(GtkMenuButton *find_replace_button)
 {
 	GtkWidget *vbox, *hbox_find, *hbox_replace, *label_find, *find_button, *popover, *search_entry;
-	
+
 	search_entry = gtk_entry_new ();
-	
+
 	label_find = gtk_label_new ("Find:");
-	
+
 	find_button = gtk_button_new_with_label("Find");
 
 	vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
@@ -31,7 +31,7 @@ void init_find_replace_popover(GtkMenuButton *find_replace_button)
 	gtk_popover_set_position (GTK_POPOVER (popover), GTK_POS_RIGHT);
 	
 	gtk_widget_show_all (vbox);
-	
+
 	g_signal_connect (find_button, "clicked", G_CALLBACK (find_button_clicked), NULL);
 }
 
@@ -44,7 +44,7 @@ void find_button_clicked (GtkButton *button, gpointer userData)
 
 	gchar *text;
 
-	GtkTextBuffer *buffer_selected = get_current_buffer(litos);;
+	GtkTextBuffer *buffer_selected = get_current_buffer(litos);
 
     GtkTextIter start_sel, end_sel;
 	GtkTextIter start_find, end_find;
@@ -64,6 +64,7 @@ void find_button_clicked (GtkButton *button, gpointer userData)
 
         gtk_text_buffer_remove_tag_by_name(buffer_selected, "gray_bg",
             &start_find, &end_find);
+
         text = (gchar *) gtk_text_buffer_get_text(buffer_selected, &start_sel,
             &end_sel, FALSE);
 
@@ -83,7 +84,7 @@ void find_button_clicked (GtkButton *button, gpointer userData)
 		gtk_text_buffer_remove_tag_by_name(buffer_selected, "gray_bg",
 		&start_find, &end_find);
 	}
-      
+
 	else
 		return;
 }
