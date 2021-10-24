@@ -7,14 +7,13 @@ void save_as_dialog(struct lit *litos);
 void set_acels (struct lit *litos);
 
 void highlight_buffer(struct lit *litos);
-void init_find_replace_popover();
 void about_dialog (GtkButton *button, gpointer userData);
-void init_find_replace_popover(GtkMenuButton *find_replace_button);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void menu_findreplaceall(void);
 void menu_save (GtkWidget *widget, gpointer userData);
-void find_button_clicked (GtkButton *button, gpointer userData);
-void create_popover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
+void findButtonClicked (GtkButton *button, gpointer userData);
+void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
+void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos);
 void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app);
 GtkSourceView* tab_get_sourceview(int page, struct lit *litos);
 
@@ -22,7 +21,7 @@ void activate (GtkApplication* app, gpointer userData)
 {
 	struct lit *litos = (struct lit*)userData;
 
-    GtkWidget *about_button, *find_replace_button, *close_tab_button;
+    GtkWidget *about_button, *find_menu_button, *close_tab_button, *file_menu_button;
 
 	litos->app = app;
 
@@ -38,19 +37,18 @@ void activate (GtkApplication* app, gpointer userData)
 	gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (litos->headbar), TRUE);
 	gtk_window_maximize (GTK_WINDOW (litos->window));
 
-    GtkWidget *file_menu_button;
-    
 	file_menu_button = gtk_menu_button_new ();
-	find_replace_button = gtk_menu_button_new();
+	find_menu_button = gtk_menu_button_new ();
 	
-	create_popover(file_menu_button, GTK_POS_TOP, litos);
+	createFilePopover(file_menu_button, GTK_POS_TOP, litos);
+    createFindPopover(GTK_MENU_BUTTON(find_menu_button), litos);
 
 	gtk_button_set_image (GTK_BUTTON (file_menu_button), gtk_image_new_from_icon_name ("open-menu-symbolic", GTK_ICON_SIZE_BUTTON));
-	gtk_button_set_image (GTK_BUTTON (find_replace_button), gtk_image_new_from_icon_name ("edit-find-replace", GTK_ICON_SIZE_BUTTON));
+	gtk_button_set_image (GTK_BUTTON (find_menu_button), gtk_image_new_from_icon_name ("edit-find-replace", GTK_ICON_SIZE_BUTTON));
 
 	gtk_container_add(GTK_CONTAINER (litos->headbar), file_menu_button);
+	gtk_container_add(GTK_CONTAINER (litos->headbar), find_menu_button);
 	gtk_container_add(GTK_CONTAINER (litos->headbar), close_tab_button);
-	gtk_container_add(GTK_CONTAINER (litos->headbar), find_replace_button);
 	gtk_container_add(GTK_CONTAINER (litos->headbar), about_button);
 
     litos->notebook = GTK_NOTEBOOK(gtk_notebook_new());
@@ -60,12 +58,10 @@ void activate (GtkApplication* app, gpointer userData)
     menu_newtab(NULL, litos);
 
 	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
-    
-    init_find_replace_popover(GTK_MENU_BUTTON(find_replace_button));
 
     g_signal_connect (G_OBJECT (litos->window), "delete-event", G_CALLBACK (action_quit_activated), litos);
    	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), litos);
-    g_signal_connect (find_replace_button, "clicked", G_CALLBACK (find_button_clicked), litos);
+    g_signal_connect (find_menu_button, "clicked", G_CALLBACK (findButtonClicked), litos);
 	g_signal_connect (about_button, "clicked", G_CALLBACK (about_dialog), NULL);
 	
     set_acels(litos);
@@ -73,7 +69,7 @@ void activate (GtkApplication* app, gpointer userData)
     gtk_widget_show_all (litos->window);
 }
 
-void create_popover (GtkWidget *parent, GtkPositionType pos, struct lit *litos)
+void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos)
 {
 	GtkWidget *popover;
 
@@ -104,3 +100,4 @@ void create_popover (GtkWidget *parent, GtkPositionType pos, struct lit *litos)
 
 	gtk_widget_show_all (file_box);
 }
+

@@ -9,7 +9,7 @@ void save_file(gint page, struct lit *litos);
 void close_tab (GtkButton *button, gpointer userData);
 void menu_findreplaceall(gpointer user_data);
 void menu_newtab (GtkWidget *widget, gpointer userData);
-void find_button_clicked (GtkButton *button, gpointer userData);
+void ctrlF (GtkButton *button, gpointer userData);
 
 unsigned int saveornot_before_close(gint page, struct lit *litos);
 const gchar* get_current_tab_label_text();
@@ -21,7 +21,7 @@ void open_dialog (GtkWidget *widget, gpointer userData);
 void freePage(int page, struct lit *litos);
 void find_clear_tags(struct lit *litos);
 
-void action_find_replace(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; find_button_clicked(NULL, userData);}
+void action_find(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; ctrlF(NULL, userData);}
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(NULL, userData);}
 void action_new_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_newtab (NULL, userData);}
 void action_close_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; close_tab(NULL, userData);}
@@ -59,7 +59,7 @@ const GActionEntry app_entries[] = {
 	{"open", action_open_dialog, NULL, NULL, NULL, {0,0,0}},
 	{"save", action_save_dialog, NULL, NULL, NULL, {0,0,0}},
 	{"save_as", action_save_as_dialog, NULL, NULL, NULL, {0,0,0}},
-	{"find_replace", action_find_replace, NULL, NULL, NULL, {0,0,0}},
+	{"find", action_find, NULL, NULL, NULL, {0,0,0}},
 	{"close_tab", action_close_tab, NULL, NULL, NULL, {0,0,0}},
     {"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
 };
@@ -74,7 +74,7 @@ struct {
   { "app.quit", { "<Control>q", NULL} },
   { "app.save", { "<Control>s", NULL} },
   { "app.save_as", { "<Shift><Control>s", NULL} },
-  { "app.find_replace", { "<Control>f", NULL} },
+  { "app.find", { "<Control>f", NULL} },
   { "win.close", { "<Control>w", NULL} },
   { "win.cut", { "<Control>x", NULL} },
   { "win.copy", { "<Control>c", NULL} },
