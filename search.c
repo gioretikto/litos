@@ -35,6 +35,7 @@ void init_find_replace_popover(GtkMenuButton *find_replace_button)
 	g_signal_connect (find_button, "clicked", G_CALLBACK (find_button_clicked), NULL);
 }
 
+
 /* Called when find button is clicked. */
 void find_button_clicked (GtkButton *button, gpointer userData)
 {
@@ -42,28 +43,25 @@ void find_button_clicked (GtkButton *button, gpointer userData)
 
 	struct lit *litos = (struct lit*)userData;
 
+	GtkTextIter start_find, end_find;
+    GtkTextIter start_sel, end_sel;
+	GtkTextIter start_match, end_match;
+
 	gchar *text;
+	gint page = gtk_notebook_get_current_page(litos->notebook);
 
 	GtkTextBuffer *buffer_selected = get_current_buffer(litos);
 
-    GtkTextIter start_sel, end_sel;
-	GtkTextIter start_find, end_find;
-	GtkTextIter start_match, end_match;
 	gboolean selected = FALSE;
-
-	gtk_text_buffer_create_tag(buffer_selected, "gray_bg",
-      "background", "#657b83", NULL);
 
 	selected = gtk_text_buffer_get_selection_bounds(buffer_selected,
             &start_sel, &end_sel);
-	
-	if (selected)
+
+	if (selected && litos->search[page] == FALSE)
 	{
+		litos->search[page] = TRUE;
         gtk_text_buffer_get_start_iter(buffer_selected, &start_find);
         gtk_text_buffer_get_end_iter(buffer_selected, &end_find);
-
-        gtk_text_buffer_remove_tag_by_name(buffer_selected, "gray_bg",
-            &start_find, &end_find);
 
         text = (gchar *) gtk_text_buffer_get_text(buffer_selected, &start_sel,
             &end_sel, FALSE);
@@ -71,20 +69,33 @@ void find_button_clicked (GtkButton *button, gpointer userData)
         while (gtk_text_iter_forward_search(&start_find, text,
                 GTK_TEXT_SEARCH_TEXT_ONLY |
                 GTK_TEXT_SEARCH_VISIBLE_ONLY,
-                &start_match, &end_match, NULL)) {
+                &start_match, &end_match, NULL))
+		{
+			gtk_text_buffer_apply_tag_by_name(buffer_selected, "gray_bg",
+		          &start_match, &end_match);
+		
+			gint offset = gtk_text_iter_get_offset(&end_match);
 
-          gtk_text_buffer_apply_tag_by_name(buffer_selected, "gray_bg",
-              &start_match, &end_match);
-          gint offset = gtk_text_iter_get_offset(&end_match);
-          gtk_text_buffer_get_iter_at_offset(buffer_selected,
-              &start_find, offset);
+			gtk_text_buffer_get_iter_at_offset(buffer_selected,
+				&start_find, offset);
         }
 
 		g_free(text);
-		gtk_text_buffer_remove_tag_by_name(buffer_selected, "gray_bg",
-		&start_find, &end_find);
 	}
+}
 
-	else
-		return;
+
+void find_clear_tags(struct lit *litos)
+{
+	gint page = gtk_notebook_get_current_page(litos->notebook);
+
+	litos->search[page] = FALSE;
+
+	GtkTextBuffer *buffer_selected = get_current_buffer(litos);
+	GtkTextIter start_find, end_find;
+  	gtk_text_buffer_get_start_iter(buffer_selected, &start_find);
+    gtk_text_buffer_get_end_iter(buffer_selected, &end_find);
+
+	gtk_text_buffer_remove_tag_by_name(buffer_selected, "gray_bg",
+              &start_find, &end_find);
 }

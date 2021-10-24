@@ -1,7 +1,5 @@
 #include "litos.h"
 
-#define CURRENT_PAGE -2
-
 void open_file(struct lit *litos);
 void menu_save (GtkWidget *widget, gpointer userData);
 void save_as_dialog(struct lit *litos);
@@ -21,6 +19,7 @@ GtkTextBuffer* get_current_buffer(struct lit *litos);
 
 void open_dialog (GtkWidget *widget, gpointer userData);
 void freePage(int page, struct lit *litos);
+void find_clear_tags(struct lit *litos);
 
 void action_find_replace(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; find_button_clicked(NULL, userData);}
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(NULL, userData);}
@@ -82,11 +81,6 @@ struct {
   { "win.paste", { "<Control>v", NULL} },
   { "win.selectall", { "<Control>a", NULL} }
 };
-
-void my_grab_focus(struct lit *litos)
-{
-	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
-}
 
 void set_acels (struct lit *litos)
 {
@@ -150,7 +144,7 @@ void menu_save (GtkWidget *widget, gpointer userData)
     else
 		save_file(page, litos);
 		
-	my_grab_focus(litos);
+	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
 }
 
 void open_file(struct lit *litos)
@@ -248,6 +242,9 @@ GtkWidget* MyNewSourceview(struct lit *litos)
 
 	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(source_view), GTK_WRAP_WORD_CHAR);
 
+	gtk_text_buffer_create_tag(GTK_TEXT_BUFFER(litos->buffer), "gray_bg",
+			  "background", "#657b83", NULL);
+
     return source_view;
 }
 
@@ -324,7 +321,6 @@ void save_as_file(GtkFileChooser *chooser, struct lit *litos)
 
 void highlight_buffer(struct lit *litos) /* Apply different font styles depending on file extension .html .c, etc */
 {
-
 	gint page = gtk_notebook_get_current_page(litos->notebook);
 
 	if (strcmp(litos->filename[page],"Unsaved") != 0)
@@ -338,7 +334,7 @@ void highlight_buffer(struct lit *litos) /* Apply different font styles dependin
 	}
 }
 
-void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)
+void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)	/*Function called when the file gets modified */
 {
 	(void)gobject;
 
@@ -346,7 +342,12 @@ void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)
 
 	struct lit *litos = (struct lit*)userData;
 
-	litos->fileSaved[gtk_notebook_get_current_page(litos->notebook)] = FALSE;
+	gint page = gtk_notebook_get_current_page(litos->notebook);
+
+	litos->fileSaved[page] = FALSE;
+
+	if(litos->search[page] == TRUE)
+		find_clear_tags(litos);
 }
 
 void menu_newtab (GtkWidget *widget, gpointer userData)

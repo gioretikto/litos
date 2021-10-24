@@ -14,9 +14,9 @@ void menu_newtab (GtkWidget *widget, gpointer userData);
 void menu_findreplaceall(void);
 void menu_save (GtkWidget *widget, gpointer userData);
 void find_button_clicked (GtkButton *button, gpointer userData);
-void my_grab_focus(struct lit *litos);
 void create_popover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
 void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app);
+GtkSourceView* tab_get_sourceview(int page, struct lit *litos);
 
 void activate (GtkApplication* app, gpointer userData)
 {
@@ -59,7 +59,7 @@ void activate (GtkApplication* app, gpointer userData)
 
     menu_newtab(NULL, litos);
 
-    my_grab_focus(litos);
+	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
     
     init_find_replace_popover(GTK_MENU_BUTTON(find_replace_button));
 
