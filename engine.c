@@ -21,6 +21,7 @@ void open_dialog (GtkWidget *widget, gpointer userData);
 void freePage(int page, struct lit *litos);
 void find_clear_tags(struct lit *litos);
 
+void action_clear_tags(GSimpleAction *action, GVariant *parameter, gpointer userData) { (void)action; (void)parameter; find_clear_tags(userData);}
 void action_find(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; ctrlF(NULL, userData);}
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(NULL, userData);}
 void action_new_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_newtab (NULL, userData);}
@@ -60,6 +61,7 @@ const GActionEntry app_entries[] = {
 	{"save", action_save_dialog, NULL, NULL, NULL, {0,0,0}},
 	{"save_as", action_save_as_dialog, NULL, NULL, NULL, {0,0,0}},
 	{"find", action_find, NULL, NULL, NULL, {0,0,0}},
+	{"clear_tags", action_clear_tags, NULL, NULL, NULL, {0,0,0}},
 	{"close_tab", action_close_tab, NULL, NULL, NULL, {0,0,0}},
     {"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
 };
@@ -71,6 +73,7 @@ struct {
   { "app.new", { "<Control>n", NULL} },
   { "app.open", { "<Control>o", NULL} },
   { "app.close_tab", { "<Control>w", NULL} },
+  { "app.clear_tags", { "Escape", NULL} },
   { "app.quit", { "<Control>q", NULL} },
   { "app.save", { "<Control>s", NULL} },
   { "app.save_as", { "<Shift><Control>s", NULL} },
@@ -345,9 +348,6 @@ void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)	/*F
 	gint page = gtk_notebook_get_current_page(litos->notebook);
 
 	litos->fileSaved[page] = FALSE;
-
-	if(litos->search[page] == TRUE)
-		find_clear_tags(litos);
 }
 
 void menu_newtab (GtkWidget *widget, gpointer userData)
