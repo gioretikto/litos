@@ -20,7 +20,6 @@ main (int    argc,
 	{
 		litos.fileSaved[i] = TRUE;
 		litos.filename[i] = NULL;
-		litos.search[i] = FALSE;
 	}
 
 	app = gtk_application_new ("org.litos.gtk", G_APPLICATION_FLAGS_NONE);

@@ -3,8 +3,8 @@
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 void ctrlF (GtkButton *button, gpointer userData);
 void findButtonClicked (GtkButton *button, gpointer userData);
-void my_grab_focus(struct lit *litos);
 void replaceButtonClicked (GtkButton *button, gpointer userData);
+void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
 
 GtkWidget *search_entry, *replace_entry, *check_case;
 
@@ -49,7 +49,6 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 	g_signal_connect (replace_button, "clicked", G_CALLBACK (replaceButtonClicked), litos);
 }
 
-
 /* Called when Find button is clicked  */
 void findButtonClicked (GtkButton *button, gpointer userData)
 {
@@ -59,47 +58,35 @@ void findButtonClicked (GtkButton *button, gpointer userData)
 
 	const gchar *searchString = NULL;
 
+	GtkSourceSearchContext *search_context;
+	GtkSourceSearchSettings *settings;
+
 	searchString = gtk_entry_get_text(GTK_ENTRY(search_entry));
 	gtk_entry_get_text(GTK_ENTRY(replace_entry));
-
-	gint page = gtk_notebook_get_current_page(litos->notebook);
 
 	g_print("%s\n",searchString);
 
 	if(searchString != NULL)
 	{
-		GtkTextIter start_match, end_match;
-		GtkTextIter start_find, end_find;
+		settings = gtk_source_search_settings_new ();
 
-		GtkTextBuffer *buffer = get_current_buffer(litos);
+		search_context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(get_current_buffer(litos)), settings);
 
-		gtk_text_buffer_get_start_iter(buffer, &start_find);
-		gtk_text_buffer_get_end_iter(buffer, &end_find);
+		if(check_case)
+			gtk_source_search_settings_set_case_sensitive
+            	(settings,
+                 	TRUE);
+		else
+			gtk_source_search_settings_set_case_sensitive
+			(settings,
+                   FALSE);
 
-		GtkTextSearchFlags caseType = 0;
+		gtk_source_search_settings_set_search_text (settings, searchString);
 
-		if(!check_case)
-			caseType = GTK_TEXT_SEARCH_CASE_INSENSITIVE;
+		g_signal_connect (GTK_SOURCE_BUFFER(get_current_buffer(litos)), "notify::text", G_CALLBACK (clearSearchHighlight), search_context);
 
-		while (gtk_text_iter_forward_search(&start_find, searchString,
-		            GTK_TEXT_SEARCH_TEXT_ONLY |
-					caseType |
-		            GTK_TEXT_SEARCH_VISIBLE_ONLY,
-		            &start_match, &end_match, NULL))
-			{
-				gtk_text_buffer_apply_tag_by_name(buffer, "gray_bg",
-				      &start_match, &end_match);
-
-				gint offset = gtk_text_iter_get_offset(&end_match);
-
-				gtk_text_buffer_get_iter_at_offset(buffer,
-					&start_find, offset);
-		    }
+		searchString = NULL;
 	}
-
-	litos->search[page] = TRUE;
-
-	searchString = NULL;
 }
 
 void replaceButtonClicked (GtkButton *button, gpointer userData)
@@ -108,9 +95,12 @@ void replaceButtonClicked (GtkButton *button, gpointer userData)
 
 	struct lit *litos = (struct lit*)userData;
 
-	GtkSourceSearchSettings *settings = gtk_source_search_settings_new ();
+	GtkSourceSearchContext *search_context;
+	GtkSourceSearchSettings *settings;
 
-	GtkSourceSearchContext *search_context = gtk_source_search_context_new(litos->buffer, settings);
+	settings = gtk_source_search_settings_new ();
+
+	search_context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(get_current_buffer(litos)), settings);
 
 	const gchar *searchString = NULL;
 	const gchar *replaceString = NULL;
@@ -144,7 +134,6 @@ void ctrlF (GtkButton *button, gpointer userData)
 	GtkTextIter start_match, end_match;
 
 	gchar *text;
-	gint page = gtk_notebook_get_current_page(litos->notebook);
 
 	GtkTextBuffer *buffer = get_current_buffer(litos);
 
@@ -153,9 +142,8 @@ void ctrlF (GtkButton *button, gpointer userData)
 	selected = gtk_text_buffer_get_selection_bounds(buffer,
             &start_sel, &end_sel);
 
-	if (selected && litos->search[page] == FALSE)
+	if (selected)
 	{
-		litos->search[page] = TRUE;
         gtk_text_buffer_get_start_iter(buffer, &start_find);
         gtk_text_buffer_get_end_iter(buffer, &end_find);
 
@@ -181,20 +169,17 @@ void ctrlF (GtkButton *button, gpointer userData)
 }
 
 
-void find_clear_tags(struct lit *litos)
+void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData)	/*Function called when the file gets modified */
 {
-	gint page = gtk_notebook_get_current_page(litos->notebook);
+	(void)pspec;
 
-	if(litos->search[page] == TRUE)
-	{
-		litos->search[page] = FALSE;
+	g_print("OK\n");
 
-		GtkTextBuffer *buffer = get_current_buffer(litos);
-		GtkTextIter start_find, end_find;
-	  	gtk_text_buffer_get_start_iter(buffer, &start_find);
-		gtk_text_buffer_get_end_iter(buffer, &end_find);
+	gtk_source_search_context_set_highlight
+		(userData,
+		FALSE);
 
-		gtk_text_buffer_remove_tag_by_name(buffer, "gray_bg",
-		          &start_find, &end_find);
-	}
+	//g_clear_object(&userData);
+
+	g_signal_handlers_disconnect_by_func(gobject, findButtonClicked, userData);
 }

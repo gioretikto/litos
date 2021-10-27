@@ -11,7 +11,6 @@ void about_dialog (GtkButton *button, gpointer userData);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void menu_findreplaceall(void);
 void menu_save (GtkWidget *widget, gpointer userData);
-void findButtonClicked (GtkButton *button, gpointer userData);
 void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
 void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos);
 void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app);
@@ -61,7 +60,6 @@ void activate (GtkApplication* app, gpointer userData)
 
     g_signal_connect (G_OBJECT (litos->window), "delete-event", G_CALLBACK (action_quit_activated), litos);
    	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), litos);
-    g_signal_connect (find_menu_button, "clicked", G_CALLBACK (findButtonClicked), litos);
 	g_signal_connect (about_button, "clicked", G_CALLBACK (about_dialog), NULL);
 	
     set_acels(litos);

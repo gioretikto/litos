@@ -16,8 +16,6 @@ struct lit{
 	_Bool fileSaved[MAX_TAB];
 	GtkApplication *app;
 	char *filename[MAX_TAB];
-
-	_Bool search[MAX_TAB];
 };
 
 GtkWidget* MyNewSourceview(struct lit *litos);
