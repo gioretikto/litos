@@ -181,5 +181,5 @@ void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData
 
 	//g_clear_object(&userData);
 
-	g_signal_handlers_disconnect_by_func(gobject, findButtonClicked, userData);
+	g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), userData);
 }
