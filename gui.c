@@ -1,16 +1,10 @@
 #include "litos.h"
 
 void close_tab (GtkButton *button, gpointer userData);
-void open_dialog (GtkWidget *widget, gpointer userData);
-void save_as_dialog(struct lit *litos);
-
 void set_acels (struct lit *litos);
-
-void highlight_buffer(struct lit *litos);
 void about_dialog (GtkButton *button, gpointer userData);
 void menu_newtab (GtkWidget *widget, gpointer userData);
-void menu_findreplaceall(void);
-void menu_save (GtkWidget *widget, gpointer userData);
+
 void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
 void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos);
 void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app);
@@ -66,36 +60,3 @@ void activate (GtkApplication* app, gpointer userData)
 
     gtk_widget_show_all (litos->window);
 }
-
-void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos)
-{
-	GtkWidget *popover;
-
-	popover = gtk_popover_new (NULL);
-	gtk_popover_set_position (GTK_POPOVER (popover), pos);
-
-	gtk_menu_button_set_popover (GTK_MENU_BUTTON(parent), popover);
-	gtk_container_set_border_width (GTK_CONTAINER (popover), 6);
-  
-  	GtkWidget *file_box, *new_tab_button, *open_button, *save_button, *save_as_button;
-
-  	file_box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-  	gtk_container_add (GTK_CONTAINER (popover), file_box);
-
-	new_tab_button = gtk_button_new_with_label("New Tab");
-	open_button = gtk_button_new_with_label("Open");
-	save_button = gtk_button_new_with_label("Save");
-	save_as_button = gtk_button_new_with_label("Save As");
-
-	gtk_container_add(GTK_CONTAINER (file_box), open_button);
-	gtk_container_add(GTK_CONTAINER (file_box), save_button);
-	gtk_container_add(GTK_CONTAINER (file_box), save_as_button);
-
-	g_signal_connect (new_tab_button, "clicked", G_CALLBACK (menu_newtab), litos);
-	g_signal_connect (open_button, "clicked", G_CALLBACK (open_dialog), litos);
-	g_signal_connect (save_as_button, "clicked", G_CALLBACK (save_as_dialog), litos);
-	g_signal_connect (save_button, "clicked", G_CALLBACK (menu_save), litos);
-
-	gtk_widget_show_all (file_box);
-}
-

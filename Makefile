@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -W -Wextra -Wall -pedantic -Wshadow -Wconversion -g
+CFLAGS = -std=c99 -W -Wextra -Wall -Wshadow -Wconversion -g
 SYSTEM = `uname -s`
 
 ifeq ($(SYSTEM), SunOS)
@@ -12,7 +12,7 @@ GTK_LIBS = `pkg-config --libs gtk+-3.0 gtksourceview-4`
 
 CFLAGS += ${GTK_INCS}
 
-SRCS = main.c gui.c engine.c dialogs.c search.c
+SRCS = main.c gui.c engine.c dialogs.c search.c popovers.c
 OBJS = $(SRCS:.c=.o)
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
