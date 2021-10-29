@@ -24,6 +24,8 @@ From source code repository:
     % cd litos
     % make
 
+To create file from Templates make sure you've the "Templates" dir in you home direcotry and the file $HOME/.config/user-dirs.dirs exists (see https://wiki.archlinux.org/title/XDG_user_directories)
+
 ###Authors
 
 Giovanni Resta - giovannirestadev@gmail.com

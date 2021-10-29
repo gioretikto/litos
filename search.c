@@ -23,7 +23,7 @@ void findButtonClicked (GtkButton *button, gpointer userData)
 
 	g_print("%s\n",searchString);
 
-	if(searchString != NULL)
+	if (searchString != NULL)
 	{
 		settings = gtk_source_search_settings_new ();
 
@@ -111,7 +111,35 @@ void ctrlF (GtkButton *button, gpointer userData)
 
 		g_signal_connect (GTK_SOURCE_BUFFER(get_current_buffer(litos)), "notify::text", G_CALLBACK (clearSearchHighlight), search_context);
 
-		searchString = NULL;
+	}
+}
+
+/* Called when Ctrl+B is toggled */
+void ctrlB (GtkButton *button, gpointer userData)
+{
+	(void)button;
+
+	struct lit *litos = (struct lit*)userData;
+
+	char *string = NULL;
+
+    GtkTextIter start_sel, end_sel;
+
+	GtkTextBuffer *buffer = get_current_buffer(litos);
+
+	if (gtk_text_buffer_get_selection_bounds(buffer, &start_sel, &end_sel))
+	{
+		string = gtk_text_buffer_get_text (buffer,
+		                     &start_sel,
+		                      &end_sel,
+		                      FALSE);
+
+		char replaceString[100] = { 0 };
+
+		snprintf(replaceString, sizeof(replaceString), "<b>%s</b>", string);
+		gtk_text_buffer_delete (buffer, &start_sel, &end_sel);
+		gtk_text_buffer_insert (buffer, &start_sel, replaceString, (gint)strlen(replaceString));
+
 	}
 }
 
