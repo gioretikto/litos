@@ -1,7 +1,7 @@
 #include "litos.h"
 #define CANCEL 3
 
-void open_file(struct lit *litos);
+void open_file(struct lit *litos, gboolean template);
 void menu_save (GtkWidget *widget, gpointer userData);
 void save_as_dialog(struct lit *litos);
 void save_as_file(GtkFileChooser *chooser, struct lit *litos);
@@ -78,13 +78,11 @@ void open_dialog (GtkWidget *widget, gpointer userData)
 
 	GtkWidget *dialog;
 
-	GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
-
 	gint res;
 
 	dialog = gtk_file_chooser_dialog_new ("Open File",
                                       GTK_WINDOW(litos->window),
-                                      action,
+                                      GTK_FILE_CHOOSER_ACTION_OPEN,
                                       _("_Cancel"),
                                       GTK_RESPONSE_CANCEL,
                                       _("_Open"),
@@ -97,7 +95,41 @@ void open_dialog (GtkWidget *widget, gpointer userData)
 	{
 		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
 		litos->filename[gtk_notebook_get_current_page(litos->notebook)] = gtk_file_chooser_get_filename (chooser);
-   		open_file (litos);
+   		open_file (litos, FALSE);
+	}
+
+	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
+
+	gtk_widget_destroy (dialog);
+}
+
+void openFromTemplate (GtkWidget *widget, gpointer userData)
+{
+	(void)widget;
+
+	struct lit *litos = (struct lit*)userData;
+
+	GtkWidget *dialog = gtk_file_chooser_dialog_new ("Open File",
+                                      GTK_WINDOW(litos->window),
+                                      GTK_FILE_CHOOSER_ACTION_OPEN,
+                                      _("_Cancel"),
+                                      GTK_RESPONSE_CANCEL,
+                                      _("_Open"),
+                                      GTK_RESPONSE_ACCEPT,
+                                      NULL);
+
+	gint res;
+
+	if((gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_get_user_special_dir (G_USER_DIRECTORY_TEMPLATES))) == FALSE)
+		fprintf(stderr, "error opening TEMPLATES directory chek wheter $HOME/.config/user-dirs.dirs contains XDG_TEMPLATES_DIR=\"$HOME/Templates\"");
+
+	res = gtk_dialog_run (GTK_DIALOG (dialog));
+
+	if (res == GTK_RESPONSE_ACCEPT)
+	{
+		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+		litos->filename[gtk_notebook_get_current_page(litos->notebook)] = gtk_file_chooser_get_filename (chooser);
+   		open_file (litos, TRUE);
 	}
 
 	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
@@ -111,13 +143,11 @@ void save_as_dialog(struct lit *litos)
 
 	GtkFileChooser *chooser;
 
-	GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
-
 	gint res;
 
 	dialog = gtk_file_chooser_dialog_new ("Save File",
 		                                  GTK_WINDOW(litos->window),
-		                                  action,
+		                                  GTK_FILE_CHOOSER_ACTION_SAVE,
 		                                  _("_Cancel"),
 		                                  GTK_RESPONSE_CANCEL,
 		                                  _("_Save"),

@@ -1,6 +1,6 @@
 #include "litos.h"
 
-void open_file(struct lit *litos);
+void open_file(struct lit *litos, gboolean template);
 void menu_save (GtkWidget *widget, gpointer userData);
 void save_as_dialog(struct lit *litos);
 void save_as_file(GtkFileChooser *chooser, struct lit *litos);
@@ -19,7 +19,7 @@ GtkTextBuffer* get_current_buffer(struct lit *litos);
 
 void open_dialog (GtkWidget *widget, gpointer userData);
 
-void action_find(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; ctrlF(NULL, userData);}
+void action_find_selection(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; ctrlF(NULL, userData);}
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(NULL, userData);}
 void action_new_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_newtab (NULL, userData);}
 void action_close_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; close_tab(NULL, userData);}
@@ -57,7 +57,7 @@ const GActionEntry app_entries[] = {
 	{"open", action_open_dialog, NULL, NULL, NULL, {0,0,0}},
 	{"save", action_save_dialog, NULL, NULL, NULL, {0,0,0}},
 	{"save_as", action_save_as_dialog, NULL, NULL, NULL, {0,0,0}},
-	{"find", action_find, NULL, NULL, NULL, {0,0,0}},
+	{"find_selection", action_find_selection, NULL, NULL, NULL, {0,0,0}},
 	{"close_tab", action_close_tab, NULL, NULL, NULL, {0,0,0}},
     {"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
 };
@@ -72,7 +72,7 @@ struct {
   { "app.quit", { "<Control>q", NULL} },
   { "app.save", { "<Control>s", NULL} },
   { "app.save_as", { "<Shift><Control>s", NULL} },
-  { "app.find", { "<Control>f", NULL} },
+  { "app.find_selection", { "<Control>f", NULL} },
   { "win.close", { "<Control>w", NULL} },
   { "win.cut", { "<Control>x", NULL} },
   { "win.copy", { "<Control>c", NULL} },
@@ -145,7 +145,7 @@ void menu_save (GtkWidget *widget, gpointer userData)
 	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
 }
 
-void open_file(struct lit *litos)
+void open_file(struct lit *litos, gboolean template)
 {
     gboolean read_file_status;
    	GError *error;
@@ -153,12 +153,14 @@ void open_file(struct lit *litos)
 
 	gint page = gtk_notebook_get_current_page(litos->notebook);
 
-    read_file_status = g_file_get_contents(litos->filename[page], &contents, NULL, &error);
+	char *filename = litos->filename[page];
+
+    read_file_status = g_file_get_contents(filename, &contents, NULL, &error);
 
     if (read_file_status == FALSE)
     {
 		g_error("error opening file: %s\n",error && error->message ? error->message : "No Detail");
-			return;
+		return;
     }
 
 	GtkTextBuffer *current_buffer = get_current_buffer(litos);
@@ -167,13 +169,21 @@ void open_file(struct lit *litos)
     {
 		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
 
+		highlight_buffer(litos);
+
+		if (template)
+		{
+			litos->filename[page] = NULL;
+			filename = "Unsaved";
+		}
+
 		gtk_notebook_set_tab_label_text(
 			litos->notebook,
 			gtk_notebook_get_nth_page(
 		        litos->notebook,
 		        page
 			),
-			litos->filename[page]
+			filename
 		);
 
 		gtk_notebook_set_menu_label_text(
@@ -182,10 +192,8 @@ void open_file(struct lit *litos)
 			litos->notebook,
 			page
 			),
-			litos->filename[page]
+			filename
 		);
-		
-		highlight_buffer(litos);
 	}
 
 	else
@@ -240,8 +248,8 @@ GtkWidget* MyNewSourceview(struct lit *litos)
 
 	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(source_view), GTK_WRAP_WORD_CHAR);
 
-	gtk_text_buffer_create_tag(GTK_TEXT_BUFFER(litos->buffer), "gray_bg",
-			  "background", "#657b83", NULL);
+	/*gtk_text_buffer_create_tag(GTK_TEXT_BUFFER(litos->buffer), "gray_bg",
+			  "background", "#657b83", NULL);*/
 
     return source_view;
 }
@@ -321,12 +329,12 @@ void highlight_buffer(struct lit *litos) /* Apply different font styles dependin
 {
 	gint page = gtk_notebook_get_current_page(litos->notebook);
 
-	if (strcmp(litos->filename[page],"Unsaved") != 0)
-	{	
+	if(litos->filename[page] != NULL)
+	{
 		GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();
-	
+		
 		GtkSourceLanguage *lang = gtk_source_language_manager_guess_language(lm, litos->filename[page], NULL);
-	
+		
 		gtk_source_buffer_set_language (litos->buffer, lang);
 		gtk_source_buffer_set_highlight_syntax (litos->buffer, TRUE);
 	}

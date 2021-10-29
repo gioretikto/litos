@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -W -Wextra -Wall -Wshadow -Wconversion -g
+CFLAGS = -std=c99 -W -Wextra -Wall -Wshadow -Wconversion
 SYSTEM = `uname -s`
 
 ifeq ($(SYSTEM), SunOS)
