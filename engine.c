@@ -10,7 +10,7 @@ void close_tab (GtkButton *button, gpointer userData);
 void menu_findreplaceall(gpointer user_data);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void ctrlF (GtkButton *button, gpointer userData);
-void applyTags (struct lit *litos);
+void applyTags(struct lit *litos, char what_tag);
 
 unsigned int saveornot_before_close(gint page, struct lit *litos);
 const gchar* get_current_tab_label_text();
@@ -21,22 +21,20 @@ GtkTextBuffer* get_current_buffer(struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
 
 void action_find_selection(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; ctrlF(NULL, userData);}
+
 void action_apply_bold(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
 	(void)parameter;
-	struct lit *litos = (struct lit*)userData;
-	litos->tag = 'b';
-	applyTags(userData);
+
+	applyTags(userData, 'b');
 }
 
 void action_apply_italic(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
 	(void)parameter;
-	struct lit *litos = (struct lit*)userData;
-	litos->tag = 'i';
-	applyTags(litos);
+	applyTags(userData, 'i');
 }
 
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(NULL, userData);}
@@ -183,41 +181,47 @@ void open_file(struct lit *litos, gboolean template)
 
 	GtkTextBuffer *current_buffer = get_current_buffer(litos);
 
-    if ((gtk_text_buffer_get_char_count(current_buffer)) == 0)
-    {
-		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
+	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
 
-		highlight_buffer(litos);
+	highlight_buffer(litos);
 
-		if (template)
-		{
-			litos->filename[page] = NULL;
-			filename = "Unsaved";
-		}
-
-		gtk_notebook_set_tab_label_text(
-			litos->notebook,
-			gtk_notebook_get_nth_page(
-		        litos->notebook,
-		        page
-			),
-			filename
-		);
-
-		gtk_notebook_set_menu_label_text(
-			litos->notebook,
-			gtk_notebook_get_nth_page(
-			litos->notebook,
-			page
-			),
-			filename
-		);
+	if (template)
+	{
+		litos->filename[page] = NULL;
+		filename = "Unsaved";
 	}
 
-	else
+	gtk_notebook_set_tab_label_text(
+		litos->notebook,
+		gtk_notebook_get_nth_page(
+		litos->notebook,
+	    page
+		),
+		filename
+	);
+
+	gtk_notebook_set_menu_label_text(
+		litos->notebook,
+		gtk_notebook_get_nth_page(
+		litos->notebook,
+		page
+		),
+		filename
+	);
+}
+
+void highlight_buffer(struct lit *litos) /* Apply different font styles depending on file extension .html .c, etc */
+{
+	gint page = gtk_notebook_get_current_page(litos->notebook);
+
+	if (litos->filename[page] != NULL)
 	{
-    	menu_newtab(NULL, litos);
-		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(litos->buffer), contents, -1);
+		GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();
+		
+		GtkSourceLanguage *lang = gtk_source_language_manager_guess_language(lm, litos->filename[page], NULL);
+		
+		gtk_source_buffer_set_language (litos->buffer, lang);
+		gtk_source_buffer_set_highlight_syntax (litos->buffer, TRUE);
 	}
 }
 
@@ -341,21 +345,6 @@ void save_as_file(GtkFileChooser *chooser, struct lit *litos)
 	litos->filename[page] = filename;
 
 	g_object_unref(loc);
-}
-
-void highlight_buffer(struct lit *litos) /* Apply different font styles depending on file extension .html .c, etc */
-{
-	gint page = gtk_notebook_get_current_page(litos->notebook);
-
-	if(litos->filename[page] != NULL)
-	{
-		GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();
-		
-		GtkSourceLanguage *lang = gtk_source_language_manager_guess_language(lm, litos->filename[page], NULL);
-		
-		gtk_source_buffer_set_language (litos->buffer, lang);
-		gtk_source_buffer_set_highlight_syntax (litos->buffer, TRUE);
-	}
 }
 
 void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)	/*Function called when the file gets modified */
