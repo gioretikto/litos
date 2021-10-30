@@ -114,13 +114,9 @@ void ctrlF (GtkButton *button, gpointer userData)
 	}
 }
 
-/* Called when Ctrl+B is toggled */
-void ctrlB (GtkButton *button, gpointer userData)
+/* Called when Ctrl+B, Ctrl-i, etc is toggled */
+void applyTags (struct lit *litos)
 {
-	(void)button;
-
-	struct lit *litos = (struct lit*)userData;
-
 	char *string = NULL;
 
     GtkTextIter start_sel, end_sel;
@@ -136,7 +132,7 @@ void ctrlB (GtkButton *button, gpointer userData)
 
 		char replaceString[100] = { 0 };
 
-		snprintf(replaceString, sizeof(replaceString), "<b>%s</b>", string);
+		snprintf(replaceString, sizeof(replaceString), "<%c>%s</%c>", litos->tag, string, litos->tag);
 		gtk_text_buffer_delete (buffer, &start_sel, &end_sel);
 		gtk_text_buffer_insert (buffer, &start_sel, replaceString, (gint)strlen(replaceString));
 
