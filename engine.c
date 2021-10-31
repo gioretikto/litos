@@ -10,7 +10,7 @@ void close_tab (GtkButton *button, gpointer userData);
 void menu_findreplaceall(gpointer user_data);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void ctrlF (GtkButton *button, gpointer userData);
-void applyTags(struct lit *litos, char what_tag);
+void applyTags(struct lit *litos, char *what_tag);
 
 unsigned int saveornot_before_close(gint page, struct lit *litos);
 const gchar* get_current_tab_label_text();
@@ -26,15 +26,24 @@ void action_apply_bold(GSimpleAction *action, GVariant *parameter, gpointer user
 {
 	(void)action;
 	(void)parameter;
-
-	applyTags(userData, 'b');
+	char *tag = "b";
+	applyTags(userData, tag);
 }
 
 void action_apply_italic(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
 	(void)parameter;
-	applyTags(userData, 'i');
+	char *tag = "i";
+	applyTags(userData, tag);
+}
+
+void action_apply_sup_tag(GSimpleAction *action, GVariant *parameter, gpointer userData)
+{
+	(void)action;
+	(void)parameter;
+	char *tag = "sup";
+	applyTags(userData, tag);
 }
 
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(NULL, userData);}
@@ -81,6 +90,7 @@ void set_acels (struct lit *litos)
 		{"find_selection", action_find_selection, NULL, NULL, NULL, {0,0,0}},
 		{"bold", action_apply_bold, NULL, NULL, NULL, {0,0,0}},
 		{"italic", action_apply_italic, NULL, NULL, NULL, {0,0,0}},
+		{"sup", action_apply_sup_tag, NULL, NULL, NULL, {0,0,0}},
 		{"close_tab", action_close_tab, NULL, NULL, NULL, {0,0,0}},
 		{"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
 	};
@@ -93,6 +103,7 @@ void set_acels (struct lit *litos)
 	  { "app.open", { "<Control>o", NULL} },
 	  { "app.bold", { "<Control>b", NULL} },
 	  { "app.italic", { "<Control>i", NULL} },
+	  { "app.sup", { "<Control>p", NULL} },
 	  { "app.close_tab", { "<Control>w", NULL} },
 	  { "app.quit", { "<Control>q", NULL} },
 	  { "app.save", { "<Control>s", NULL} },
@@ -214,15 +225,15 @@ void highlight_buffer(struct lit *litos) /* Apply different font styles dependin
 {
 	gint page = gtk_notebook_get_current_page(litos->notebook);
 
-	if (litos->filename[page] != NULL)
-	{
-		GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();
+	GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();
+
+	GtkSourceLanguage *lang = gtk_source_language_manager_guess_language(lm, litos->filename[page], NULL);
 		
-		GtkSourceLanguage *lang = gtk_source_language_manager_guess_language(lm, litos->filename[page], NULL);
-		
-		gtk_source_buffer_set_language (litos->buffer, lang);
+	gtk_source_buffer_set_language (litos->buffer, lang);
+
+	if (lang != NULL)
 		gtk_source_buffer_set_highlight_syntax (litos->buffer, TRUE);
-	}
+	
 }
 
 const gchar* get_current_tab_label_text(struct lit *litos)
