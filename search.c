@@ -1,6 +1,7 @@
 #include "litos.h"
 
 GtkTextBuffer* get_current_buffer(struct lit *litos);
+GtkSourceView* tab_get_sourceview(int page, struct lit *litos);
 void ctrlF (GtkButton *button, gpointer userData);
 
 void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
@@ -19,17 +20,19 @@ void findButtonClicked (GtkButton *button, gpointer userData)
 	GtkSourceSearchContext *search_context;
 	GtkSourceSearchSettings *settings;
 
-	searchString = gtk_entry_get_text(GTK_ENTRY(search_entry));
+	GtkSourceBuffer *buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
 
-	g_print("%s\n",searchString);
+	GtkTextMark *search_mark = gtk_text_mark_new (NULL, FALSE);
+
+	searchString = gtk_entry_get_text(GTK_ENTRY(search_entry));
 
 	if (searchString != NULL)
 	{
 		settings = gtk_source_search_settings_new ();
 
-		search_context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(get_current_buffer(litos)), settings);
+		search_context = gtk_source_search_context_new(buffer, settings);
 
-		if(check_case)
+		if (check_case)
 			gtk_source_search_settings_set_case_sensitive
             	(settings,
                  	TRUE);
@@ -40,7 +43,13 @@ void findButtonClicked (GtkButton *button, gpointer userData)
 
 		gtk_source_search_settings_set_search_text (settings, searchString);
 
-		g_signal_connect (GTK_SOURCE_BUFFER(get_current_buffer(litos)), "notify::text", G_CALLBACK (clearSearchHighlight), search_context);
+		/*gtk_text_mark_set_visible(
+		gtk_text_buffer_get_selection_bound(
+			gtk_text_view_get_buffer(GTK_TEXT_VIEW(tab_get_sourceview(CURRENT_PAGE,litos))), FALSE));*/
+
+		gtk_text_view_scroll_mark_onscreen (GTK_TEXT_VIEW(tab_get_sourceview(CURRENT_PAGE,litos)), search_mark);
+
+		g_signal_connect (buffer, "notify::text", G_CALLBACK (clearSearchHighlight), search_context);
 
 		searchString = NULL;
 	}
@@ -92,7 +101,7 @@ void ctrlF (GtkButton *button, gpointer userData)
 
 	GtkTextBuffer *buffer = get_current_buffer(litos);
 
-	if(gtk_text_buffer_get_selection_bounds(buffer, &start_sel, &end_sel))
+	if (gtk_text_buffer_get_selection_bounds(buffer, &start_sel, &end_sel))
 	{
 		GtkSourceSearchSettings *settings;
 
@@ -106,8 +115,6 @@ void ctrlF (GtkButton *button, gpointer userData)
 		                      FALSE);
 
 		gtk_source_search_settings_set_search_text (settings, searchString);
-
-		g_print("%s\n",searchString);
 
 		g_signal_connect (GTK_SOURCE_BUFFER(get_current_buffer(litos)), "notify::text", G_CALLBACK (clearSearchHighlight), search_context);
 
@@ -143,8 +150,6 @@ void applyTags (struct lit *litos, char *tag)
 void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData)	/*Function called when the file gets modified */
 {
 	(void)pspec;
-
-	g_print("OK\n");
 
 	gtk_source_search_context_set_highlight
 		(userData,

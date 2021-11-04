@@ -6,13 +6,13 @@ ifeq ($(SYSTEM), SunOS)
 	CFLAGS+= -D__EXTENSIONS__
 endif
 
-GTK_INCS = `pkg-config --cflags gtk+-3.0 gtksourceview-4`
+GTK_INCS = `pkg-config --cflags gtk+-3.0 gtksourceview-3.0`
 
-GTK_LIBS = `pkg-config --libs gtk+-3.0 gtksourceview-4`
+GTK_LIBS = `pkg-config --libs gtk+-3.0 gtksourceview-3.0`
 
 CFLAGS += ${GTK_INCS}
 
-SRCS = main.c gui.c engine.c dialogs.c search.c popovers.c
+SRCS = main.c activate.c litos.c dialogs.c search.c popovers.c sourceview.c
 OBJS = $(SRCS:.c=.o)
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
