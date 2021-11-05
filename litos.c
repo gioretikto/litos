@@ -45,7 +45,7 @@ void menu_save (GtkWidget *widget, gpointer userData)
 	if (litos->filename[page] == NULL)
 		save_as_dialog(litos);
 
-    else
+	else
 		save_file(page, litos);
 
 	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
@@ -130,15 +130,7 @@ void open_file(struct lit *litos, gboolean template)
 
 	GtkTextBuffer *current_buffer = get_current_buffer(litos);
 
-    if ((gtk_text_buffer_get_char_count(current_buffer)) == 0)
- 		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
-
-	else
-	{
-    	menu_newtab(NULL, litos);
-		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(litos->buffer), contents, -1);
-	 	page = gtk_notebook_get_current_page(litos->notebook);
-	}
+	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
 
 	char *filename = litos->filename[page];
 
@@ -160,6 +152,8 @@ void open_file(struct lit *litos, gboolean template)
 	if (litos->filename[page] != NULL)
 		highlight_buffer(litos);
 
+
+	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 	g_signal_connect (litos->buffer, "notify::text", G_CALLBACK (monitor_change), litos);
 }
 

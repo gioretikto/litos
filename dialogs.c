@@ -8,6 +8,9 @@ void save_as_file(GtkFileChooser *chooser, struct lit *litos);
 void save_file(struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
 GtkSourceView* currentTabSourceView(struct lit *litos);
+void menu_newtab (GtkWidget *widget, gpointer userData);
+
+GtkTextBuffer* get_current_buffer(struct lit *litos);
 
 void freePage(int page, struct lit *litos)
 {
@@ -94,11 +97,14 @@ void open_dialog (GtkWidget *widget, gpointer userData)
 	if (res == GTK_RESPONSE_ACCEPT)
 	{
 		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+		GtkTextBuffer *current_buffer = get_current_buffer(litos);
+
+    	if ((gtk_text_buffer_get_char_count(current_buffer)) != 0)
+		    	menu_newtab(NULL, litos);
+
 		litos->filename[gtk_notebook_get_current_page(litos->notebook)] = gtk_file_chooser_get_filename (chooser);
    		open_file (litos, FALSE);
 	}
-
-	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 
 	gtk_widget_destroy (dialog);
 }
@@ -128,11 +134,14 @@ void openFromTemplate (GtkWidget *widget, gpointer userData)
 	if (res == GTK_RESPONSE_ACCEPT)
 	{
 		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+		GtkTextBuffer *current_buffer = get_current_buffer(litos);
+
+    	if ((gtk_text_buffer_get_char_count(current_buffer)) != 0)
+		    	menu_newtab(NULL, litos);
+
 		litos->filename[gtk_notebook_get_current_page(litos->notebook)] = gtk_file_chooser_get_filename (chooser);
    		open_file (litos, TRUE);
 	}
-
-	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 
 	gtk_widget_destroy (dialog);
 }
