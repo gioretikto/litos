@@ -15,7 +15,7 @@ Mousepad depends on the following packages:
 * pkg-config
 * libgtk-3-dev [GTK](https://www.gtk.org) >=3.20.0
 * [GLib](https://wiki.gnome.org/Projects/GLib) >=2.42.0
-* libgtksourceview-4-dev [GtkSourceView](https://wiki.gnome.org/Projects/GtkSourceView) >=4.0
+* libgtksourceview-3-dev [GtkSourceView](https://wiki.gnome.org/Projects/GtkSourceView) >=3.0
 
 ### Installation
 
@@ -28,6 +28,7 @@ From source code repository:
 
 Ctrl-b To tranform "string" into "<b>string<</b>"
 Ctrl-i To tranform "string" into "<i>string<</i>"
+Ctrl-p To tranform "string" into "<sup>string<</sup>"
 
 To create file from Templates make sure you've the "Templates" dir in you home direcotry and the file $HOME/.config/user-dirs.dirs exists (see https://wiki.archlinux.org/title/XDG_user_directories)
 
