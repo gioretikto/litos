@@ -1,118 +1,15 @@
 #include "litos.h"
 
 void open_file(struct lit *litos, gboolean template);
-void menu_save (GtkWidget *widget, gpointer userData);
 void save_file(gint page, struct lit *litos);
 void save_as_dialog(struct lit *litos);
+void menu_newtab (GtkWidget *widget, gpointer userData);
+void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData);
 unsigned int saveornot_before_close(gint page, struct lit *litos);
 
-void close_tab (GtkButton *button, gpointer userData);
-void menu_findreplaceall(gpointer user_data);
-void menu_newtab (GtkWidget *widget, gpointer userData);
-void ctrlF (GtkButton *button, gpointer userData);
-void applyTags(struct lit *litos, char *what_tag);
-void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData);
-
-const gchar* get_current_tab_label_text();
 void highlight_buffer(struct lit *litos);
 GtkSourceView* tab_get_sourceview(int page, struct lit *litos);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
-
-void open_dialog (GtkWidget *widget, gpointer userData);
-
-void action_find_selection(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; ctrlF(NULL, userData);}
-
-void action_apply_bold(GSimpleAction *action, GVariant *parameter, gpointer userData)
-{
-	(void)action;
-	(void)parameter;
-	char *tag = "b";
-	applyTags(userData, tag);
-}
-
-void action_apply_italic(GSimpleAction *action, GVariant *parameter, gpointer userData)
-{
-	(void)action;
-	(void)parameter;
-	char *tag = "i";
-	applyTags(userData, tag);
-}
-
-void action_apply_sup_tag(GSimpleAction *action, GVariant *parameter, gpointer userData)
-{
-	(void)action;
-	(void)parameter;
-	char *tag = "sup";
-	applyTags(userData, tag);
-}
-
-void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(NULL, userData);}
-void action_new_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_newtab (NULL, userData);}
-void action_close_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; close_tab(NULL, userData);}
-void action_open_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; open_dialog(NULL, userData);}
-
-void action_quit_activated(GSimpleAction *action, GVariant *parameter, void* userData)
-{
-	(void)action;
-	(void)parameter;
-
-	gint i;
-
-	unsigned int res = CLOSE;
-	
-	struct lit *litos = (struct lit*)userData;
-
-	for (i = 0; i < gtk_notebook_get_n_pages(litos->notebook); i++)
-	{
- 		if (litos->fileSaved[i] == FALSE)
- 		{
-			res = saveornot_before_close(i, litos);
-
-		    if (res == CLOSE)
-		    	i--;
-		}
- 	}
-
-	if (res == CLOSE || res == SAVE)
-		g_application_quit (G_APPLICATION (litos->app));
-}
-
-void set_acels (struct lit *litos)
-{
-	long unsigned int i;
-
-	const GActionEntry app_entries[] = {
-		{"new", action_new_tab, NULL, NULL, NULL, {0,0,0}},
-		{"open", action_open_dialog, NULL, NULL, NULL, {0,0,0}},
-		{"save", action_save_dialog, NULL, NULL, NULL, {0,0,0}},
-		{"find_selection", action_find_selection, NULL, NULL, NULL, {0,0,0}},
-		{"bold", action_apply_bold, NULL, NULL, NULL, {0,0,0}},
-		{"italic", action_apply_italic, NULL, NULL, NULL, {0,0,0}},
-		{"sup", action_apply_sup_tag, NULL, NULL, NULL, {0,0,0}},
-		{"close_tab", action_close_tab, NULL, NULL, NULL, {0,0,0}},
-		{"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
-	};
-
-	struct {
-	  const gchar *action;
-	  const gchar *accels[2];
-	} action_accels[] = {
-	  { "app.new", { "<Control>n", NULL} },
-	  { "app.open", { "<Control>o", NULL} },
-	  { "app.bold", { "<Control>b", NULL} },
-	  { "app.italic", { "<Control>i", NULL} },
-	  { "app.sup", { "<Control>p", NULL} },
-	  { "app.close_tab", { "<Control>w", NULL} },
-	  { "app.quit", { "<Control>q", NULL} },
-	  { "app.save", { "<Control>s", NULL} },
-	  { "app.find_selection", { "<Control>f", NULL} },
-	};
-
-	g_action_map_add_action_entries(G_ACTION_MAP(litos->app), app_entries, G_N_ELEMENTS(app_entries), litos);
-
-	for (i = 0; i < G_N_ELEMENTS(action_accels); i++)
-		gtk_application_set_accels_for_action(GTK_APPLICATION(litos->app), action_accels[i].action, action_accels[i].accels);
-}
 
 void close_tab (GtkButton *button, gpointer userData)
 {
@@ -151,7 +48,7 @@ void menu_save (GtkWidget *widget, gpointer userData)
 
     else
 		save_file(page, litos);
-		
+
 	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
 }
 
@@ -213,15 +110,6 @@ void save_as_file(GtkFileChooser *chooser, struct lit *litos)
 		litos->filename[page]
 	);
 
-	gtk_notebook_set_menu_label_text(
-		litos->notebook,
-		gtk_notebook_get_nth_page(
-		litos->notebook,
-		page
-		),
-		litos->filename[page]
-	);
-
 	g_object_unref(loc);
 }
 
@@ -244,9 +132,7 @@ void open_file(struct lit *litos, gboolean template)
 	GtkTextBuffer *current_buffer = get_current_buffer(litos);
 
     if ((gtk_text_buffer_get_char_count(current_buffer)) == 0)
-    {
-		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
-	}
+ 		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
 
 	else
 	{
@@ -268,15 +154,6 @@ void open_file(struct lit *litos, gboolean template)
 		gtk_notebook_get_nth_page(
 	        litos->notebook,
 	        page
-		),
-		filename
-	);
-
-	gtk_notebook_set_menu_label_text(
-		litos->notebook,
-		gtk_notebook_get_nth_page(
-		litos->notebook,
-		page
 		),
 		filename
 	);
@@ -338,17 +215,6 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
     gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);
 
 	g_signal_connect (litos->buffer, "notify::text", G_CALLBACK (monitor_change), litos);
-}
-
-const gchar* get_current_tab_label_text(struct lit *litos)
-{
-    return gtk_notebook_get_menu_label_text(
-		litos->notebook,
-		gtk_notebook_get_nth_page(
-	        litos->notebook,
-	        gtk_notebook_get_current_page(litos->notebook)
-		)
-    );
 }
 
 void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)	/*Function called when the file gets modified */
