@@ -1,6 +1,5 @@
 #include "litos.h"
 
-void open_file(struct lit *litos, gboolean template);
 void save_file(gint page, struct lit *litos);
 void save_as_dialog(struct lit *litos);
 void menu_newtab (GtkWidget *widget, gpointer userData);
@@ -8,7 +7,7 @@ void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData);
 unsigned int saveornot_before_close(gint page, struct lit *litos);
 
 void highlight_buffer(struct lit *litos);
-GtkSourceView* tab_get_sourceview(int page, struct lit *litos);
+GtkSourceView* currentTabSourceView(struct lit *litos);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 
 void close_tab (GtkButton *button, gpointer userData)
@@ -49,7 +48,7 @@ void menu_save (GtkWidget *widget, gpointer userData)
     else
 		save_file(page, litos);
 
-	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
+	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 }
 
 void save_file(gint page, struct lit *litos)
@@ -58,7 +57,7 @@ void save_file(gint page, struct lit *litos)
 
 	gchar *content;
 
-	GtkTextView *text_view = GTK_TEXT_VIEW(tab_get_sourceview(CURRENT_PAGE, litos));
+	GtkTextView *text_view = GTK_TEXT_VIEW(currentTabSourceView(litos));
 
 	GtkTextBuffer *current_buffer = gtk_text_view_get_buffer (text_view);
 
@@ -81,7 +80,7 @@ void save_as_file(GtkFileChooser *chooser, struct lit *litos)
 
 	GtkTextIter begin, end;
 
-	GtkTextView *text_view = GTK_TEXT_VIEW(tab_get_sourceview(CURRENT_PAGE, litos));
+	GtkTextView *text_view = GTK_TEXT_VIEW(currentTabSourceView(litos));
 
 	GtkTextBuffer *current_buffer = gtk_text_view_get_buffer (text_view);
 
@@ -160,6 +159,8 @@ void open_file(struct lit *litos, gboolean template)
 
 	if (litos->filename[page] != NULL)
 		highlight_buffer(litos);
+
+	g_signal_connect (litos->buffer, "notify::text", G_CALLBACK (monitor_change), litos);
 }
 
 void menu_newtab (GtkWidget *widget, gpointer userData)
@@ -213,8 +214,6 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
     );
 
     gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);
-
-	g_signal_connect (litos->buffer, "notify::text", G_CALLBACK (monitor_change), litos);
 }
 
 void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)	/*Function called when the file gets modified */

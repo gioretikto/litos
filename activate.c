@@ -8,7 +8,7 @@ void menu_newtab (GtkWidget *widget, gpointer userData);
 void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
 void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos);
 void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app);
-GtkSourceView* tab_get_sourceview(int page, struct lit *litos);
+GtkSourceView* currentTabSourceView(struct lit *litos);
 
 void activate (GtkApplication* app, gpointer userData)
 {
@@ -50,7 +50,7 @@ void activate (GtkApplication* app, gpointer userData)
 
     menu_newtab(NULL, litos);
 
-	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
+	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 
     g_signal_connect (G_OBJECT (litos->window), "delete-event", G_CALLBACK (action_quit_activated), litos);
    	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), litos);

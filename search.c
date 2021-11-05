@@ -1,7 +1,7 @@
 #include "litos.h"
 
 GtkTextBuffer* get_current_buffer(struct lit *litos);
-GtkSourceView* tab_get_sourceview(int page, struct lit *litos);
+GtkSourceView* currentTabSourceView(struct lit *litos);
 void ctrlF (GtkButton *button, gpointer userData);
 
 void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
@@ -47,7 +47,7 @@ void findButtonClicked (GtkButton *button, gpointer userData)
 		gtk_text_buffer_get_selection_bound(
 			gtk_text_view_get_buffer(GTK_TEXT_VIEW(tab_get_sourceview(CURRENT_PAGE,litos))), FALSE));*/
 
-		gtk_text_view_scroll_mark_onscreen (GTK_TEXT_VIEW(tab_get_sourceview(CURRENT_PAGE,litos)), search_mark);
+		gtk_text_view_scroll_mark_onscreen (GTK_TEXT_VIEW(currentTabSourceView(litos)), search_mark);
 
 		g_signal_connect (buffer, "notify::text", G_CALLBACK (clearSearchHighlight), search_context);
 

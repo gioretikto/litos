@@ -1,10 +1,8 @@
-
 #include "litos.h"
 
-GtkSourceView* tab_get_sourceview(int page, struct lit *litos)
+GtkSourceView* currentTabSourceView(struct lit *litos)
 {
-    if (page == CURRENT_PAGE)
-		page = gtk_notebook_get_current_page(litos->notebook);
+	gint page = gtk_notebook_get_current_page(litos->notebook);
 
     GList *children = gtk_container_get_children(GTK_CONTAINER(gtk_notebook_get_nth_page(
 						litos->notebook,
@@ -38,7 +36,7 @@ GtkTextBuffer* get_current_buffer(struct lit *litos)
 	GtkSourceView *source_view;
 	GtkTextBuffer *current_buffer;
 
-	source_view = tab_get_sourceview(CURRENT_PAGE, litos);
+	source_view = currentTabSourceView(litos);
 
   	current_buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view));
   	

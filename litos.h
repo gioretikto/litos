@@ -6,7 +6,6 @@
 #define MAX_TAB 10
 #define SAVE 2
 #define CLOSE 1
-#define CURRENT_PAGE -2
 
 struct lit{
 	GtkWidget *window;

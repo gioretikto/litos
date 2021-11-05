@@ -7,7 +7,7 @@ void save_as_dialog(struct lit *litos);
 void save_as_file(GtkFileChooser *chooser, struct lit *litos);
 void save_file(struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
-GtkSourceView* tab_get_sourceview(int page, struct lit *litos);
+GtkSourceView* currentTabSourceView(struct lit *litos);
 
 void freePage(int page, struct lit *litos)
 {
@@ -98,7 +98,7 @@ void open_dialog (GtkWidget *widget, gpointer userData)
    		open_file (litos, FALSE);
 	}
 
-	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
+	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 
 	gtk_widget_destroy (dialog);
 }
@@ -132,7 +132,7 @@ void openFromTemplate (GtkWidget *widget, gpointer userData)
    		open_file (litos, TRUE);
 	}
 
-	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
+	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 
 	gtk_widget_destroy (dialog);
 }
