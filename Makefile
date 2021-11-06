@@ -1,14 +1,14 @@
 CC = gcc
-CFLAGS = -std=c99 -W -Wextra -Wall -Wshadow -Wconversion -ggdb3
+CFLAGS = -std=c99 -W -Wextra -Wall -Wshadow -Wconversion
 SYSTEM = `uname -s`
 
 ifeq ($(SYSTEM), SunOS)
 	CFLAGS+= -D__EXTENSIONS__
 endif
 
-GTK_INCS = `pkg-config --cflags gtk+-3.0 gtksourceview-3.0`
+GTK_INCS = `pkg-config --cflags gtk+-3.0 gtksourceview-4`
 
-GTK_LIBS = `pkg-config --libs gtk+-3.0 gtksourceview-3.0`
+GTK_LIBS = `pkg-config --libs gtk+-3.0 gtksourceview-4`
 
 CFLAGS += ${GTK_INCS}
 

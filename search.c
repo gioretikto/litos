@@ -32,36 +32,32 @@ void findButtonClicked (GtkButton *button, gpointer userData)
 		search_context = gtk_source_search_context_new(buffer, settings);
 
 		if (check_case)
+		{
 			gtk_source_search_settings_set_case_sensitive
             	(settings,
                  	TRUE);
+		}
+
 		else
+		{
 			gtk_source_search_settings_set_case_sensitive
 			(settings,
                    FALSE);
+		}
 
 		gtk_source_search_settings_set_search_text (settings, searchString);
 
 		gtk_source_search_context_set_highlight (search_context, TRUE);
 
-		/*gtk_source_search_context_get_occurrence_position
-                               (search_context,
-                                &match_start,
-                                &match_end);*/
-
-
 		gtk_text_buffer_get_selection_bounds(GTK_TEXT_BUFFER(buffer), &start_sel, &end_sel);
 
-		/*gtk_text_view_scroll_to_mark (GTK_TEXT_VIEW(currentTabSourceView(litos)),
-	                              gtk_text_buffer_get_insert (markBuffer),
-	                              0.02,
-	                              FALSE,
-	                              0.0,
-	                              0.0);*/
+		GtkTextIter current_loc;
 
-        gtk_text_buffer_select_range (GTK_TEXT_BUFFER(buffer), &start_sel, &end_sel );
+        gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &current_loc);
 
-		gtk_text_view_scroll_to_iter (GTK_TEXT_VIEW(currentTabSourceView(litos)),
+        gtk_source_search_context_forward (search_context, &current_loc, &start_sel, &end_sel, NULL);
+ 
+        gtk_text_view_scroll_to_iter (GTK_TEXT_VIEW(currentTabSourceView(litos)),
                               &start_sel,
                               0,
                               FALSE,
@@ -70,7 +66,6 @@ void findButtonClicked (GtkButton *button, gpointer userData)
 
 		g_signal_connect (buffer, "notify::text", G_CALLBACK (clearSearchHighlight), search_context);
 
-		searchString = NULL;
 	}
 }
 
