@@ -8,7 +8,6 @@ void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData
 
 extern GtkWidget *search_entry, *replace_entry, *check_case;
 
-/* Called when Find button is clicked  */
 void findButtonClicked (GtkButton *button, gpointer userData)
 {
 	(void)button;
@@ -22,7 +21,7 @@ void findButtonClicked (GtkButton *button, gpointer userData)
 
 	GtkSourceBuffer *buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
 
-	GtkTextMark *search_mark = gtk_text_mark_new (NULL, FALSE);
+    GtkTextIter start_sel, end_sel;
 
 	searchString = gtk_entry_get_text(GTK_ENTRY(search_entry));
 
@@ -43,11 +42,31 @@ void findButtonClicked (GtkButton *button, gpointer userData)
 
 		gtk_source_search_settings_set_search_text (settings, searchString);
 
-		/*gtk_text_mark_set_visible(
-		gtk_text_buffer_get_selection_bound(
-			gtk_text_view_get_buffer(GTK_TEXT_VIEW(tab_get_sourceview(CURRENT_PAGE,litos))), FALSE));*/
+		gtk_source_search_context_set_highlight (search_context, TRUE);
 
-		gtk_text_view_scroll_mark_onscreen (GTK_TEXT_VIEW(currentTabSourceView(litos)), search_mark);
+		/*gtk_source_search_context_get_occurrence_position
+                               (search_context,
+                                &match_start,
+                                &match_end);*/
+
+
+		gtk_text_buffer_get_selection_bounds(GTK_TEXT_BUFFER(buffer), &start_sel, &end_sel);
+
+		/*gtk_text_view_scroll_to_mark (GTK_TEXT_VIEW(currentTabSourceView(litos)),
+	                              gtk_text_buffer_get_insert (markBuffer),
+	                              0.02,
+	                              FALSE,
+	                              0.0,
+	                              0.0);*/
+
+        gtk_text_buffer_select_range (GTK_TEXT_BUFFER(buffer), &start_sel, &end_sel );
+
+		gtk_text_view_scroll_to_iter (GTK_TEXT_VIEW(currentTabSourceView(litos)),
+                              &start_sel,
+                              0,
+                              FALSE,
+                              0,
+                              0);
 
 		g_signal_connect (buffer, "notify::text", G_CALLBACK (clearSearchHighlight), search_context);
 

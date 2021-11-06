@@ -16,8 +16,24 @@ void freePage(int page, struct lit *litos)
 {
 	if (litos->filename[page] != NULL)
 	{
-		g_free(litos->filename[page]);
-		litos->filename[page] = NULL;
+		if(litos->filename[page+1] != NULL)
+		{
+			litos->filename[page] = litos->filename[page+1];
+			litos->filename[page+1] = NULL;
+			
+			litos->fileSaved[page] = litos->fileSaved[page+1];
+			litos->fileSaved[page+1] = TRUE;
+
+			g_free(litos->filename[page+1]);
+		}
+
+		else
+		{
+			litos->fileSaved[page] = TRUE;
+
+			g_free(litos->filename[page]);
+
+		}			
 	}
 }
 
