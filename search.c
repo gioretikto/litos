@@ -6,7 +6,7 @@ void ctrlF (GtkButton *button, gpointer userData);
 
 void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
 
-extern GtkWidget *search_entry, *replace_entry, *check_case;
+extern GtkWidget *search_entry, *replace_entry, *check_case, *label_occurences;
 
 void findButtonClicked (GtkButton *button, gpointer userData)
 {
@@ -32,40 +32,47 @@ void findButtonClicked (GtkButton *button, gpointer userData)
 		search_context = gtk_source_search_context_new(buffer, settings);
 
 		if (check_case)
-		{
-			gtk_source_search_settings_set_case_sensitive
-            	(settings,
-                 	TRUE);
-		}
+			gtk_source_search_settings_set_case_sensitive (settings, TRUE);
 
 		else
-		{
-			gtk_source_search_settings_set_case_sensitive
-			(settings,
-                   FALSE);
-		}
+			gtk_source_search_settings_set_case_sensitive (settings, FALSE);
 
 		gtk_source_search_settings_set_search_text (settings, searchString);
 
 		gtk_source_search_context_set_highlight (search_context, TRUE);
 
+
 		gtk_text_buffer_get_selection_bounds(GTK_TEXT_BUFFER(buffer), &start_sel, &end_sel);
 
 		GtkTextIter current_loc;
 
-        gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &current_loc);
+		gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &current_loc);
 
-        gtk_source_search_context_forward (search_context, &current_loc, &start_sel, &end_sel, NULL);
- 
-        gtk_text_view_scroll_to_iter (GTK_TEXT_VIEW(currentTabSourceView(litos)),
-                              &start_sel,
-                              0,
-                              FALSE,
-                              0,
-                              0);
+		gint numberOccurences = gtk_source_search_context_get_occurrences_count (search_context);
 
-		g_signal_connect (buffer, "notify::text", G_CALLBACK (clearSearchHighlight), search_context);
+		gtk_source_search_context_forward2 (search_context, &current_loc, &start_sel, &end_sel, NULL);
 
+		gtk_source_search_settings_set_wrap_around
+                               (settings,
+                                TRUE);
+
+		g_print("%d\n", numberOccurences);
+
+		if (numberOccurences != -1)
+		{
+			const gchar *occurences = g_strdup_printf("%i occurences", numberOccurences);
+
+			gtk_label_set_text (GTK_LABEL(label_occurences), occurences);
+
+		   	gtk_text_view_scroll_to_iter (GTK_TEXT_VIEW(currentTabSourceView(litos)),
+		                         &start_sel,
+		                         0,
+		                         TRUE,
+		                         0.0,
+		                         0.0);
+
+			g_signal_connect (buffer, "notify::text", G_CALLBACK (clearSearchHighlight), search_context);
+		}
 	}
 }
 
@@ -160,6 +167,13 @@ void applyTags (struct lit *litos, char *tag)
 	}
 }
 
+/* Called when Ctrl+m, Ctrl+l is toggled */
+void insertChar (struct lit *litos, char *replaceString)
+{
+	GtkTextBuffer *buffer = get_current_buffer(litos);
+
+	gtk_text_buffer_insert_at_cursor (buffer, replaceString, (gint)strlen(replaceString));
+}
 
 void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData)	/*Function called when the file gets modified */
 {

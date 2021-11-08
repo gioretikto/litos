@@ -8,7 +8,7 @@ void save_as_dialog(struct lit *litos);
 void menu_save (GtkWidget *widget, gpointer userData);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 
-GtkWidget *search_entry, *replace_entry, *check_case;
+GtkWidget *search_entry, *replace_entry, *check_case, *label_occurences;
 
 void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 {
@@ -16,6 +16,7 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 
 	label_find = gtk_label_new ("Find:");
 	label_replace = gtk_label_new ("Replace:");
+	label_occurences = gtk_label_new ("");
 
 	find_button = gtk_button_new_with_label("Find");
 	replace_button = gtk_button_new_with_label("Replace All");
@@ -35,6 +36,7 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 	gtk_container_add (GTK_CONTAINER (hbox_find), search_entry);
 	gtk_container_add (GTK_CONTAINER (hbox_find), find_button);
 	gtk_container_add (GTK_CONTAINER (hbox_find), check_case);
+	gtk_container_add (GTK_CONTAINER (hbox_find), label_occurences);
 
 	gtk_container_add (GTK_CONTAINER (hbox_replace), label_replace);
 	gtk_container_add (GTK_CONTAINER (hbox_replace), replace_entry);
