@@ -47,6 +47,8 @@ void findButtonClicked (GtkButton *button, gpointer userData)
 
 		gtk_source_search_context_forward2 (search_context, &current_loc, &start_sel, &end_sel, NULL);
 
+		gtk_source_search_settings_set_search_text (settings, searchString);
+
 		gtk_source_search_settings_set_wrap_around
                                (settings,
                                 TRUE);
