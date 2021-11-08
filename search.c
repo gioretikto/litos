@@ -39,22 +39,20 @@ void findButtonClicked (GtkButton *button, gpointer userData)
 
 		gtk_source_search_settings_set_search_text (settings, searchString);
 
-		gtk_source_search_context_set_highlight (search_context, TRUE);
-
-
 		gtk_text_buffer_get_selection_bounds(GTK_TEXT_BUFFER(buffer), &start_sel, &end_sel);
 
 		GtkTextIter current_loc;
 
 		gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &current_loc);
 
-		gint numberOccurences = gtk_source_search_context_get_occurrences_count (search_context);
-
 		gtk_source_search_context_forward2 (search_context, &current_loc, &start_sel, &end_sel, NULL);
 
 		gtk_source_search_settings_set_wrap_around
                                (settings,
                                 TRUE);
+
+		gint numberOccurences = gtk_source_search_context_get_occurrences_count (search_context);
+
 
 		g_print("%d\n", numberOccurences);
 
