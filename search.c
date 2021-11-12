@@ -6,7 +6,7 @@ void ctrlF (GtkButton *button, gpointer userData);
 
 void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
 
-extern GtkWidget *search_entry, *replace_entry, *check_case;
+extern GtkWidget *search_entry, *replace_entry, *button_check_case;
 
 void findButtonClicked (GtkButton *button, gpointer userData)
 {
@@ -28,7 +28,7 @@ void findButtonClicked (GtkButton *button, gpointer userData)
 
 		GtkSourceSearchContext *search_context = gtk_source_search_context_new(buffer, settings);
 
-		if (check_case)
+		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button_check_case)))
 			gtk_source_search_settings_set_case_sensitive (settings, TRUE);
 
 		else
@@ -65,7 +65,7 @@ void replaceButtonClicked (GtkButton *button, gpointer userData)
 
 	GtkSourceSearchContext *search_context;
 
-	if (check_case)
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button_check_case)))
 		gtk_source_search_settings_set_case_sensitive (settings, TRUE);
 
 	else

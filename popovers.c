@@ -8,7 +8,7 @@ void save_as_dialog(struct lit *litos);
 void menu_save (GtkWidget *widget, gpointer userData);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 
-GtkWidget *search_entry, *replace_entry, *check_case;
+GtkWidget *search_entry, *replace_entry, *button_check_case;
 
 void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 {
@@ -24,7 +24,7 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 	vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
 	hbox_find = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 	hbox_replace = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-	check_case = gtk_check_button_new_with_mnemonic(_("_Match case"));
+	button_check_case = gtk_check_button_new_with_mnemonic(_("_Match case"));
 
 	search_entry = gtk_entry_new ();
 	replace_entry = gtk_entry_new ();
@@ -35,7 +35,7 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 	gtk_container_add (GTK_CONTAINER (hbox_find), label_find);
 	gtk_container_add (GTK_CONTAINER (hbox_find), search_entry);
 	gtk_container_add (GTK_CONTAINER (hbox_find), find_button);
-	gtk_container_add (GTK_CONTAINER (hbox_find), check_case);
+	gtk_container_add (GTK_CONTAINER (hbox_find), button_check_case);
 
 	gtk_container_add (GTK_CONTAINER (hbox_replace), label_replace);
 	gtk_container_add (GTK_CONTAINER (hbox_replace), replace_entry);
@@ -50,6 +50,7 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 
 	g_signal_connect (find_button, "clicked", G_CALLBACK (findButtonClicked), litos);
 	g_signal_connect (replace_button, "clicked", G_CALLBACK (replaceButtonClicked), litos);
+	g_signal_connect (button_check_case, "toggled", G_CALLBACK (replaceButtonClicked), litos);
 }
 
 void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos)
