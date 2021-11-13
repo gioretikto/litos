@@ -108,17 +108,28 @@ void open_dialog (GtkWidget *widget, gpointer userData)
                                       GTK_RESPONSE_ACCEPT,
                                       NULL);
 
+	gint page = gtk_notebook_get_current_page(litos->notebook);
+
+	const gchar *filename = gtk_notebook_get_tab_label_text(
+								litos->notebook,
+								gtk_notebook_get_nth_page (litos->notebook, page)
+							);
+
+	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), g_path_get_dirname(filename));
+
 	res = gtk_dialog_run (GTK_DIALOG (dialog));
 
 	if (res == GTK_RESPONSE_ACCEPT)
 	{
-		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-		GtkTextBuffer *current_buffer = get_current_buffer(litos);
+		GtkTextBuffer *buffer = get_current_buffer(litos);
 
-    	if ((gtk_text_buffer_get_char_count(current_buffer)) != 0)
+    	if ((gtk_text_buffer_get_char_count(buffer)) != 0)
 		    	menu_newtab(NULL, litos);
 
-		litos->filename[gtk_notebook_get_current_page(litos->notebook)] = gtk_file_chooser_get_filename (chooser);
+		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+
+		litos->filename[page] = gtk_file_chooser_get_filename (chooser);
+
    		open_file (litos, FALSE);
 	}
 
