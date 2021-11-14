@@ -158,11 +158,11 @@ void applyTags (struct lit *litos, char *tag)
 }
 
 /* Called when Ctrl+m, Ctrl+l is toggled */
-void insertChar (struct lit *litos, char *replaceString)
+void insertChar (struct lit *litos, const char *insertChar)
 {
 	GtkTextBuffer *buffer = get_current_buffer(litos);
 
-	gtk_text_buffer_insert_at_cursor (buffer, replaceString, (gint)strlen(replaceString));
+	gtk_text_buffer_insert_at_cursor (buffer, insertChar, (gint)strlen(insertChar));
 }
 
 void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData)	/*Function called when the file gets modified */

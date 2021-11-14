@@ -7,13 +7,13 @@ void applyTags(struct lit *litos, char *what_tag);
 unsigned int saveornot_before_close(gint page, struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
 void ctrlF (GtkButton *button, gpointer userData);
-void insertChar (struct lit *litos, char *replaceString);
+void insertChar (struct lit *litos, const char *insertChar);
 
 void action_find_selection(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; ctrlF(NULL, userData);}
 
-void action_insert_minus(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(NULL, "−");}
+void action_insert_minus(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "−");}
 
-void action_insert_bond(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(NULL, "—");}
+void action_insert_bond(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "—");}
 
 void action_apply_bold(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
@@ -82,7 +82,7 @@ void set_acels (struct lit *litos)
 		{"bold", action_apply_bold, NULL, NULL, NULL, {0,0,0}},
 		{"italic", action_apply_italic, NULL, NULL, NULL, {0,0,0}},
 		{"minus", action_insert_minus, NULL, NULL, NULL, {0,0,0}},
-		{"minus", action_insert_bond, NULL, NULL, NULL, {0,0,0}},
+		{"bond", action_insert_bond, NULL, NULL, NULL, {0,0,0}},
 		{"sup", action_apply_sup_tag, NULL, NULL, NULL, {0,0,0}},
 		{"close_tab", action_close_tab, NULL, NULL, NULL, {0,0,0}},
 		{"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
