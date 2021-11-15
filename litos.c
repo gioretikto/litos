@@ -37,7 +37,6 @@ void close_tab (GtkButton *button, gpointer userData)
 	}
 }
 
-
 void menu_save (GtkWidget *widget, gpointer userData)
 {
 	(void)widget;
@@ -45,6 +44,9 @@ void menu_save (GtkWidget *widget, gpointer userData)
 	struct lit *litos = (struct lit*)userData;
 
 	gint page = gtk_notebook_get_current_page(litos->notebook);
+
+	if (litos->fileSaved[page] == TRUE)
+		return;
 
 	if (litos->filename[page] == NULL)
 		save_as_dialog(litos);
@@ -77,9 +79,22 @@ void save_file(gint page, struct lit *litos)
 	if (!g_file_set_contents (filename, content, -1, NULL))
 		g_warning ("The file '%s' could not be written!", litos->filename[page]);
 
-	else{
+	else
+	{
 		litos->fileSaved[page] = TRUE;
 		g_print("%s\n", litos->filename[page]);
+
+		GtkWidget *label = gtk_label_new (NULL);
+
+		const char *format = "<span color='black'>\%s</span>";
+
+		char *markup;
+
+		markup = g_markup_printf_escaped (format, litos->filename[page]);
+
+		gtk_label_set_markup (GTK_LABEL(label), markup);
+
+		gtk_notebook_set_tab_label (litos->notebook, gtk_notebook_get_nth_page(litos->notebook, page), label);
 	}
 
 	g_free (content);
@@ -163,7 +178,6 @@ void open_file(struct lit *litos, gboolean template)
 	if (litos->filename[page] != NULL)
 		highlight_buffer(litos);
 
-
 	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 	g_signal_connect (litos->buffer, "notify::text", G_CALLBACK (monitor_change), litos);
 }
@@ -230,6 +244,21 @@ void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)	/*F
 	struct lit *litos = (struct lit*)userData;
 
 	gint page = gtk_notebook_get_current_page(litos->notebook);
+
+	if(litos->fileSaved[page] == TRUE)
+	{		
+		GtkWidget *label = gtk_label_new (NULL);
+
+		const char *format = "<span color='red'>\%s</span>";
+
+		char *markup;
+
+		markup = g_markup_printf_escaped (format, litos->filename[page]);
+
+		gtk_label_set_markup (GTK_LABEL(label), markup);
+
+		gtk_notebook_set_tab_label (litos->notebook, gtk_notebook_get_nth_page(litos->notebook, page), label);
+	}
 
 	litos->fileSaved[page] = FALSE;
 }

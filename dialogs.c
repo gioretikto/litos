@@ -115,6 +115,7 @@ void open_dialog (GtkWidget *widget, gpointer userData)
 								gtk_notebook_get_nth_page (litos->notebook, page)
 							);
 
+	/* To let Open dialog show the files within current DIR of file already opened*/
 	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), g_path_get_dirname(filename));
 
 	res = gtk_dialog_run (GTK_DIALOG (dialog));
