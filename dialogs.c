@@ -110,13 +110,16 @@ void open_dialog (GtkWidget *widget, gpointer userData)
 
 	gint page = gtk_notebook_get_current_page(litos->notebook);
 
-	const gchar *filename = gtk_notebook_get_tab_label_text(
+	if (litos->filename[page] != NULL)
+	{
+		const gchar * filename = gtk_notebook_get_tab_label_text(
 								litos->notebook,
 								gtk_notebook_get_nth_page (litos->notebook, page)
 							);
 
-	/* To let Open dialog show the files within current DIR of file already opened*/
-	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), g_path_get_dirname(filename));
+		/* To let Open dialog show the files within current DIR of file already opened*/
+		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), g_path_get_dirname(filename));
+	}
 
 	res = gtk_dialog_run (GTK_DIALOG (dialog));
 
@@ -128,6 +131,8 @@ void open_dialog (GtkWidget *widget, gpointer userData)
 		    	menu_newtab(NULL, litos);
 
 		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+
+		page = gtk_notebook_get_current_page(litos->notebook);
 
 		litos->filename[page] = gtk_file_chooser_get_filename (chooser);
 
@@ -168,6 +173,7 @@ void openFromTemplate (GtkWidget *widget, gpointer userData)
 		    	menu_newtab(NULL, litos);
 
 		litos->filename[gtk_notebook_get_current_page(litos->notebook)] = gtk_file_chooser_get_filename (chooser);
+
    		open_file (litos, TRUE);
 	}
 
