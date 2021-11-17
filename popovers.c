@@ -17,7 +17,6 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 	label_find = gtk_label_new ("Find:");
 	label_replace = gtk_label_new ("Replace:");
 
-
 	find_button = gtk_button_new_with_label("Find");
 	replace_button = gtk_button_new_with_label("Replace All");
 
