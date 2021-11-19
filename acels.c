@@ -9,6 +9,25 @@ void open_dialog (GtkWidget *widget, gpointer userData);
 void ctrlF (GtkButton *button, gpointer userData);
 void insertChar (struct lit *litos, const char *insertChar);
 
+
+void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointer userData)
+{
+	(void)userData;
+	(void)action;
+	(void)parameter;
+
+	struct lit *litos = (struct lit*)userData;
+
+	if(litos->search_context != NULL)
+	{
+		gtk_source_search_context_set_highlight
+			(litos->search_context,
+			FALSE);
+
+		litos->search_context = NULL;
+	}
+}
+
 void action_find_selection(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; ctrlF(NULL, userData);}
 
 void action_insert_minus(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "−");}
@@ -76,6 +95,7 @@ void set_acels (struct lit *litos)
 
 	const GActionEntry app_entries[] = {
 		{"new", action_new_tab, NULL, NULL, NULL, {0,0,0}},
+		{"esc", action_remove_highlight, NULL, NULL, NULL, {0,0,0}},
 		{"open", action_open_dialog, NULL, NULL, NULL, {0,0,0}},
 		{"save", action_save_dialog, NULL, NULL, NULL, {0,0,0}},
 		{"find_selection", action_find_selection, NULL, NULL, NULL, {0,0,0}},
@@ -93,6 +113,7 @@ void set_acels (struct lit *litos)
 	  const gchar *accels[2];
 	} action_accels[] = {
 	  { "app.new", { "<Control>n", NULL} },
+	  { "app.esc", { "Escape", NULL} },
 	  { "app.open", { "<Control>o", NULL} },
 	  { "app.bold", { "<Control>b", NULL} },
 	  { "app.italic", { "<Control>i", NULL} },

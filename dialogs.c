@@ -43,8 +43,7 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 
 	gint res;
 
-	const gchar *filename = gtk_notebook_get_tab_label_text(
-								litos->notebook,
+	const gchar *filename = gtk_notebook_get_tab_label_text(litos->notebook,
 								gtk_notebook_get_nth_page (litos->notebook, page)
 							);
 

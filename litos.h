@@ -12,6 +12,7 @@ struct lit{
 	GtkNotebook *notebook;
 	GtkWidget *headbar;
 	GtkSourceBuffer *buffer;
+	GtkSourceSearchContext *search_context;
 	_Bool fileSaved[MAX_TAB];
 	GtkApplication *app;
 	char *filename[MAX_TAB];

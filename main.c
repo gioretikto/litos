@@ -21,6 +21,8 @@ main (int    argc,
 		litos.filename[i] = NULL;
 	}
 
+	litos.search_context = NULL;
+
 	app = gtk_application_new ("org.litos.gtk", G_APPLICATION_FLAGS_NONE);
 
 	g_signal_connect (app, "activate", G_CALLBACK (activate), &litos);
