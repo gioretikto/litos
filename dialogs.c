@@ -63,17 +63,14 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 			menu_save(NULL, litos);
 			freePage(page, litos);
 			return SAVE;
-			break;
 
 		case GTK_RESPONSE_REJECT:
 			gtk_notebook_remove_page(litos->notebook, page);
 			freePage(page, litos);
 			return CLOSE;
-			break;
 
 		case GTK_RESPONSE_CANCEL:
 			return CANCEL;
-			break;
 
 		default: /*close bottun was pressed*/
 			g_print("The bottun(Close without Saving/Cancel/Save) was not pressed.");
