@@ -1,5 +1,8 @@
 #include "litos.h"
 
+#define SAVE 2
+#define CLOSE 1
+
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void menu_save (GtkWidget *widget, gpointer userData);
 void close_tab (GtkButton *button, gpointer userData);
@@ -8,7 +11,6 @@ unsigned int saveornot_before_close(gint page, struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
 void ctrlF (GtkButton *button, gpointer userData);
 void insertChar (struct lit *litos, const char *insertChar);
-
 
 void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {

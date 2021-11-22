@@ -1,4 +1,4 @@
-# litos v. 2.0
+# litos v. 2.1
 
 **litos** aims to be an easy-to-use and fast editor. My target is an
 editor for quickly editing text files, providing shortcuts for inserting HTML tags. I try to use the latest

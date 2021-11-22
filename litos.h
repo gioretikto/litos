@@ -4,8 +4,6 @@
 #include <gtksourceview/gtksource.h>
 
 #define MAX_TAB 10
-#define SAVE 2
-#define CLOSE 1
 
 struct lit{
 	GtkWidget *window;

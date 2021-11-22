@@ -1,41 +1,18 @@
 #include "litos.h"
 #define CANCEL 3
+#define SAVE 2
+#define CLOSE 1
 
 void open_file(struct lit *litos, gboolean template);
 void menu_save (GtkWidget *widget, gpointer userData);
 void save_as_dialog(struct lit *litos);
 void save_as_file(GtkFileChooser *chooser, struct lit *litos);
-void save_file(struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 void menu_newtab (GtkWidget *widget, gpointer userData);
+void freePage(int page, struct lit *litos);
 
 GtkTextBuffer* get_current_buffer(struct lit *litos);
-
-void freePage(int page, struct lit *litos)
-{
-	if (litos->filename[page] != NULL)
-	{
-		if(litos->filename[page+1] != NULL)
-		{
-			litos->filename[page] = litos->filename[page+1];
-			litos->filename[page+1] = NULL;
-			
-			litos->fileSaved[page] = litos->fileSaved[page+1];
-			litos->fileSaved[page+1] = TRUE;
-
-			g_free(litos->filename[page+1]);
-		}
-
-		else
-		{
-			litos->fileSaved[page] = TRUE;
-
-			g_free(litos->filename[page]);
-
-		}			
-	}
-}
 
 unsigned int saveornot_before_close(gint page, struct lit *litos)
 {
@@ -43,12 +20,12 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 
 	gint res;
 
-	const gchar *filename = gtk_notebook_get_tab_label_text(litos->notebook,
+	/*const gchar *filename = gtk_notebook_get_tab_label_text(litos->notebook,
 								gtk_notebook_get_nth_page (litos->notebook, page)
-							);
+							);*/
 
 	message_dialog = gtk_message_dialog_new(GTK_WINDOW(litos->window), GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING,
-                      GTK_BUTTONS_NONE, "Save changes to document %s before closing?", filename);
+                      GTK_BUTTONS_NONE, "Save changes to document %s before closing?", litos->filename[page]);
 
 	gtk_dialog_add_buttons (GTK_DIALOG(message_dialog), "Close without Saving", GTK_RESPONSE_REJECT,
                                                       "Cancel", GTK_RESPONSE_CANCEL, "Save", GTK_RESPONSE_ACCEPT,  NULL);
@@ -59,27 +36,43 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 
 	switch (res)
 	{
-		case GTK_RESPONSE_ACCEPT:
-			menu_save(NULL, litos);
-			freePage(page, litos);
-			return SAVE;
-
-		case GTK_RESPONSE_REJECT:
-			gtk_notebook_remove_page(litos->notebook, page);
-			freePage(page, litos);
-			return CLOSE;
-
 		case GTK_RESPONSE_CANCEL:
 			return CANCEL;
 
+		case GTK_RESPONSE_ACCEPT:
+
+			menu_save(NULL, litos);
+
+	   		if (gtk_notebook_get_n_pages(litos->notebook) == 1)
+				g_application_quit (G_APPLICATION (litos->app));
+
+			else
+			{
+				freePage(page, litos);
+				gtk_notebook_remove_page(litos->notebook, page);
+			}
+
+			return SAVE;
+
+		case GTK_RESPONSE_REJECT:
+
+	   		if (gtk_notebook_get_n_pages(litos->notebook) == 1)
+			{
+				freePage(page, litos);
+				gtk_notebook_remove_page(litos->notebook, page);
+			    menu_newtab(NULL, litos);
+			}
+
+			else
+			{
+				freePage(page, litos);
+				gtk_notebook_remove_page(litos->notebook, page);
+			}
+
+			return CLOSE;
+
 		default: /*close bottun was pressed*/
 			g_print("The bottun(Close without Saving/Cancel/Save) was not pressed.");
-	}
-
-	if (litos->filename[page] != NULL)
-	{
-		g_free(litos->filename[page]);
-		litos->filename[page] = NULL;
 	}
 
 	return 0;
