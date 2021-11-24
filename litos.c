@@ -32,8 +32,8 @@ void freePage(int page, struct lit *litos)
 		}
 	}
 
-	litos->fileSaved[total_page-1] = TRUE;
-	litos->filename[total_page-1] = NULL;
+	litos->fileSaved[total_pages-1] = TRUE;
+	litos->filename[total_pages-1] = NULL;
 }
 
 void close_tab (GtkButton *button, gpointer userData)
