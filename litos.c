@@ -15,26 +15,25 @@ void freePage(int page, struct lit *litos)
 	int i;
 	int total_pages = gtk_notebook_get_n_pages(litos->notebook);
 
+    g_free(litos->filename[page]);
+
 	if (total_pages == 1)
-    { 
-        g_free(litos->filename[page]);
         litos->filename[page] = NULL;
-    }
 
 	else
 	{
 		for (i = page; i < total_pages; i++)
 		{
-			g_free(litos->filename[i]);
 
 			litos->filename[i] = litos->filename[i+1];
 
-			litos->filename[i+1] = NULL;
-
 			litos->fileSaved[i] = litos->fileSaved[i+1];
-			litos->fileSaved[i+1] = TRUE;
+
 		}
 	}
+
+	litos->fileSaved[total_page-1] = TRUE;
+	litos->filename[total_page-1] = NULL;
 }
 
 void close_tab (GtkButton *button, gpointer userData)
