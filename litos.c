@@ -12,22 +12,29 @@ GtkTextBuffer* get_current_buffer(struct lit *litos);
 
 void freePage(int page, struct lit *litos)
 {
-	if(litos->filename[page+1] != NULL)
-	{
-		litos->filename[page] = litos->filename[page+1];
-		litos->filename[page+1] = NULL;
-			
-		litos->fileSaved[page] = litos->fileSaved[page+1];
-		litos->fileSaved[page+1] = TRUE;
-	}
+	int i;
+	int total_pages = gtk_notebook_get_n_pages(litos->notebook);
+
+	if (total_pages == 1)
+    { 
+        g_free(litos->filename[page]);
+        litos->filename[page] = NULL;
+    }
 
 	else
 	{
-		litos->fileSaved[page] = TRUE;
-		litos->filename[page] = NULL;
-	}
+		for (i = page; i < total_pages; i++)
+		{
+			g_free(litos->filename[i]);
 
-	g_free(litos->filename[page+1]);
+			litos->filename[i] = litos->filename[i+1];
+
+			litos->filename[i+1] = NULL;
+
+			litos->fileSaved[i] = litos->fileSaved[i+1];
+			litos->fileSaved[i+1] = TRUE;
+		}
+	}
 }
 
 void close_tab (GtkButton *button, gpointer userData)
@@ -91,11 +98,6 @@ void save_file(gint page, struct lit *litos)
 	gtk_text_buffer_get_bounds (current_buffer, &start, &end);
 
 	content = gtk_text_buffer_get_text (current_buffer, &start, &end, FALSE);
-
-	/*const gchar *filename = gtk_notebook_get_tab_label_text(
-								litos->notebook,
-								gtk_notebook_get_nth_page (litos->notebook, page)
-							);*/
 
 	if (!g_file_set_contents (litos->filename[page], content, -1, NULL))
 		g_warning ("The file '%s' could not be written!", litos->filename[page]);
