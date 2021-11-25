@@ -12,7 +12,7 @@ GTK_LIBS = `pkg-config --libs gtk+-3.0 gtksourceview-3.0`
 
 CFLAGS += ${GTK_INCS}
 
-SRCS = main.c activate.c litos.c dialogs.c search.c popovers.c sourceview.c acels.c
+SRCS = main.c activate.c litos.c dialogs.c search_replace.c popovers.c sourceview.c acels.c
 OBJS = $(SRCS:.c=.o)
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin

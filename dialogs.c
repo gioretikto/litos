@@ -3,6 +3,8 @@
 #define SAVE 2
 #define CLOSE 1
 
+#define VERSION "2.2.0"
+
 void open_file(struct lit *litos, gboolean template);
 void menu_save (GtkWidget *widget, gpointer userData);
 void save_as_dialog(struct lit *litos);
@@ -19,10 +21,6 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 	GtkWidget *message_dialog;
 
 	gint res;
-
-	/*const gchar *filename = gtk_notebook_get_tab_label_text(litos->notebook,
-								gtk_notebook_get_nth_page (litos->notebook, page)
-							);*/
 
 	message_dialog = gtk_message_dialog_new(GTK_WINDOW(litos->window), GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING,
                       GTK_BUTTONS_NONE, "Save changes to document %s before closing?", litos->filename[page]);
@@ -206,7 +204,7 @@ void about_dialog (GtkButton *button, gpointer userData)
 	
 	gtk_show_about_dialog (NULL,
                        "program-name", "Litos",
-                       "version", "2.0.0",
+                       "version", VERSION,
     				   "license-type", GTK_LICENSE_GPL_3_0,
     				   "website", "https://github.com/gioretikto/litos",
 					   "authors", authors,

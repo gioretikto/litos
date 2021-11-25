@@ -20,7 +20,7 @@ void freePage(int page, struct lit *litos)
 	if (total_pages == 1)
         litos->filename[page] = NULL;
 
-	else
+	else			/* If page 2 is closed move 3->2, 4->3, until last page */
 	{
 		for (i = page; i < total_pages; i++)
 		{
@@ -32,8 +32,10 @@ void freePage(int page, struct lit *litos)
 		}
 	}
 
-	litos->fileSaved[total_pages-1] = TRUE;
-	litos->filename[total_pages-1] = NULL;
+	total_pages--;
+
+	litos->fileSaved[total_pages] = TRUE;
+	litos->filename[total_pages] = NULL;
 }
 
 void close_tab (GtkButton *button, gpointer userData)
@@ -240,10 +242,10 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 
 	gtk_notebook_set_current_page(
 		litos->notebook,
-		gtk_notebook_get_n_pages(litos->notebook) - 1
+		gtk_notebook_get_n_pages(litos->notebook)-1
     );
 
-    gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);
+    //gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);
 
 	g_signal_connect (litos->buffer, "notify::text", G_CALLBACK (monitor_change), litos);
 

@@ -48,6 +48,8 @@ void activate (GtkApplication* app, gpointer userData)
 
     gtk_container_add(GTK_CONTAINER(litos->window), GTK_WIDGET(litos->notebook));
 
+    set_acels(litos);
+
     menu_newtab(NULL, litos);
 
 	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
@@ -56,7 +58,5 @@ void activate (GtkApplication* app, gpointer userData)
    	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), litos);
 	g_signal_connect (about_button, "clicked", G_CALLBACK (about_dialog), NULL);
 	
-    set_acels(litos);
-
     gtk_widget_show_all (litos->window);
 }
