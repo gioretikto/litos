@@ -57,8 +57,7 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 	   		if (gtk_notebook_get_n_pages(litos->notebook) == 1)
 			{
 				freePage(page, litos);
-				gtk_notebook_remove_page(litos->notebook, page);
-			    menu_newtab(NULL, litos);
+				menu_newtab(NULL, litos);
 			}
 
 			else
@@ -203,12 +202,12 @@ void about_dialog (GtkButton *button, gpointer userData)
 	const gchar *authors[] = {"Giovanni Resta", "giovannirestadev@gmail.com", NULL};
 	
 	gtk_show_about_dialog (NULL,
-                       "program-name", "Litos",
-                       "version", VERSION,
-    				   "license-type", GTK_LICENSE_GPL_3_0,
-    				   "website", "https://github.com/gioretikto/litos",
-					   "authors", authors,
-    				   "logo-icon-name", "start-here",
-                       "title", ("Litos"),
-                       NULL);
+			"program-name", "Litos",
+			"version", VERSION,
+			"license-type", GTK_LICENSE_GPL_3_0,
+			"website", "https://github.com/gioretikto/litos",
+			"authors", authors,
+			"logo-icon-name", "start-here",
+			"title", ("Litos"),
+			NULL);
 }

@@ -70,6 +70,10 @@ void action_apply_sub_tag(GSimpleAction *action, GVariant *parameter, gpointer u
 	applyTags(userData, tag);
 }
 
+void action_insert_endlist_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "</li>");}
+
+void action_insert_space_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "&emsp;■□");}
+
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(NULL, userData);}
 void action_new_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_newtab (NULL, userData);}
 void action_close_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; close_tab(NULL, userData);}
@@ -117,9 +121,11 @@ void set_acels (struct lit *litos)
 		{"italic", action_apply_italic, NULL, NULL, NULL, {0,0,0}},
 		{"minus", action_insert_minus, NULL, NULL, NULL, {0,0,0}},
 		{"dot", action_insert_dot, NULL, NULL, NULL, {0,0,0}},
+		{"list", action_insert_endlist_tag, NULL, NULL, NULL, {0,0,0}},
 		{"bond", action_insert_bond, NULL, NULL, NULL, {0,0,0}},
 		{"sup", action_apply_sup_tag, NULL, NULL, NULL, {0,0,0}},
 		{"sub", action_apply_sub_tag, NULL, NULL, NULL, {0,0,0}},
+		{"space", action_insert_space_tag, NULL, NULL, NULL, {0,0,0}},
 		{"close_tab", action_close_tab, NULL, NULL, NULL, {0,0,0}},
 		{"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
 	};
@@ -135,9 +141,11 @@ void set_acels (struct lit *litos)
 	  { "app.italic", { "<Control>i", NULL} },
 	  { "app.minus", { "<Control>m", NULL} },
 	  { "app.dot", { "<Control>d", NULL} },
-	  { "app.bond", { "<Control>l", NULL} },
+	  { "app.list", { "<Control>l", NULL} },
+	  { "app.bond", { "<Shift><Control>l", NULL} },
 	  { "app.sup", { "<Control>p", NULL} },
 	  { "app.sub", { "<Control>u", NULL} },
+	  { "app.space", { "<Control>e", NULL} },
 	  { "app.close_tab", { "<Control>w", NULL} },
 	  { "app.quit", { "<Control>q", NULL} },
 	  { "app.save", { "<Control>s", NULL} },

@@ -29,6 +29,11 @@ From source code repository:
 Ctrl-b To tranform "string" into "<b>string<</b>"
 Ctrl-i To tranform "string" into "<i>string<</i>"
 Ctrl-p To tranform "string" into "<sup>string<</sup>"
+Ctrl-l insert "</li>" tag
+Ctrl-e insert "&emsp;■□&emsp;" characters
+Ctrl-d insert ⋅ character
+Ctrl-m insert − character
+Shift + Ctrl l insert — character
 
 To create file from Templates make sure you've the "Templates" dir in you home direcotry and the file $HOME/.config/user-dirs.dirs exists (see https://wiki.archlinux.org/title/XDG_user_directories)
 

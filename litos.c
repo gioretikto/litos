@@ -15,7 +15,7 @@ void freePage(int page, struct lit *litos)
 	int i;
 	int total_pages = gtk_notebook_get_n_pages(litos->notebook);
 
-    g_free(litos->filename[page]);
+	g_free(litos->filename[page]);
 
 	if (total_pages == 1)
         litos->filename[page] = NULL;
@@ -55,7 +55,7 @@ void close_tab (GtkButton *button, gpointer userData)
 		{
 			freePage(page, litos);
 			gtk_notebook_remove_page(litos->notebook, page);
-		    menu_newtab(NULL, litos);
+			menu_newtab(NULL, litos);
 		}
 		
 		else
@@ -117,7 +117,7 @@ void save_file(gint page, struct lit *litos)
 
 		gtk_label_set_markup (GTK_LABEL(label), markup);
 
-    	gtk_notebook_set_tab_label_text(litos->notebook, gtk_notebook_get_nth_page(litos->notebook, page),litos->filename[page]);
+    		gtk_notebook_set_tab_label_text(litos->notebook, gtk_notebook_get_nth_page(litos->notebook, page),litos->filename[page]);
 	}
 
 	g_free (content);
@@ -149,30 +149,32 @@ void save_as_file(GtkFileChooser *chooser, struct lit *litos)
 	else
 		litos->fileSaved[page] = TRUE;
 
-    gtk_notebook_set_tab_label_text(litos->notebook, gtk_notebook_get_nth_page(litos->notebook, page),litos->filename[page]);
+    	gtk_notebook_set_tab_label_text(litos->notebook, gtk_notebook_get_nth_page(litos->notebook, page),litos->filename[page]);
 
 	g_object_unref(loc);
 }
 
 void open_file(struct lit *litos, gboolean template)
 {
-    gboolean read_file_status;
+	gboolean read_file_status;
    	GError *error;
    	char* contents;
 
 	gint page = gtk_notebook_get_current_page(litos->notebook);
 
-    read_file_status = g_file_get_contents(litos->filename[page], &contents, NULL, &error);
+	read_file_status = g_file_get_contents(litos->filename[page], &contents, NULL, &error);
 
-    if (read_file_status == FALSE)
-    {
+	if (read_file_status == FALSE)
+	{
 		g_error("error opening file: %s\n",error && error->message ? error->message : "No Detail");
 		return;
-    }
+	}
 
 	GtkTextBuffer *current_buffer = get_current_buffer(litos);
 
 	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
+
+	highlight_buffer(litos);
 
 	char *filename = litos->filename[page];
 
@@ -191,9 +193,6 @@ void open_file(struct lit *litos, gboolean template)
 		filename
 	);
 
-	if (litos->filename[page] != NULL)
-		highlight_buffer(litos);
-
 	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 
 	litos->fileSaved[page] = TRUE;
@@ -205,27 +204,26 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 
 	struct lit *litos = (struct lit*)userData;
 
-    GtkWidget *scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+	GtkWidget *scrolled_window = gtk_scrolled_window_new (NULL, NULL);
 
-    GtkWidget *tabbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
+	GtkWidget *tabbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
+	GtkWidget *source_view = MyNewSourceview(litos);
 
-    GtkWidget *source_view = MyNewSourceview(litos);
-
-    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
 	GTK_POLICY_AUTOMATIC,
 	GTK_POLICY_AUTOMATIC);
 
 	gtk_widget_set_hexpand (scrolled_window, TRUE);
 
 	GtkCssProvider *provider = gtk_css_provider_new ();
-    gtk_css_provider_load_from_data (provider,
+	gtk_css_provider_load_from_data (provider,
                                      "textview { font-family: Monospace; font-size: 11pt; }",
                                      -1,
                                      NULL);
-    gtk_style_context_add_provider (gtk_widget_get_style_context (source_view),
+	gtk_style_context_add_provider (gtk_widget_get_style_context (source_view),
                                     GTK_STYLE_PROVIDER (provider),
                                     GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-    g_object_unref (provider);
+	g_object_unref (provider);
 
 	gtk_container_add(GTK_CONTAINER(scrolled_window), source_view);
 
@@ -238,14 +236,14 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 		tabbox,
 		gtk_label_new("Untitled"),
 		gtk_label_new("Untitled")
-    );
+	);
 
 	gtk_notebook_set_current_page(
 		litos->notebook,
 		gtk_notebook_get_n_pages(litos->notebook)-1
-    );
+	);
 
-    //gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);
+	//gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);
 
 	g_signal_connect (litos->buffer, "notify::text", G_CALLBACK (monitor_change), litos);
 
