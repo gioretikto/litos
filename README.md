@@ -26,10 +26,10 @@ From source code repository:
 
 ### Usage
 
-* Ctrl-b To tranform "string" into "<b>string<</b>"
-* Ctrl-i To tranform "string" into "<i>string<</i>"
-* Ctrl-p To tranform "string" into "<sup>string<</sup>"
-* Ctrl-l insert "</li>" tag
+* Ctrl-b To tranform "string" into "&lt;b>string&lt;/b&gt;"
+* Ctrl-i To tranform "string" into "&lt;i>string&lt;/i&gt;"
+* Ctrl-p To tranform "string" into "&lt;sup>string&lt;/sup&gt;"
+* Ctrl-l insert "&lt;/l&gt;" tag
 * Ctrl-e insert "&emsp;■□&emsp;" characters
 * Ctrl-d insert ⋅ character
 * Ctrl-m insert − character
