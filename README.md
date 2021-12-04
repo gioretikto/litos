@@ -29,7 +29,7 @@ From source code repository:
 * Ctrl-b To tranform "string" into "&lt;b&gt;string&lt;/b&gt;"
 * Ctrl-i To tranform "string" into "&lt;i&gt;string&lt;/i&gt;"
 * Ctrl-p To tranform "string" into "&lt;sup&gt;string&lt;/sup&gt;"
-* Ctrl-l insert "&lt;/l&gt;" tag
+* Ctrl-l insert "&lt;/li&gt;" tag
 * Ctrl-e insert "&emsp;■□&emsp;" characters
 * Ctrl-d insert ⋅ character
 * Ctrl-m insert − character
