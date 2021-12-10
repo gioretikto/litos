@@ -33,6 +33,8 @@ From source code repository:
 * Ctrl-e insert "&emsp;■□&emsp;" characters
 * Ctrl-d insert ⋅ character
 * Ctrl-m insert − character
+* Ctrl-t insert ⟶⟼⇒ characters
+* Ctrl-r insert ⇌⟵⇐ characters
 * Shift + Ctrl l insert — character
 
 To create file from Templates make sure you've the "Templates" dir in you home direcotry and the file $HOME/.config/user-dirs.dirs exists (see https://wiki.archlinux.org/title/XDG_user_directories)
