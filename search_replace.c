@@ -130,8 +130,11 @@ void applyTags (struct lit *litos, char *tag)
 {
 	char *string = NULL;
 
+<<<<<<< HEAD
 	char replaceString[100] = { 0 };
 
+=======
+>>>>>>> 4de8e5efde57ec506a09f19ac55fc9262c9fd90e
 	GtkTextIter start_sel, end_sel;
 
 	GtkTextBuffer *buffer = get_current_buffer(litos);
@@ -143,10 +146,16 @@ void applyTags (struct lit *litos, char *tag)
 		                      &end_sel,
 		                      FALSE);
 
+<<<<<<< HEAD
+=======
+		char replaceString[100] = { 0 };
+
+>>>>>>> 4de8e5efde57ec506a09f19ac55fc9262c9fd90e
 		snprintf(replaceString, sizeof(replaceString), "<%s>%s</%s>", tag, string, tag);
 		gtk_text_buffer_delete (buffer, &start_sel, &end_sel);
 		gtk_text_buffer_insert (buffer, &start_sel, replaceString, (gint)strlen(replaceString));
 	}
+<<<<<<< HEAD
 
 	else
 	{
@@ -158,6 +167,8 @@ void applyTags (struct lit *litos, char *tag)
 			gtk_text_buffer_insert_at_cursor (buffer, replaceString,(gint)strlen(replaceString));
 		}
 	}		
+=======
+>>>>>>> 4de8e5efde57ec506a09f19ac55fc9262c9fd90e
 }
 
 /* Called when Ctrl+m, Ctrl+l is toggled */
