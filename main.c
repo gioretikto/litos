@@ -7,7 +7,6 @@ int
 main (int    argc,
       char **argv)
 {
-
 	int status;
 
 	GtkApplication* app;
@@ -21,6 +20,8 @@ main (int    argc,
 		litos.fileSaved[i] = TRUE;
 		litos.filename[i] = NULL;
 	}
+
+	litos.search_context = NULL;
 
 	app = gtk_application_new ("org.litos.gtk", G_APPLICATION_FLAGS_NONE);
 

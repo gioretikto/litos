@@ -1,22 +1,20 @@
 #include "litos.h"
 #define CANCEL 3
+#define SAVE 2
+#define CLOSE 1
+
+#define VERSION "2.2.0"
 
 void open_file(struct lit *litos, gboolean template);
 void menu_save (GtkWidget *widget, gpointer userData);
 void save_as_dialog(struct lit *litos);
 void save_as_file(GtkFileChooser *chooser, struct lit *litos);
-void save_file(struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
-GtkSourceView* tab_get_sourceview(int page, struct lit *litos);
+GtkSourceView* currentTabSourceView(struct lit *litos);
+void menu_newtab (GtkWidget *widget, gpointer userData);
+void freePage(int page, struct lit *litos);
 
-void freePage(int page, struct lit *litos)
-{
-	if (litos->filename[page] != NULL)
-	{
-		g_free(litos->filename[page]);
-		litos->filename[page] = NULL;
-	}
-}
+GtkTextBuffer* get_current_buffer(struct lit *litos);
 
 unsigned int saveornot_before_close(gint page, struct lit *litos)
 {
@@ -24,13 +22,8 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 
 	gint res;
 
-	const gchar *filename = gtk_notebook_get_tab_label_text(
-								litos->notebook,
-								gtk_notebook_get_nth_page (litos->notebook, page)
-							);
-
 	message_dialog = gtk_message_dialog_new(GTK_WINDOW(litos->window), GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING,
-                      GTK_BUTTONS_NONE, "Save changes to document %s before closing?", filename);
+                      GTK_BUTTONS_NONE, "Save changes to document %s before closing?", litos->filename[page]);
 
 	gtk_dialog_add_buttons (GTK_DIALOG(message_dialog), "Close without Saving", GTK_RESPONSE_REJECT,
                                                       "Cancel", GTK_RESPONSE_CANCEL, "Save", GTK_RESPONSE_ACCEPT,  NULL);
@@ -41,30 +34,42 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 
 	switch (res)
 	{
-		case GTK_RESPONSE_ACCEPT:
-			menu_save(NULL, litos);
-			freePage(page, litos);
-			return SAVE;
-			break;
-
-		case GTK_RESPONSE_REJECT:
-			gtk_notebook_remove_page(litos->notebook, page);
-			freePage(page, litos);
-			return CLOSE;
-			break;
-
 		case GTK_RESPONSE_CANCEL:
 			return CANCEL;
-			break;
+
+		case GTK_RESPONSE_ACCEPT:
+
+			menu_save(NULL, litos);
+
+	   		if (gtk_notebook_get_n_pages(litos->notebook) == 1)
+				g_application_quit (G_APPLICATION (litos->app));
+
+			else
+			{
+				freePage(page, litos);
+				gtk_notebook_remove_page(litos->notebook, page);
+			}
+
+			return SAVE;
+
+		case GTK_RESPONSE_REJECT:
+
+	   		if (gtk_notebook_get_n_pages(litos->notebook) == 1)
+			{
+				freePage(page, litos);
+				menu_newtab(NULL, litos);
+			}
+
+			else
+			{
+				freePage(page, litos);
+				gtk_notebook_remove_page(litos->notebook, page);
+			}
+
+			return CLOSE;
 
 		default: /*close bottun was pressed*/
 			g_print("The bottun(Close without Saving/Cancel/Save) was not pressed.");
-	}
-
-	if (litos->filename[page] != NULL)
-	{
-		g_free(litos->filename[page]);
-		litos->filename[page] = NULL;
 	}
 
 	return 0;
@@ -89,16 +94,36 @@ void open_dialog (GtkWidget *widget, gpointer userData)
                                       GTK_RESPONSE_ACCEPT,
                                       NULL);
 
+	gint page = gtk_notebook_get_current_page(litos->notebook);
+
+	if (litos->filename[page] != NULL)
+	{
+		const gchar * filename = gtk_notebook_get_tab_label_text(
+								litos->notebook,
+								gtk_notebook_get_nth_page (litos->notebook, page)
+							);
+
+		/* To let Open dialog show the files within current DIR of file already opened*/
+		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), g_path_get_dirname(filename));
+	}
+
 	res = gtk_dialog_run (GTK_DIALOG (dialog));
 
 	if (res == GTK_RESPONSE_ACCEPT)
 	{
+		GtkTextBuffer *buffer = get_current_buffer(litos);
+
+    	if ((gtk_text_buffer_get_char_count(buffer)) != 0)
+		    	menu_newtab(NULL, litos);
+
 		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-		litos->filename[gtk_notebook_get_current_page(litos->notebook)] = gtk_file_chooser_get_filename (chooser);
+
+		page = gtk_notebook_get_current_page(litos->notebook);
+
+		litos->filename[page] = gtk_file_chooser_get_filename (chooser);
+
    		open_file (litos, FALSE);
 	}
-
-	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
 
 	gtk_widget_destroy (dialog);
 }
@@ -120,7 +145,7 @@ void openFromTemplate (GtkWidget *widget, gpointer userData)
 
 	gint res;
 
-	if((gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_get_user_special_dir (G_USER_DIRECTORY_TEMPLATES))) == FALSE)
+	if ((gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_get_user_special_dir (G_USER_DIRECTORY_TEMPLATES))) == FALSE)
 		fprintf(stderr, "error opening TEMPLATES directory chek wheter $HOME/.config/user-dirs.dirs contains XDG_TEMPLATES_DIR=\"$HOME/Templates\"");
 
 	res = gtk_dialog_run (GTK_DIALOG (dialog));
@@ -128,11 +153,15 @@ void openFromTemplate (GtkWidget *widget, gpointer userData)
 	if (res == GTK_RESPONSE_ACCEPT)
 	{
 		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+		GtkTextBuffer *current_buffer = get_current_buffer(litos);
+
+    	if ((gtk_text_buffer_get_char_count(current_buffer)) != 0)
+		    	menu_newtab(NULL, litos);
+
 		litos->filename[gtk_notebook_get_current_page(litos->notebook)] = gtk_file_chooser_get_filename (chooser);
+
    		open_file (litos, TRUE);
 	}
-
-	gtk_widget_grab_focus(GTK_WIDGET(tab_get_sourceview(CURRENT_PAGE, litos)));
 
 	gtk_widget_destroy (dialog);
 }
@@ -173,12 +202,12 @@ void about_dialog (GtkButton *button, gpointer userData)
 	const gchar *authors[] = {"Giovanni Resta", "giovannirestadev@gmail.com", NULL};
 	
 	gtk_show_about_dialog (NULL,
-                       "program-name", "Litos",
-                       "version", "0.0.1",
-    				   "license-type", GTK_LICENSE_GPL_3_0,
-    				   "website", "https://github.com/gioretikto/litos",
-					   "authors", authors,
-    				   "logo-icon-name", "start-here",
-                       "title", ("Litos"),
-                       NULL);
+			"program-name", "Litos",
+			"version", VERSION,
+			"license-type", GTK_LICENSE_GPL_3_0,
+			"website", "https://github.com/gioretikto/litos",
+			"authors", authors,
+			"logo-icon-name", "start-here",
+			"title", ("Litos"),
+			NULL);
 }
