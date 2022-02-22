@@ -16,11 +16,15 @@ SRCS = main.c activate.c litos.c dialogs.c search_replace.c popovers.c sourcevie
 OBJS = $(SRCS:.c=.o)
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
+DATADIR ?= /usr/share/applications/
 TARGET = litos
+TARGETDATA = org.litos.gtk.desktop
 
 $(TARGET): $(OBJS)
-	 $(CC) -o $@ $^ $(CFLAGS) $(GTK_INCS) $(GTK_LIBS)
+	$(CC) -o $@ $^ $(CFLAGS) $(GTK_INCS) $(GTK_LIBS)
 clean:
 	rm -f $(OBJS)
+	rm -f $(DATADIR)$(TARGETDATA)
 install:
 	install $(TARGET) $(BINDIR)
+	install	$(TARGETDATA) $(DATADIR)

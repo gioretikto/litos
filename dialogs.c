@@ -5,11 +5,10 @@
 
 #define VERSION "2.2.0"
 
-void open_file(struct lit *litos, gboolean template);
+void open_file (GFile *file, gpointer userData);
 void menu_save (GtkWidget *widget, gpointer userData);
 void save_as_dialog(struct lit *litos);
 void save_as_file(GtkFileChooser *chooser, struct lit *litos);
-void open_dialog (GtkWidget *widget, gpointer userData);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void freePage(int page, struct lit *litos);
@@ -77,15 +76,15 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 
 void open_dialog (GtkWidget *widget, gpointer userData)
 {
-	(void)widget;
-
-	struct lit *litos = (struct lit*)userData;
-
-	GtkWidget *dialog;
-
-	gint res;
-
-	dialog = gtk_file_chooser_dialog_new ("Open File",
+    (void)widget;
+ 
+    struct lit *litos = (struct lit*)userData;
+ 
+    gint response;
+ 
+    GtkWidget *dialog;
+ 
+    dialog = gtk_file_chooser_dialog_new ("Open File",
                                       GTK_WINDOW(litos->window),
                                       GTK_FILE_CHOOSER_ACTION_OPEN,
                                       _("_Cancel"),
@@ -93,39 +92,37 @@ void open_dialog (GtkWidget *widget, gpointer userData)
                                       _("_Open"),
                                       GTK_RESPONSE_ACCEPT,
                                       NULL);
+ 
+    gint page = gtk_notebook_get_current_page(litos->notebook);
+ 
+    if (litos->filename[page] != NULL)
+    {
+ 
+        /* To let Open dialog show the files within current DIR of file already opened*/
 
-	gint page = gtk_notebook_get_current_page(litos->notebook);
+		g_print(g_path_get_dirname(litos->filename[page]));
+        gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), g_path_get_dirname(litos->filename[page]));
+    }
 
-	if (litos->filename[page] != NULL)
-	{
-		const gchar * filename = gtk_notebook_get_tab_label_text(
-								litos->notebook,
-								gtk_notebook_get_nth_page (litos->notebook, page)
-							);
-
-		/* To let Open dialog show the files within current DIR of file already opened*/
-		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), g_path_get_dirname(filename));
-	}
-
-	res = gtk_dialog_run (GTK_DIALOG (dialog));
-
-	if (res == GTK_RESPONSE_ACCEPT)
-	{
-		GtkTextBuffer *buffer = get_current_buffer(litos);
-
-    	if ((gtk_text_buffer_get_char_count(buffer)) != 0)
-		    	menu_newtab(NULL, litos);
-
-		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-
-		page = gtk_notebook_get_current_page(litos->notebook);
-
-		litos->filename[page] = gtk_file_chooser_get_filename (chooser);
-
-   		open_file (litos, FALSE);
-	}
-
-	gtk_widget_destroy (dialog);
+    response = gtk_dialog_run (GTK_DIALOG (dialog));
+ 
+    if (response == GTK_RESPONSE_ACCEPT)
+    {
+        GtkTextBuffer *buffer = get_current_buffer(litos);
+ 
+        if ((gtk_text_buffer_get_char_count(buffer)) != 0)
+                menu_newtab(NULL, litos);
+ 
+        GFile *file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
+ 
+        open_file (file, litos);
+ 
+        page = gtk_notebook_get_current_page(litos->notebook);
+ 
+        litos->filename[page] = g_file_get_path(file);
+    }
+ 
+    gtk_widget_destroy (dialog);
 }
 
 void openFromTemplate (GtkWidget *widget, gpointer userData)
@@ -143,25 +140,26 @@ void openFromTemplate (GtkWidget *widget, gpointer userData)
                                       GTK_RESPONSE_ACCEPT,
                                       NULL);
 
-	gint res;
+	gint response;
 
 	if ((gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_get_user_special_dir (G_USER_DIRECTORY_TEMPLATES))) == FALSE)
 		fprintf(stderr, "error opening TEMPLATES directory chek wheter $HOME/.config/user-dirs.dirs contains XDG_TEMPLATES_DIR=\"$HOME/Templates\"");
 
-	res = gtk_dialog_run (GTK_DIALOG (dialog));
+	response = gtk_dialog_run (GTK_DIALOG (dialog));
 
-	if (res == GTK_RESPONSE_ACCEPT)
+	if (response == GTK_RESPONSE_ACCEPT)
 	{
-		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-		GtkTextBuffer *current_buffer = get_current_buffer(litos);
+		GtkTextBuffer *buffer = get_current_buffer(litos);
 
-    	if ((gtk_text_buffer_get_char_count(current_buffer)) != 0)
-		    	menu_newtab(NULL, litos);
+    	if ((gtk_text_buffer_get_char_count(buffer)) != 0)
+			menu_newtab(NULL, litos);
 
-		litos->filename[gtk_notebook_get_current_page(litos->notebook)] = gtk_file_chooser_get_filename (chooser);
+		GFile *file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
 
-   		open_file (litos, TRUE);
-	}
+		litos->template = TRUE;
+
+		open_file (file, litos);
+    }
 
 	gtk_widget_destroy (dialog);
 }

@@ -49,7 +49,12 @@ void highlight_buffer(struct lit *litos) /* Apply different font styles dependin
 
 	GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();
 
-	GtkSourceLanguage *lang = gtk_source_language_manager_guess_language(lm, litos->filename[page], NULL);
+	GtkSourceLanguage *lang;
+
+	if (litos->filename[page] == NULL)
+		lang = gtk_source_language_manager_get_language(lm,"html");
+	else
+		lang = gtk_source_language_manager_guess_language(lm, litos->filename[page], NULL);
 		
 	gtk_source_buffer_set_language (litos->buffer, lang);
 

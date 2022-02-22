@@ -13,12 +13,16 @@ GtkSourceView* currentTabSourceView(struct lit *litos);
 void activate (GtkApplication* app, gpointer userData)
 {
 	struct lit *litos = (struct lit*)userData;
+	
+	if (litos->window != NULL)
+		return;
+
+	litos->window = gtk_application_window_new (app);
 
 	GtkWidget *about_button, *find_menu_button, *close_tab_button, *file_menu_button;
 
 	litos->app = app;
 
-	litos->window = gtk_application_window_new (app);
 	litos->headbar = gtk_header_bar_new();
 
 	close_tab_button = gtk_button_new_with_label("Close Tab");

@@ -1,14 +1,16 @@
 #include "litos.h"
 
+#define BUFFER_SIZE 8192
+
 void save_file(gint page, struct lit *litos);
 void save_as_dialog(struct lit *litos);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData);
 unsigned int saveornot_before_close(gint page, struct lit *litos);
-
 void highlight_buffer(struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
+static void open_file_complete (GObject *source_object, GAsyncResult *res, gpointer userData);
 
 void freePage(int page, struct lit *litos)
 {
@@ -24,11 +26,9 @@ void freePage(int page, struct lit *litos)
 	{
 		for (i = page; i < total_pages; i++)
 		{
-
 			litos->filename[i] = litos->filename[i+1];
 
 			litos->fileSaved[i] = litos->fileSaved[i+1];
-
 		}
 	}
 
@@ -151,38 +151,94 @@ void save_as_file(GtkFileChooser *chooser, struct lit *litos)
 
     	gtk_notebook_set_tab_label_text(litos->notebook, gtk_notebook_get_nth_page(litos->notebook, page),litos->filename[page]);
 
+	gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[page]);
+
 	g_object_unref(loc);
 }
 
-void open_file(struct lit *litos, gboolean template)
+void open_file (GFile *file, gpointer userData)
 {
-	gboolean read_file_status;
-   	GError *error;
-   	char* contents;
+	struct lit *litos = (struct lit*)userData;
 
-	gint page = gtk_notebook_get_current_page(litos->notebook);
+	g_file_load_contents_async (file,
+                              NULL,
+                              (GAsyncReadyCallback) open_file_complete,
+                              litos);	
+}
 
-	read_file_status = g_file_get_contents(litos->filename[page], &contents, NULL, &error);
+static void open_file_complete (GObject *source_object, GAsyncResult *res, gpointer userData)
+{
+	GFile *file = G_FILE (source_object);
 
-	if (read_file_status == FALSE)
+	struct lit *litos = (struct lit*)userData;
+
+	g_autofree char *contents = NULL;
+
+	gsize length = 0;
+
+	g_autoptr (GError) error = NULL;
+
+	/* Complete the asynchronous operation; this function will either
+	 give you the contents of the file as a byte array, or will
+	 set the error argument */
+	g_file_load_contents_finish (file,
+				res,
+				&contents,
+				&length,
+				NULL,
+				&error);
+
+	/* In case of error, print a warning to the standard error output */
+	if (error != NULL)
 	{
-		g_error("error opening file: %s\n",error && error->message ? error->message : "No Detail");
+		g_printerr ("Unable to open “%s”: %s\n",
+			g_file_peek_path (file),
+			error->message);
+
 		return;
+    }
+
+	/* Now that you have the contents of the file, you can display them in the GtkTextView widget. */
+
+	/* Ensure that the file is encoded with UTF-8 */
+	if (!g_utf8_validate (contents, length, NULL))
+	{
+		g_printerr ("Unable to load the contents of “%s”: "
+			"the file is not encoded with UTF-8\n",
+		g_file_peek_path (file));
+
+      return;
 	}
+
+	/* Retrieve the GtkTextBuffer instance that stores the
+	 text displayed by the GtkTextView widget */
 
 	GtkTextBuffer *current_buffer = get_current_buffer(litos);
 
-	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(current_buffer), contents, -1);
+	/* Set the text using the contents of the file */
+	gtk_text_buffer_set_text (current_buffer, contents, length);
 
-	highlight_buffer(litos);
+	/* Reposition the cursor so it's at the start of the text */
+	GtkTextIter start;
+	gtk_text_buffer_get_start_iter (current_buffer, &start);
+	gtk_text_buffer_place_cursor (current_buffer, &start);
+
+	gint page = gtk_notebook_get_current_page(litos->notebook);
 
 	char *filename = litos->filename[page];
 
-	if (template)
+	if (litos->template == TRUE)
 	{
-		litos->filename[page] = NULL;
 		filename = "Untitled";
+		litos->template = FALSE;
+		litos->fileSaved[page] = FALSE;
 	}
+
+	else
+	{
+		filename = litos->filename[page] = g_file_get_path(file);
+		litos->fileSaved[page] = TRUE;
+	}		
 
 	gtk_notebook_set_tab_label_text(
 		litos->notebook,
@@ -195,7 +251,9 @@ void open_file(struct lit *litos, gboolean template)
 
 	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 
-	litos->fileSaved[page] = TRUE;
+	gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[page]);
+
+	highlight_buffer(litos);
 }
 
 void menu_newtab (GtkWidget *widget, gpointer userData)
@@ -246,7 +304,6 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 	//gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);
 
 	g_signal_connect (litos->buffer, "notify::text", G_CALLBACK (monitor_change), litos);
-
 }
 
 void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)	/*Function called when the file gets modified */

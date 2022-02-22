@@ -50,7 +50,6 @@ void action_apply_bold(GSimpleAction *action, GVariant *parameter, gpointer user
 	applyTags(userData, tag);
 }
 
-<<<<<<< HEAD
 void action_apply_heading(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
@@ -59,8 +58,6 @@ void action_apply_heading(GSimpleAction *action, GVariant *parameter, gpointer u
 	applyTags(userData, tag);
 }
 
-=======
->>>>>>> 4de8e5efde57ec506a09f19ac55fc9262c9fd90e
 void action_apply_italic(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
@@ -134,10 +131,7 @@ void set_acels (struct lit *litos)
 		{"find_selection", action_find_selection, NULL, NULL, NULL, {0,0,0}},
 		{"bold", action_apply_bold, NULL, NULL, NULL, {0,0,0}},
 		{"italic", action_apply_italic, NULL, NULL, NULL, {0,0,0}},
-<<<<<<< HEAD
 		{"h2", action_apply_heading, NULL, NULL, NULL, {0,0,0}},
-=======
->>>>>>> 4de8e5efde57ec506a09f19ac55fc9262c9fd90e
 		{"minus", action_insert_minus, NULL, NULL, NULL, {0,0,0}},
 		{"arrow", action_insert_arrow, NULL, NULL, NULL, {0,0,0}},
 		{"arrow_left", action_insert_arrow_left, NULL, NULL, NULL, {0,0,0}},
@@ -159,10 +153,7 @@ void set_acels (struct lit *litos)
 	  { "app.esc", { "Escape", NULL} },
 	  { "app.open", { "<Control>o", NULL} },
 	  { "app.bold", { "<Control>b", NULL} },
-<<<<<<< HEAD
 	  { "app.h2", { "<Control>h", NULL} },
-=======
->>>>>>> 4de8e5efde57ec506a09f19ac55fc9262c9fd90e
 	  { "app.italic", { "<Control>i", NULL} },
 	  { "app.minus", { "<Control>m", NULL} },
 	  { "app.dot", { "<Control>d", NULL} },

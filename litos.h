@@ -13,6 +13,7 @@ struct lit{
 	GtkSourceSearchContext *search_context;
 	GtkApplication *app;
 	_Bool fileSaved[MAX_TAB];
+	_Bool template;
 	char *filename[MAX_TAB];
 };
 
