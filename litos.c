@@ -2,8 +2,6 @@
 
 #define BUFFER_SIZE 8192
 
-void save_file(gint page, struct lit *litos);
-void save_as_dialog(struct lit *litos);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData);
 unsigned int saveornot_before_close(gint page, struct lit *litos);
@@ -11,6 +9,9 @@ void highlight_buffer(struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 static void open_file_complete (GObject *source_object, GAsyncResult *res, gpointer userData);
+static void save_file (GObject *source_object, GAsyncResult *res, gpointer userData);
+void action_save_as_dialog (GSimpleAction *action, GVariant *parameter, void* userData);
+static void save_file_complete (GObject *source_object, GAsyncResult *result, gpointer userData);
 
 void freePage(int page, struct lit *litos)
 {
@@ -66,10 +67,8 @@ void close_tab (GtkButton *button, gpointer userData)
 	}
 }
 
-void menu_save (GtkWidget *widget, gpointer userData)
+void menu_save (gpointer userData)
 {
-	(void)widget;
-
 	struct lit *litos = (struct lit*)userData;
 
 	gint page = gtk_notebook_get_current_page(litos->notebook);
@@ -77,35 +76,104 @@ void menu_save (GtkWidget *widget, gpointer userData)
 	if (litos->fileSaved[page] == TRUE)
 		return;
 
-	if (litos->filename[page] == NULL)
-		save_as_dialog(litos);
-
-	else
-		save_file(page, litos);
-
-	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
-}
-
-void save_file(gint page, struct lit *litos)
-{
-	GtkTextIter start, end;
-
-	gchar *content;
-
-	GtkTextView *text_view = GTK_TEXT_VIEW(currentTabSourceView(litos));
-
-	GtkTextBuffer *current_buffer = gtk_text_view_get_buffer (text_view);
-
-	gtk_text_buffer_get_bounds (current_buffer, &start, &end);
-
-	content = gtk_text_buffer_get_text (current_buffer, &start, &end, FALSE);
-
-	if (!g_file_set_contents (litos->filename[page], content, -1, NULL))
-		g_warning ("The file '%s' could not be written!", litos->filename[page]);
+	else if (litos->filename[page] == NULL)
+		action_save_as_dialog(NULL, NULL, litos);
 
 	else
 	{
+		g_autoptr (GFile) file = g_file_new_for_path(litos->filename[page]);
+		save_file (G_OBJECT(file), NULL, litos);
+	}
+}
+
+void on_save_as_response(GFile *file, struct lit *litos)
+{
+    if (!g_file_query_exists(file, NULL)) { 
+
+		g_file_create_async (file,
+				G_FILE_CREATE_NONE,
+				G_PRIORITY_DEFAULT,
+				NULL,
+				save_file, litos);
+	}
+
+	else
+		save_file (G_OBJECT(file), NULL, litos);
+}
+
+static void save_file (GObject *source_object, GAsyncResult *result, gpointer userData)
+{
+	(void) result;
+	GFile *file = G_FILE (source_object);
+
+	struct lit *litos = (struct lit*)userData;
+
+	GtkTextBuffer *buffer = get_current_buffer(litos);
+
+	/* Retrieve the iterator at the start of the buffer */
+	GtkTextIter start;
+	gtk_text_buffer_get_start_iter (buffer, &start);
+
+	/* Retrieve the iterator at the end of the buffer */
+	GtkTextIter end;
+	gtk_text_buffer_get_end_iter (buffer, &end);
+
+	/* Retrieve all the visible text between the two bounds */
+	char *text = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
+
+	/* If there is nothing to save, return early */
+	if (text == NULL || *text == '\0')
+		return;
+
+	/* Ensure that the file is encoded with UTF-8 */
+	if (!g_utf8_validate (text, (gssize)strlen (text), NULL))
+	{
+		g_printerr ("Unable to save the contents in “%s”: "
+			"the text is not encoded with UTF-8\n",
+		g_file_peek_path (file));
+
+		return;
+	}
+
+	GBytes* bytes = g_bytes_new_take (text, strlen (text));
+
+	/* Start the asynchronous operation to save the data into the file */
+	g_file_replace_contents_bytes_async (file,
+			bytes,
+			NULL,
+			FALSE,
+			G_FILE_CREATE_NONE,
+			NULL,
+			save_file_complete,
+			litos);
+
+	g_bytes_unref (bytes);
+}
+
+static void save_file_complete (GObject *source_object, GAsyncResult *result, gpointer userData)
+{
+	GFile *file = G_FILE (source_object);
+
+	struct lit *litos = (struct lit*)userData;
+
+	g_autoptr (GError) error = NULL;
+
+	g_file_replace_contents_finish (file, result, NULL, &error);
+
+	if (error != NULL)
+	{
+		g_printerr ("Unable to save “%s”: %s\n",
+			g_file_peek_path (file),
+			error->message);
+    }
+
+	else
+	{
+		gint page = gtk_notebook_get_current_page(litos->notebook);
+
 		litos->fileSaved[page] = TRUE;
+
+		litos->filename[page] = g_file_get_path(file);
 
 		g_print("%s\n", litos->filename[page]);
 
@@ -113,48 +181,20 @@ void save_file(gint page, struct lit *litos)
 
 		const char *format = "<span color='black'>\%s</span>";
 
-		char *markup = g_markup_printf_escaped (format, litos->filename[page]);
+		const char *filename = g_file_get_basename (file);
+
+		char *markup = g_markup_printf_escaped (format, filename);
 
 		gtk_label_set_markup (GTK_LABEL(label), markup);
 
-    		gtk_notebook_set_tab_label_text(litos->notebook, gtk_notebook_get_nth_page(litos->notebook, page),litos->filename[page]);
+    	gtk_notebook_set_tab_label_text(litos->notebook, gtk_notebook_get_nth_page(litos->notebook, page), filename);
+
+		gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[page]);
+
+		gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 	}
-
-	g_free (content);
 }
 
-void save_as_file(GtkFileChooser *chooser, struct lit *litos)
-{
-	GFile *loc = gtk_file_chooser_get_file(chooser);
-
-	GtkTextIter begin, end;
-
-	GtkTextView *text_view = GTK_TEXT_VIEW(currentTabSourceView(litos));
-
-	GtkTextBuffer *current_buffer = gtk_text_view_get_buffer (text_view);
-
-	gtk_text_buffer_get_start_iter(current_buffer, &begin);
-
-	gtk_text_buffer_get_end_iter(current_buffer, &end);
-
-	char *contents = gtk_text_buffer_get_text(current_buffer, &begin, &end, 0);
-
-	gint page = gtk_notebook_get_current_page(litos->notebook);
-
-	litos->filename[page] = gtk_file_chooser_get_filename (chooser);
-
-	if (!g_file_replace_contents(loc, contents, strlen(contents), NULL, TRUE, G_FILE_CREATE_NONE, NULL, NULL, NULL))
-		g_warning ("The file '%s' could not be written!", litos->filename[page]);
-
-	else
-		litos->fileSaved[page] = TRUE;
-
-    	gtk_notebook_set_tab_label_text(litos->notebook, gtk_notebook_get_nth_page(litos->notebook, page),litos->filename[page]);
-
-	gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[page]);
-
-	g_object_unref(loc);
-}
 
 void open_file (GFile *file, gpointer userData)
 {
@@ -201,7 +241,7 @@ static void open_file_complete (GObject *source_object, GAsyncResult *res, gpoin
 	/* Now that you have the contents of the file, you can display them in the GtkTextView widget. */
 
 	/* Ensure that the file is encoded with UTF-8 */
-	if (!g_utf8_validate (contents, length, NULL))
+	if (!g_utf8_validate (contents, (gssize)length, NULL))
 	{
 		g_printerr ("Unable to load the contents of “%s”: "
 			"the file is not encoded with UTF-8\n",
@@ -216,7 +256,7 @@ static void open_file_complete (GObject *source_object, GAsyncResult *res, gpoin
 	GtkTextBuffer *current_buffer = get_current_buffer(litos);
 
 	/* Set the text using the contents of the file */
-	gtk_text_buffer_set_text (current_buffer, contents, length);
+	gtk_text_buffer_set_text (current_buffer, contents, (gint)length);
 
 	/* Reposition the cursor so it's at the start of the text */
 	GtkTextIter start;
@@ -231,12 +271,12 @@ static void open_file_complete (GObject *source_object, GAsyncResult *res, gpoin
 	{
 		filename = "Untitled";
 		litos->template = FALSE;
-		litos->fileSaved[page] = FALSE;
 	}
 
 	else
 	{
-		filename = litos->filename[page] = g_file_get_path(file);
+		litos->filename[page] = g_file_get_path(file);
+		filename = g_file_get_basename (file);
 		litos->fileSaved[page] = TRUE;
 	}		
 
@@ -265,6 +305,7 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 	GtkWidget *scrolled_window = gtk_scrolled_window_new (NULL, NULL);
 
 	GtkWidget *tabbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
+
 	GtkWidget *source_view = MyNewSourceview(litos);
 
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),

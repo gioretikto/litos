@@ -4,7 +4,7 @@ void findButtonClicked (GtkButton *button, gpointer userData);
 void replaceButtonClicked (GtkButton *button, gpointer userData);
 void open_dialog (GtkWidget *widget, gpointer userData);
 void openFromTemplate (GtkWidget *widget, gpointer userData);
-void save_as_dialog(struct lit *litos);
+void action_save_as_dialog(struct lit *litos);
 void menu_save (GtkWidget *widget, gpointer userData);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 
@@ -81,7 +81,7 @@ void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *lito
 	g_signal_connect (new_tab_button, "clicked", G_CALLBACK (menu_newtab), litos);
 	g_signal_connect (open_button, "clicked", G_CALLBACK (open_dialog), litos);
 	g_signal_connect (new_from_template_button, "clicked", G_CALLBACK (openFromTemplate), litos);
-	g_signal_connect (save_as_button, "clicked", G_CALLBACK (save_as_dialog), litos);
+	g_signal_connect (save_as_button, "clicked", G_CALLBACK (action_save_as_dialog), litos);
 	g_signal_connect (save_button, "clicked", G_CALLBACK (menu_save), litos);
 
 	gtk_widget_show_all (file_box);

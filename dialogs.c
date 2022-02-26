@@ -12,7 +12,6 @@ void save_as_file(GtkFileChooser *chooser, struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void freePage(int page, struct lit *litos);
-
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 
 unsigned int saveornot_before_close(gint page, struct lit *litos)
@@ -96,8 +95,7 @@ void open_dialog (GtkWidget *widget, gpointer userData)
     gint page = gtk_notebook_get_current_page(litos->notebook);
  
     if (litos->filename[page] != NULL)
-    {
- 
+    { 
         /* To let Open dialog show the files within current DIR of file already opened*/
 
 		g_print(g_path_get_dirname(litos->filename[page]));
@@ -160,34 +158,6 @@ void openFromTemplate (GtkWidget *widget, gpointer userData)
 
 		open_file (file, litos);
     }
-
-	gtk_widget_destroy (dialog);
-}
-
-void save_as_dialog(struct lit *litos)
-{
-	GtkWidget *dialog;
-
-	GtkFileChooser *chooser;
-
-	gint res;
-
-	dialog = gtk_file_chooser_dialog_new ("Save File",
-		                                  GTK_WINDOW(litos->window),
-		                                  GTK_FILE_CHOOSER_ACTION_SAVE,
-		                                  _("_Cancel"),
-		                                  GTK_RESPONSE_CANCEL,
-		                                  _("_Save"),
-		                                  GTK_RESPONSE_ACCEPT,
-		                                  NULL);
-	chooser = GTK_FILE_CHOOSER (dialog);
-
-	gtk_file_chooser_set_do_overwrite_confirmation (chooser, TRUE);
-
-	res = gtk_dialog_run (GTK_DIALOG (dialog));
-
-	if (res == GTK_RESPONSE_ACCEPT)
-		save_as_file (chooser, litos);
 
 	gtk_widget_destroy (dialog);
 }

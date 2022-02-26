@@ -40,7 +40,7 @@ void highlightWord(struct lit *litos, const gchar *searchString)
 
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &current_loc);
 
-	gtk_source_search_context_forward2 (litos->search_context, &current_loc, &start_sel, &end_sel, NULL);
+	gtk_source_search_context_forward (litos->search_context, &current_loc, &start_sel, &end_sel, NULL);
 
 	gtk_text_view_scroll_to_iter (GTK_TEXT_VIEW(currentTabSourceView(litos)),
 	                         &start_sel,
@@ -160,7 +160,7 @@ void applyTags (struct lit *litos, char *tag)
 	}		
 }
 
-/* Called when Ctrl+m, Ctrl+l is toggled */
+/* Called when Ctrl+m, Ctrl+l is toggled: insert − character */
 void insertChar (struct lit *litos, const char *insertChar)
 {
 	GtkTextBuffer *buffer = get_current_buffer(litos);

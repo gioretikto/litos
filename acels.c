@@ -4,13 +4,14 @@
 #define CLOSE 1
 
 void menu_newtab (GtkWidget *widget, gpointer userData);
-void menu_save (GtkWidget *widget, gpointer userData);
+void menu_save (gpointer userData);
 void close_tab (GtkButton *button, gpointer userData);
 void applyTags(struct lit *litos, char *what_tag);
 unsigned int saveornot_before_close(gint page, struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
 void ctrlF (GtkButton *button, gpointer userData);
 void insertChar (struct lit *litos, const char *insertChar);
+void on_save_as_response(GFile *file, struct lit *litos);
 
 void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
@@ -86,9 +87,12 @@ void action_insert_endlist_tag(GSimpleAction *action, GVariant *parameter, gpoin
 
 void action_insert_space_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "&emsp;■□");}
 
-void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(NULL, userData);}
+void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(userData);}
+
 void action_new_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_newtab (NULL, userData);}
+
 void action_close_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; close_tab(NULL, userData);}
+
 void action_open_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; open_dialog(NULL, userData);}
 
 void action_quit_activated(GSimpleAction *action, GVariant *parameter, void* userData)
@@ -119,6 +123,42 @@ void action_quit_activated(GSimpleAction *action, GVariant *parameter, void* use
 		g_application_quit (G_APPLICATION (litos->app));
 }
 
+void action_save_as_dialog (GSimpleAction *action, GVariant *parameter, void* userData)
+{
+	(void)action;
+	(void)parameter;
+
+	struct lit *litos = (struct lit*)userData;
+
+	GtkWidget *dialog;
+
+	GtkFileChooser *chooser;
+
+	gint res;
+
+	dialog = gtk_file_chooser_dialog_new ("Save File",
+		                                  GTK_WINDOW(litos->window),
+		                                  GTK_FILE_CHOOSER_ACTION_SAVE,
+		                                  _("_Cancel"),
+		                                  GTK_RESPONSE_CANCEL,
+		                                  _("_Save"),
+		                                  GTK_RESPONSE_ACCEPT,
+		                                  NULL);
+	chooser = GTK_FILE_CHOOSER (dialog);
+
+	gtk_file_chooser_set_do_overwrite_confirmation (chooser, TRUE);
+
+	res = gtk_dialog_run (GTK_DIALOG (dialog));
+
+	if (res == GTK_RESPONSE_ACCEPT)
+	{
+		g_autoptr (GFile) file = gtk_file_chooser_get_file(chooser);
+		on_save_as_response (file, litos);
+	}
+
+	gtk_widget_destroy (dialog);
+}
+
 void set_acels (struct lit *litos)
 {
 	long unsigned int i;
@@ -128,6 +168,7 @@ void set_acels (struct lit *litos)
 		{"esc", action_remove_highlight, NULL, NULL, NULL, {0,0,0}},
 		{"open", action_open_dialog, NULL, NULL, NULL, {0,0,0}},
 		{"save", action_save_dialog, NULL, NULL, NULL, {0,0,0}},
+		{"save_as", action_save_as_dialog, NULL, NULL, NULL, {0,0,0}},
 		{"find_selection", action_find_selection, NULL, NULL, NULL, {0,0,0}},
 		{"bold", action_apply_bold, NULL, NULL, NULL, {0,0,0}},
 		{"italic", action_apply_italic, NULL, NULL, NULL, {0,0,0}},
@@ -167,6 +208,7 @@ void set_acels (struct lit *litos)
 	  { "app.close_tab", { "<Control>w", NULL} },
 	  { "app.quit", { "<Control>q", NULL} },
 	  { "app.save", { "<Control>s", NULL} },
+	  { "app.save_as", { "<Shift><Control>s", NULL} },
 	  { "app.find_selection", { "<Control>f", NULL} },
 	};
 
