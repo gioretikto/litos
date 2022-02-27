@@ -3,7 +3,7 @@
 #define SAVE 2
 #define CLOSE 1
 
-#define VERSION "2.2.0"
+#define VERSION "2.4"
 
 void open_file (GFile *file, gpointer userData);
 void menu_save (GtkWidget *widget, gpointer userData);
@@ -18,15 +18,13 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 {
 	GtkWidget *message_dialog;
 
-	gint res;
-
 	message_dialog = gtk_message_dialog_new(GTK_WINDOW(litos->window), GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING,
                       GTK_BUTTONS_NONE, "Save changes to document %s before closing?", litos->filename[page]);
 
 	gtk_dialog_add_buttons (GTK_DIALOG(message_dialog), "Close without Saving", GTK_RESPONSE_REJECT,
                                                       "Cancel", GTK_RESPONSE_CANCEL, "Save", GTK_RESPONSE_ACCEPT,  NULL);
 
-	res = gtk_dialog_run(GTK_DIALOG(message_dialog));
+	gint res = gtk_dialog_run(GTK_DIALOG(message_dialog));
 
 	gtk_widget_destroy(message_dialog);
 
@@ -138,12 +136,10 @@ void openFromTemplate (GtkWidget *widget, gpointer userData)
                                       GTK_RESPONSE_ACCEPT,
                                       NULL);
 
-	gint response;
-
 	if ((gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_get_user_special_dir (G_USER_DIRECTORY_TEMPLATES))) == FALSE)
 		fprintf(stderr, "error opening TEMPLATES directory chek wheter $HOME/.config/user-dirs.dirs contains XDG_TEMPLATES_DIR=\"$HOME/Templates\"");
 
-	response = gtk_dialog_run (GTK_DIALOG (dialog));
+	gint response = gtk_dialog_run (GTK_DIALOG (dialog));
 
 	if (response == GTK_RESPONSE_ACCEPT)
 	{

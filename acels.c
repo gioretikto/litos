@@ -21,7 +21,7 @@ void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointe
 
 	struct lit *litos = (struct lit*)userData;
 
-	if(litos->search_context != NULL)
+	if (litos->search_context != NULL)
 	{
 		gtk_source_search_context_set_highlight
 			(litos->search_context,
@@ -87,6 +87,8 @@ void action_insert_endlist_tag(GSimpleAction *action, GVariant *parameter, gpoin
 
 void action_insert_space_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "&emsp;■□");}
 
+void action_insert_comment(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "<!-- -->");}
+
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(userData);}
 
 void action_new_tab(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_newtab (NULL, userData);}
@@ -130,13 +132,7 @@ void action_save_as_dialog (GSimpleAction *action, GVariant *parameter, void* us
 
 	struct lit *litos = (struct lit*)userData;
 
-	GtkWidget *dialog;
-
-	GtkFileChooser *chooser;
-
-	gint res;
-
-	dialog = gtk_file_chooser_dialog_new ("Save File",
+	GtkWidget *dialog = gtk_file_chooser_dialog_new ("Save File",
 		                                  GTK_WINDOW(litos->window),
 		                                  GTK_FILE_CHOOSER_ACTION_SAVE,
 		                                  _("_Cancel"),
@@ -144,11 +140,12 @@ void action_save_as_dialog (GSimpleAction *action, GVariant *parameter, void* us
 		                                  _("_Save"),
 		                                  GTK_RESPONSE_ACCEPT,
 		                                  NULL);
-	chooser = GTK_FILE_CHOOSER (dialog);
+
+	GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
 
 	gtk_file_chooser_set_do_overwrite_confirmation (chooser, TRUE);
 
-	res = gtk_dialog_run (GTK_DIALOG (dialog));
+	gint res = gtk_dialog_run (GTK_DIALOG (dialog));
 
 	if (res == GTK_RESPONSE_ACCEPT)
 	{
@@ -182,6 +179,7 @@ void set_acels (struct lit *litos)
 		{"sup", action_apply_sup_tag, NULL, NULL, NULL, {0,0,0}},
 		{"sub", action_apply_sub_tag, NULL, NULL, NULL, {0,0,0}},
 		{"space", action_insert_space_tag, NULL, NULL, NULL, {0,0,0}},
+		{"comment", action_insert_comment, NULL, NULL, NULL, {0,0,0}},
 		{"close_tab", action_close_tab, NULL, NULL, NULL, {0,0,0}},
 		{"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
 	};
@@ -208,6 +206,7 @@ void set_acels (struct lit *litos)
 	  { "app.close_tab", { "<Control>w", NULL} },
 	  { "app.quit", { "<Control>q", NULL} },
 	  { "app.save", { "<Control>s", NULL} },
+	  { "app.comment", { "<Shift><Control>c", NULL} },
 	  { "app.save_as", { "<Shift><Control>s", NULL} },
 	  { "app.find_selection", { "<Control>f", NULL} },
 	};
@@ -217,3 +216,4 @@ void set_acels (struct lit *litos)
 	for (i = 0; i < G_N_ELEMENTS(action_accels); i++)
 		gtk_application_set_accels_for_action(GTK_APPLICATION(litos->app), action_accels[i].action, action_accels[i].accels);
 }
+

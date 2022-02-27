@@ -2,7 +2,6 @@
 
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
-void ctrlF (GtkButton *button, gpointer userData);
 
 void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
 
@@ -43,28 +42,13 @@ void highlightWord(struct lit *litos, const gchar *searchString)
 	gtk_source_search_context_forward (litos->search_context, &current_loc, &start_sel, &end_sel, NULL);
 
 	gtk_text_view_scroll_to_iter (GTK_TEXT_VIEW(currentTabSourceView(litos)),
-	                         &start_sel,
-	                         0,
-	                         TRUE,
-	                         0.0,
-	                         0.0);
+			&start_sel,
+			0,
+			TRUE,
+			0.0,
+			0.0);
 
 	g_signal_connect (buffer, "notify::text", G_CALLBACK (clearSearchHighlight), litos->search_context);
-
-}
-
-void findButtonClicked (GtkButton *button, gpointer userData)
-{
-	(void)button;
-
-	struct lit *litos = (struct lit*)userData;
-
-	const gchar *searchString = NULL;
-
-	searchString = gtk_entry_get_text(GTK_ENTRY(search_entry));
-
-	if (searchString != NULL)
-		highlightWord(litos, searchString);
 }
 
 void replaceButtonClicked (GtkButton *button, gpointer userData)
@@ -89,12 +73,14 @@ void replaceButtonClicked (GtkButton *button, gpointer userData)
 	gtk_source_search_settings_set_search_text (settings, searchString);
 
 	gtk_source_search_context_replace_all (litos->search_context,
-                                       replaceString,
-                                       -1,
-                                       NULL);
+			replaceString,
+			-1,
+			NULL);
 
 	highlightWord(litos, replaceString);
 }
+
+extern GtkWidget *lbl_number_occurences;
 
 /* Called when Ctrl+F is toggled */
 void ctrlF (GtkButton *button, gpointer userData)
@@ -107,21 +93,61 @@ void ctrlF (GtkButton *button, gpointer userData)
 
 	GtkTextBuffer *buffer = get_current_buffer(litos);
 
-	GtkTextIter start_sel, end_sel;
+	GtkTextIter start, end;
 
-	if (gtk_text_buffer_get_selection_bounds(buffer, &start_sel, &end_sel))
+	if (litos->search_context != NULL)
 	{
+		gtk_source_search_context_set_highlight
+				(litos->search_context,
+				FALSE);
 
-		searchString = gtk_text_buffer_get_text (buffer,
-		                     &start_sel,
-		                      &end_sel,
-		                      FALSE);
+		litos->search_context = NULL;
 
-		gtk_entry_set_text(GTK_ENTRY(search_entry), gtk_text_iter_get_text (&start_sel, &end_sel));
-
-		highlightWord(litos, searchString);
-
+		//clearSearchHighlight(NULL, NULL, litos->search_context);
 	}
+
+	if (gtk_text_buffer_get_selection_bounds(buffer, &start, &end))
+	{
+		searchString = gtk_text_buffer_get_text (buffer,
+							&start,
+							&end,
+							FALSE);
+
+		gtk_entry_set_text(GTK_ENTRY(search_entry), gtk_text_iter_get_text (&start, &end));
+	}
+
+	else
+		searchString = gtk_entry_get_text(GTK_ENTRY(search_entry));
+
+	if (searchString == NULL || *searchString == '\0')
+		return;
+
+	GtkTextIter iter;
+
+	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &iter);
+
+	GtkSourceSearchSettings *settings = gtk_source_search_settings_new ();
+
+	gtk_source_search_settings_set_search_text (settings, searchString);
+
+	litos->search_context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(get_current_buffer(litos)), settings);
+
+	gtk_source_search_context_forward (litos->search_context, &iter, &start, &end, NULL);
+
+	gint counter = gtk_source_search_context_get_occurrences_count (litos->search_context);
+
+	char str[80];
+
+	sprintf(str, "%d occurences", counter);
+
+	gtk_label_set_label (
+		GTK_LABEL(lbl_number_occurences),
+		str
+	);
+
+	g_print("%d occurences\n", counter);
+
+	highlightWord(litos, searchString);
 }
 
 
@@ -152,6 +178,7 @@ void applyTags (struct lit *litos, char *tag)
 	{
 		if (*tag == 'b')
 			gtk_text_buffer_insert_at_cursor (buffer, "<br>", (gint)strlen("<br>"));
+
 		else
 		{
 			snprintf(replaceString, sizeof(replaceString), "</%s>", tag);
@@ -168,7 +195,7 @@ void insertChar (struct lit *litos, const char *insertChar)
 	gtk_text_buffer_insert_at_cursor (buffer, insertChar, (gint)strlen(insertChar));
 }
 
-void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData)	/*Function called when the file gets modified */
+void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData)	/*Function called when the file gets modified*/
 {
 	(void)pspec;
 
@@ -180,3 +207,4 @@ void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData
 
 	g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), userData);
 }
+

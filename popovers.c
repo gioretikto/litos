@@ -1,6 +1,6 @@
 #include "litos.h"
 
-void findButtonClicked (GtkButton *button, gpointer userData);
+void ctrlF (GtkButton *button, gpointer userData);
 void replaceButtonClicked (GtkButton *button, gpointer userData);
 void open_dialog (GtkWidget *widget, gpointer userData);
 void openFromTemplate (GtkWidget *widget, gpointer userData);
@@ -9,6 +9,7 @@ void menu_save (GtkWidget *widget, gpointer userData);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 
 GtkWidget *search_entry, *replace_entry, *button_check_case;
+GtkWidget *lbl_number_occurences;
 
 void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 {
@@ -17,13 +18,15 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 	label_find = gtk_label_new ("Find:");
 	label_replace = gtk_label_new ("Replace:");
 
+	lbl_number_occurences= gtk_label_new (NULL);
+
 	find_button = gtk_button_new_with_label("Find");
 	replace_button = gtk_button_new_with_label("Replace All");
 
 	vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
 	hbox_find = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 	hbox_replace = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-	button_check_case = gtk_check_button_new_with_mnemonic(_("_Match case"));
+	button_check_case = gtk_check_button_new_with_mnemonic(_("_Match case\t"));
 
 	search_entry = gtk_entry_new ();
 	replace_entry = gtk_entry_new ();
@@ -35,6 +38,7 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 	gtk_container_add (GTK_CONTAINER (hbox_find), search_entry);
 	gtk_container_add (GTK_CONTAINER (hbox_find), find_button);
 	gtk_container_add (GTK_CONTAINER (hbox_find), button_check_case);
+	gtk_container_add (GTK_CONTAINER (hbox_find), lbl_number_occurences);
 
 	gtk_container_add (GTK_CONTAINER (hbox_replace), label_replace);
 	gtk_container_add (GTK_CONTAINER (hbox_replace), replace_entry);
@@ -47,7 +51,7 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 	
 	gtk_widget_show_all (vbox);
 
-	g_signal_connect (find_button, "clicked", G_CALLBACK (findButtonClicked), litos);
+	g_signal_connect (find_button, "clicked", G_CALLBACK (ctrlF), litos);
 	g_signal_connect (replace_button, "clicked", G_CALLBACK (replaceButtonClicked), litos);
 	g_signal_connect (button_check_case, "toggled", G_CALLBACK (replaceButtonClicked), litos);
 }
