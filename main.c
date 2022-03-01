@@ -44,7 +44,6 @@ main (int    argc,
 	}
 
 	litos.search_context = NULL;
-	litos.template = FALSE;
 
 	app = gtk_application_new ("org.litos.gtk", G_APPLICATION_HANDLES_OPEN);
 

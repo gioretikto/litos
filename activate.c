@@ -12,6 +12,9 @@ GtkSourceView* currentTabSourceView(struct lit *litos);
 
 void switchPage(GtkNotebook *notebook, gpointer page, guint page_num, gpointer userData)
 {
+	(void) notebook;
+	(void) page;
+
 	struct lit *litos = (struct lit*)userData;
 
 	gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[page_num]);

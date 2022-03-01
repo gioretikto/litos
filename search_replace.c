@@ -156,7 +156,7 @@ void applyTags (struct lit *litos, char *tag)
 {
 	char *string = NULL;
 
-	char replaceString[100] = { 0 };
+	char replaceString[350] = { 0 };
 
 	GtkTextIter start_sel, end_sel;
 

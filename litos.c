@@ -22,7 +22,10 @@ static void changeLblColor(struct lit *litos, gint page)
 	GtkWidget *label = gtk_label_new (NULL);
 
 	if (litos->fileSaved[page] == TRUE)
+	{
 		format = "<span color='red'>\%s</span>";
+		litos->fileSaved[page] = FALSE;
+	}
 
 	else
 		format = "<span color='black'>\%s</span>";
@@ -110,10 +113,10 @@ void menu_save (gpointer userData)
 
 void on_save_as_response(GFile *file, struct lit *litos)
 {
+	gint page = gtk_notebook_get_current_page(litos->notebook);
+
     if (!g_file_query_exists(file, NULL))
 	{
-		gint page = gtk_notebook_get_current_page(litos->notebook);
-
 		gtk_notebook_set_tab_label_text(
 			litos->notebook,
 			gtk_notebook_get_nth_page(
@@ -122,8 +125,6 @@ void on_save_as_response(GFile *file, struct lit *litos)
 			),
 			g_file_get_basename (file)
 		);
-
-		litos->filename[page] = g_file_get_path(file);
 
 		gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[page]);
 
@@ -141,6 +142,7 @@ void on_save_as_response(GFile *file, struct lit *litos)
 static void save_file (GObject *source_object, GAsyncResult *result, gpointer userData)
 {
 	(void) result;
+
 	GFile *file = G_FILE (source_object);
 
 	struct lit *litos = (struct lit*)userData;
@@ -216,7 +218,6 @@ static void save_file_complete (GObject *source_object, GAsyncResult *result, gp
 	}
 }
 
-
 void open_file (GFile *file, gpointer userData)
 {
 	struct lit *litos = (struct lit*)userData;
@@ -224,7 +225,7 @@ void open_file (GFile *file, gpointer userData)
 	g_file_load_contents_async (file,
 			NULL,
 			(GAsyncReadyCallback) open_file_complete,
-			litos);	
+			litos);
 }
 
 static void open_file_complete (GObject *source_object, GAsyncResult *res, gpointer userData)
@@ -268,7 +269,7 @@ static void open_file_complete (GObject *source_object, GAsyncResult *res, gpoin
 			"the file is not encoded with UTF-8\n",
 		g_file_peek_path (file));
 
-      return;
+		return;
 	}
 
 	/* Retrieve the GtkTextBuffer instance that stores the
@@ -286,37 +287,27 @@ static void open_file_complete (GObject *source_object, GAsyncResult *res, gpoin
 
 	gint page = gtk_notebook_get_current_page(litos->notebook);
 
-	char *filename = litos->filename[page];
-
-	if (litos->template == TRUE)
-	{
-		filename = "Untitled";
-		litos->template = FALSE;
-		changeLblColor(litos, page);
-	}
-
-	else
-	{
-		litos->filename[page] = g_file_get_path(file);
-		filename = g_file_get_basename (file);
-	}		
-
-	gtk_notebook_set_tab_label_text(
-		litos->notebook,
-		gtk_notebook_get_nth_page(
-	        litos->notebook,
-	        page
-		),
-		filename
-	);
-
-	litos->fileSaved[page] = TRUE;
-
 	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 
 	gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[page]);
 
 	highlight_buffer(litos);
+
+	litos->fileSaved[page] = TRUE;
+
+	if(litos->filename[page] == NULL)
+		printf("File name is NULL\n");
+	else
+		printf("Filename is %s\n", litos->filename[page]);
+
+	gtk_notebook_set_tab_label_text(
+		litos->notebook,
+		gtk_notebook_get_nth_page(
+	    litos->notebook,
+	    page
+		),
+		g_file_get_basename (file)
+	);
 }
 
 void menu_newtab (GtkWidget *widget, gpointer userData)
@@ -382,6 +373,4 @@ void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)	/*F
 
 	if (litos->fileSaved[page] == TRUE)
 		changeLblColor(litos, page);
-
-	litos->fileSaved[page] = FALSE;
 }
