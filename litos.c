@@ -214,6 +214,9 @@ static void save_file_complete (GObject *source_object, GAsyncResult *result, gp
 
 		litos->fileSaved[page] = TRUE;
 
+		if (litos->filename[page] == NULL)
+			litos->filename[page] = g_file_get_path(file);
+
 		gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 	}
 }
