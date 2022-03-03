@@ -10,12 +10,39 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos);
 void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 
+static void page_reordered_cb (
+  GtkNotebook* self,
+  GtkWidget* child,
+  guint page_num,
+  gpointer userData
+)
+{
+	(void) self;
+	(void) child;
+
+	char *filename;
+
+	struct lit *litos = (struct lit*)userData;
+
+	printf("Old Page number:%d\n", litos->page);
+	printf("New Page number:%d\n\n\n", page_num);
+
+	filename = litos->filename[page_num];
+
+	litos->filename[page_num] = litos->filename[litos->page];
+	
+	litos->filename[litos->page] = filename;
+
+}
+
 void switchPage(GtkNotebook *notebook, gpointer page, guint page_num, gpointer userData)
 {
 	(void) notebook;
 	(void) page;
 
 	struct lit *litos = (struct lit*)userData;
+
+	litos->page = page_num;
 
 	gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[page_num]);
 }
@@ -72,6 +99,7 @@ void activate (GtkApplication* app, gpointer userData)
    	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), litos);
 	g_signal_connect (about_button, "clicked", G_CALLBACK (about_dialog), NULL);
 	g_signal_connect(litos->notebook, "switch-page", G_CALLBACK(switchPage), litos);
+	g_signal_connect (litos->notebook, "page-reordered", G_CALLBACK (page_reordered_cb), litos);
 
 	gtk_widget_show_all (litos->window);
 }

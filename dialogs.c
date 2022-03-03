@@ -13,6 +13,7 @@ GtkSourceView* currentTabSourceView(struct lit *litos);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void freePage(int page, struct lit *litos);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
+void clear_page_buffer(gint page, struct lit *litos);
 
 unsigned int saveornot_before_close(gint page, struct lit *litos)
 {
@@ -52,8 +53,7 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 
 	   		if (gtk_notebook_get_n_pages(litos->notebook) == 1)
 			{
-				freePage(page, litos);
-				menu_newtab(NULL, litos);
+				clear_page_buffer(page, litos);
 			}
 
 			else
@@ -112,6 +112,7 @@ void open_dialog (GtkWidget *widget, gpointer userData)
 			gint new_page = gtk_notebook_get_current_page(litos->notebook);
 			litos->filename[new_page] = g_file_get_path(file);
 		}
+
 		else
 			litos->filename[page] = g_file_get_path(file);		
 

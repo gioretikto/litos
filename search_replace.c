@@ -102,8 +102,6 @@ void ctrlF (GtkButton *button, gpointer userData)
 				FALSE);
 
 		litos->search_context = NULL;
-
-		//clearSearchHighlight(NULL, NULL, litos->search_context);
 	}
 
 	if (gtk_text_buffer_get_selection_bounds(buffer, &start, &end))

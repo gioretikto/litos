@@ -43,6 +43,8 @@ main (int    argc,
 		litos.filename[i] = NULL;
 	}
 
+	litos.page = 0;
+
 	litos.search_context = NULL;
 
 	app = gtk_application_new ("org.litos.gtk", G_APPLICATION_HANDLES_OPEN);
