@@ -1,8 +1,8 @@
 #include <gtk/gtk.h>
 #include "litos.h"
 
-extern void activate (GtkApplication* app, gpointer user_data);
-void open_file (GFile *file, gpointer userData);
+extern void activate_cb (GtkApplication* app, gpointer user_data);
+void open_file (GFile *file, gpointer userData, gboolean template);
 
 static void
 app_open_cb (GApplication  *app,
@@ -17,10 +17,10 @@ app_open_cb (GApplication  *app,
 
 	struct lit *litos = (struct lit*)userData;
 
-	activate (GTK_APPLICATION (app), litos);
+	activate_cb (GTK_APPLICATION (app), litos);
 
 	for (i = 0; i < n_files; i++)
-		open_file (files[i], litos);
+		open_file (files[i], litos, FALSE);
 }
 
 int
@@ -49,7 +49,7 @@ main (int    argc,
 
 	app = gtk_application_new ("org.litos.gtk", G_APPLICATION_HANDLES_OPEN);
 
-	g_signal_connect (app, "activate", G_CALLBACK (activate), &litos);
+	g_signal_connect (app, "activate", G_CALLBACK (activate_cb), &litos);
 
 	g_signal_connect (app, "open", G_CALLBACK (app_open_cb), &litos);
 

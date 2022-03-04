@@ -14,5 +14,5 @@ struct lit{
 	GtkApplication *app;
 	_Bool fileSaved[MAX_TAB];
 	char *filename[MAX_TAB];
-	guint page;
+	int page;
 };

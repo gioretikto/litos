@@ -2,11 +2,10 @@
 
 GtkSourceView* currentTabSourceView(struct lit *litos)
 {
-	gint page = gtk_notebook_get_current_page(litos->notebook);
 
 	GList *children = gtk_container_get_children(GTK_CONTAINER(gtk_notebook_get_nth_page(
 		litos->notebook,
-		page
+		(gint)litos->page
 	)));
 
 	return GTK_SOURCE_VIEW(gtk_bin_get_child(GTK_BIN(g_list_nth_data(children, 0))));
@@ -45,16 +44,14 @@ GtkTextBuffer* get_current_buffer(struct lit *litos)
 
 void highlight_buffer(struct lit *litos) /* Apply different font styles depending on file extension .html .c, etc */
 {
-	gint page = gtk_notebook_get_current_page(litos->notebook);
-
 	GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();
 
 	GtkSourceLanguage *lang;
 
-	if (litos->filename[page] == NULL)
+	if (litos->filename[litos->page] == NULL)
 		lang = gtk_source_language_manager_get_language(lm,"html");
 	else
-		lang = gtk_source_language_manager_guess_language(lm, litos->filename[page], NULL);
+		lang = gtk_source_language_manager_guess_language(lm, litos->filename[litos->page], NULL);
 		
 	gtk_source_buffer_set_language (litos->buffer, lang);
 

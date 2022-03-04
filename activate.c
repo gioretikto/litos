@@ -10,6 +10,21 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos);
 void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 
+void swap(struct lit *litos, int a, int b)
+{
+	char *filename_tmp = litos->filename[a];
+
+	litos->filename[a] = litos->filename[b];
+
+	litos->filename[a+1] = filename_tmp;
+
+	_Bool fileSaved_tmp = litos->fileSaved[a];
+
+	litos->fileSaved[a] = litos->fileSaved[b];
+
+	litos->fileSaved[a] = fileSaved_tmp;
+}
+
 static void page_reordered_cb (
   GtkNotebook* self,
   GtkWidget* child,
@@ -20,37 +35,34 @@ static void page_reordered_cb (
 	(void) self;
 	(void) child;
 
-	char *filename;
-
 	struct lit *litos = (struct lit*)userData;
 
-	printf("Old Page number:%d\n", litos->page);
-	printf("New Page number:%d\n\n\n", page_num);
+	int i;
+	int end_page = (int)page_num;
 
-	filename = litos->filename[page_num];
+	for(i = litos->page; i > end_page ; i--) { swap(litos, i - 1, i); }
 
-	litos->filename[page_num] = litos->filename[litos->page];
-	
-	litos->filename[litos->page] = filename;
+	litos->page = end_page;
 
+	gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[end_page]);
 }
 
-void switchPage(GtkNotebook *notebook, gpointer page, guint page_num, gpointer userData)
+void switchPage_cb(GtkNotebook *notebook, gpointer page, guint page_num, gpointer userData)
 {
 	(void) notebook;
 	(void) page;
 
 	struct lit *litos = (struct lit*)userData;
 
-	litos->page = page_num;
+	litos->page = (int)page_num;
 
 	gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[page_num]);
 }
 
-void activate (GtkApplication* app, gpointer userData)
+void activate_cb (GtkApplication* app, gpointer userData)
 {
 	struct lit *litos = (struct lit*)userData;
-	
+
 	if (litos->window != NULL)
 		return;
 
@@ -98,7 +110,7 @@ void activate (GtkApplication* app, gpointer userData)
 	g_signal_connect (G_OBJECT (litos->window), "delete-event", G_CALLBACK (action_quit_activated), litos);
    	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), litos);
 	g_signal_connect (about_button, "clicked", G_CALLBACK (about_dialog), NULL);
-	g_signal_connect(litos->notebook, "switch-page", G_CALLBACK(switchPage), litos);
+	g_signal_connect(litos->notebook, "switch-page", G_CALLBACK(switchPage_cb), litos);
 	g_signal_connect (litos->notebook, "page-reordered", G_CALLBACK (page_reordered_cb), litos);
 
 	gtk_widget_show_all (litos->window);

@@ -5,7 +5,7 @@
 
 #define VERSION "2.5"
 
-void open_file (GFile *file, gpointer userData);
+void open_file (GFile *file, gpointer userData, gboolean template);
 void menu_save (GtkWidget *widget, gpointer userData);
 void save_as_dialog(struct lit *litos);
 void save_as_file(GtkFileChooser *chooser, struct lit *litos);
@@ -90,13 +90,11 @@ void open_dialog (GtkWidget *widget, gpointer userData)
                                       GTK_RESPONSE_ACCEPT,
                                       NULL);
  
-    gint page = gtk_notebook_get_current_page(litos->notebook);
- 
-    if (litos->filename[page] != NULL)
+    if (litos->filename[litos->page] != NULL)
     { 
         /* To let Open dialog show the files within current DIR of file already opened*/
 
-        gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), g_path_get_dirname(litos->filename[page]));
+        gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), g_path_get_dirname(litos->filename[litos->page]));
     }
 
     response = gtk_dialog_run (GTK_DIALOG (dialog));
@@ -109,14 +107,13 @@ void open_dialog (GtkWidget *widget, gpointer userData)
         if ((gtk_text_buffer_get_char_count(buffer)) != 0)
 		{
 			menu_newtab(NULL, litos);
-			gint new_page = gtk_notebook_get_current_page(litos->notebook);
-			litos->filename[new_page] = g_file_get_path(file);
+			litos->filename[litos->page] = g_file_get_path(file);
 		}
 
 		else
-			litos->filename[page] = g_file_get_path(file);		
+			litos->filename[litos->page] = g_file_get_path(file);	
 
-        open_file (file, litos);
+        open_file (file, litos, FALSE);
     }
  
     gtk_widget_destroy (dialog);
@@ -151,7 +148,7 @@ void openFromTemplate (GtkWidget *widget, gpointer userData)
 
 		GFile *file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
 
-		open_file (file, litos);
+		open_file (file, litos, TRUE);
     }
 
 	gtk_widget_destroy (dialog);
