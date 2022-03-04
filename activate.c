@@ -40,7 +40,11 @@ static void page_reordered_cb (
 	int i;
 	int end_page = (int)page_num;
 
-	for(i = litos->page; i > end_page; i--) { swap(litos, i - 1, i); }
+	if (litos->page > end_page)
+		for(i = litos->page; i > end_page; i--) { swap(litos, i - 1, i); }
+
+	else
+		for(i = litos->page; i < end_page; i++) { swap(litos, i + 1, i); }
 
 	litos->page = end_page;
 

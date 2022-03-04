@@ -69,7 +69,7 @@ void freePage(int page, struct lit *litos)
 	}
 }
 
-void clear_page_buffer(guint page, struct lit *litos)
+void clear_page_buffer(int page, struct lit *litos)
 {
 	g_free(litos->filename[litos->page]);
 
@@ -262,7 +262,7 @@ void open_file (GFile *file, gpointer userData, gboolean template)
 	}
 
 	if(template == FALSE)
-		litos->filename[litos->page] = g_file_peek_path (file);
+		litos->filename[litos->page] = g_file_get_path (file);
 
 	g_file_load_contents_async (file,
 			NULL,
@@ -320,7 +320,7 @@ static void open_file_complete (GObject *source_object, GAsyncResult *res, gpoin
 	GtkTextBuffer *current_buffer = get_current_buffer(litos);
 
 	/* Set the text using the contents of the file */
-	gtk_text_buffer_set_text (current_buffer, contents, length);
+	gtk_text_buffer_set_text (current_buffer, contents, (gint)length);
 
 	/* Reposition the cursor so it's at the start of the text */
 	GtkTextIter start;
