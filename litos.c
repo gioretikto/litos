@@ -157,8 +157,6 @@ void on_save_as_response(GFile *file, struct lit *litos)
 			g_file_get_basename (file)
 		);
 
-		gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[litos->page]);
-
 		g_file_create_async (file,
 				G_FILE_CREATE_NONE,
 				G_PRIORITY_DEFAULT,
@@ -245,6 +243,8 @@ static void save_file_complete (GObject *source_object, GAsyncResult *result, gp
 
 		if (litos->filename[litos->page] == NULL)
 			litos->filename[litos->page] = g_file_get_path(file);
+
+		gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[litos->page]);
 
 		gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 	}
