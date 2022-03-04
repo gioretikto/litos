@@ -16,13 +16,13 @@ void swap(struct lit *litos, int a, int b)
 
 	litos->filename[a] = litos->filename[b];
 
-	litos->filename[a+1] = filename_tmp;
+	litos->filename[b] = filename_tmp;
 
 	_Bool fileSaved_tmp = litos->fileSaved[a];
 
 	litos->fileSaved[a] = litos->fileSaved[b];
 
-	litos->fileSaved[a] = fileSaved_tmp;
+	litos->fileSaved[b] = fileSaved_tmp;
 }
 
 static void page_reordered_cb (
@@ -40,7 +40,7 @@ static void page_reordered_cb (
 	int i;
 	int end_page = (int)page_num;
 
-	for(i = litos->page; i > end_page ; i--) { swap(litos, i - 1, i); }
+	for(i = litos->page; i > end_page; i--) { swap(litos, i - 1, i); }
 
 	litos->page = end_page;
 
