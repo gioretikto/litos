@@ -31,7 +31,7 @@ static void changeLblColor(struct lit *litos)
 	else
 		format = "<span color='black'>\%s</span>";
 
-	char *markup = g_markup_printf_escaped (format, filename);
+	const char *markup = g_markup_printf_escaped (format, filename);
 
 	gtk_label_set_markup (GTK_LABEL(label), markup);
 
@@ -105,8 +105,6 @@ void close_tab (GtkButton *button, gpointer userData)
 	(void)button;
 
 	struct lit *litos = (struct lit*)userData;
-
-	printf("Number pages: %d\n", gtk_notebook_get_n_pages(litos->notebook));
 
 	if (litos->fileSaved[litos->page] == FALSE)
 		saveornot_before_close(litos->page, litos);

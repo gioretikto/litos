@@ -3,7 +3,7 @@
 #define SAVE 2
 #define CLOSE 1
 
-#define VERSION "2.5"
+#define VERSION "2.7"
 
 void open_file (GFile *file, gpointer userData, gboolean template);
 void menu_save (GtkWidget *widget, gpointer userData);

@@ -47,40 +47,35 @@ void action_apply_bold(GSimpleAction *action, GVariant *parameter, gpointer user
 {
 	(void)action;
 	(void)parameter;
-	char *tag = "b";
-	applyTags(userData, tag);
+	applyTags(userData, "b");
 }
 
 void action_apply_heading(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
 	(void)parameter;
-	char *tag = "h2";
-	applyTags(userData, tag);
+	applyTags(userData, "h2");
 }
 
 void action_apply_italic(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
 	(void)parameter;
-	char *tag = "i";
-	applyTags(userData, tag);
+	applyTags(userData, "i");
 }
 
 void action_apply_sup_tag(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
 	(void)parameter;
-	char *tag = "sup";
-	applyTags(userData, tag);
+	applyTags(userData, "sup");
 }
 
 void action_apply_sub_tag(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
 	(void)parameter;
-	char *tag = "sub";
-	applyTags(userData, tag);
+	applyTags(userData, "sub");
 }
 
 void action_insert_endlist_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "</li>");}

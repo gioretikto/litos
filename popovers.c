@@ -53,7 +53,6 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 
 	g_signal_connect (find_button, "clicked", G_CALLBACK (ctrlF), litos);
 	g_signal_connect (replace_button, "clicked", G_CALLBACK (replaceButtonClicked), litos);
-	g_signal_connect (button_check_case, "toggled", G_CALLBACK (replaceButtonClicked), litos);
 }
 
 void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos)
