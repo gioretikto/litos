@@ -27,13 +27,11 @@ on_delete_event (GtkWidget *widget,
  		if (litos->fileSaved[i] == FALSE)
 		{
 			if ((close_tab(NULL, litos)) != CLOSE)
-				return FALSE;
+				return TRUE; /* Returning TRUE means we don't want the window to be destroyed*/
 		}
  	}
 
-	g_application_quit (G_APPLICATION (litos->app));
-
-	return TRUE;
+	return FALSE;
 }
 
 void swap(struct lit *litos, int a, int b)
