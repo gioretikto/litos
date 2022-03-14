@@ -1,8 +1,4 @@
 #include "litos.h"
-#define CANCEL 3
-#define SAVE 2
-#define CLOSE 1
-
 #define VERSION "2.7"
 
 void open_file (GFile *file, gpointer userData, gboolean template);
@@ -13,9 +9,9 @@ GtkSourceView* currentTabSourceView(struct lit *litos);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void freePage(int page, struct lit *litos);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
-void clear_page_buffer(gint page, struct lit *litos);
+void clear_page_buffer(struct lit *litos);
 
-unsigned int saveornot_before_close(gint page, struct lit *litos)
+enum action saveornot_before_close(const gint page, struct lit *litos)
 {
 	GtkWidget *message_dialog;
 
@@ -29,6 +25,8 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 
 	gtk_widget_destroy(message_dialog);
 
+	const int totalPages = gtk_notebook_get_n_pages(litos->notebook);
+
 	switch (res)
 	{
 		case GTK_RESPONSE_CANCEL:
@@ -38,23 +36,12 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 
 			menu_save(NULL, litos);
 
-	   		if (gtk_notebook_get_n_pages(litos->notebook) == 1)
-				g_application_quit (G_APPLICATION (litos->app));
-
-			else
-			{
-				freePage(page, litos);
-				gtk_notebook_remove_page(litos->notebook, page);
-			}
-
 			return SAVE;
 
 		case GTK_RESPONSE_REJECT:
 
-	   		if (gtk_notebook_get_n_pages(litos->notebook) == 1)
-			{
-				clear_page_buffer(page, litos);
-			}
+	   		if (totalPages == 1)
+				clear_page_buffer(litos);
 
 			else
 			{
@@ -68,19 +55,19 @@ unsigned int saveornot_before_close(gint page, struct lit *litos)
 			g_print("The bottun(Close without Saving/Cancel/Save) was not pressed.");
 	}
 
-	return 0;
+	return ZERO;
 }
 
 void open_dialog (GtkWidget *widget, gpointer userData)
 {
     (void)widget;
- 
+
     struct lit *litos = (struct lit*)userData;
  
     gint response;
- 
+
     GtkWidget *dialog;
- 
+
     dialog = gtk_file_chooser_dialog_new ("Open File",
                                       GTK_WINDOW(litos->window),
                                       GTK_FILE_CHOOSER_ACTION_OPEN,
@@ -89,7 +76,7 @@ void open_dialog (GtkWidget *widget, gpointer userData)
                                       _("_Open"),
                                       GTK_RESPONSE_ACCEPT,
                                       NULL);
- 
+
     if (litos->filename[litos->page] != NULL)
     { 
         /* To let Open dialog show the files within current DIR of file already opened*/
@@ -98,7 +85,7 @@ void open_dialog (GtkWidget *widget, gpointer userData)
     }
 
     response = gtk_dialog_run (GTK_DIALOG (dialog));
- 
+
     if (response == GTK_RESPONSE_ACCEPT)
     {
         GtkTextBuffer *buffer = get_current_buffer(litos);
@@ -115,7 +102,7 @@ void open_dialog (GtkWidget *widget, gpointer userData)
 
         open_file (file, litos, FALSE);
     }
- 
+
     gtk_widget_destroy (dialog);
 }
 
@@ -160,7 +147,7 @@ void about_dialog (GtkButton *button, gpointer userData)
 	(void)userData;
 
 	const gchar *authors[] = {"Giovanni Resta", "giovannirestadev@gmail.com", NULL};
-	
+
 	gtk_show_about_dialog (NULL,
 			"program-name", "Litos",
 			"version", VERSION,

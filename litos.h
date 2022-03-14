@@ -5,6 +5,8 @@
 
 #define MAX_TAB 20
 
+enum action {CANCEL,SAVE,CLOSE, ZERO};
+
 struct lit{
 	GtkWidget *window;
 	GtkNotebook *notebook;

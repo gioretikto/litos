@@ -1,11 +1,8 @@
 #include "litos.h"
 
-#define SAVE 2
-#define CLOSE 1
-
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void menu_save (gpointer userData);
-void close_tab (GtkButton *button, gpointer userData);
+enum action close_tab (GtkButton *button, gpointer userData);
 void applyTags(struct lit *litos, char *what_tag);
 unsigned int saveornot_before_close(gint page, struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
@@ -99,25 +96,26 @@ void action_quit_activated(GSimpleAction *action, GVariant *parameter, void* use
 
 	gint i;
 
-	unsigned int res = CLOSE;
-	
 	struct lit *litos = (struct lit*)userData;
 
-	int pages = gtk_notebook_get_n_pages(litos->notebook);
+	const int last_page = gtk_notebook_get_n_pages(litos->notebook) - 1;
 
-	for (i = 0; i < pages; i++)
+	enum action response = ZERO;
+
+	for (i = last_page; i >= 0; i--)
 	{
  		if (litos->fileSaved[i] == FALSE)
- 		{
-			res = saveornot_before_close(i, litos);
+		{
+			response = close_tab(NULL, litos);
 
-		    if (res == CLOSE)
-		    	i--;
+			printf("response %d\n", response);
+
+			if (response != CLOSE)
+				return;
 		}
  	}
 
-	if (res == CLOSE || res == SAVE)
-		g_application_quit (G_APPLICATION (litos->app));
+	g_application_quit (G_APPLICATION (litos->app));
 }
 
 void action_save_as_dialog (GSimpleAction *action, GVariant *parameter, void* userData)
@@ -211,4 +209,3 @@ void set_acels (struct lit *litos)
 	for (i = 0; i < G_N_ELEMENTS(action_accels); i++)
 		gtk_application_set_accels_for_action(GTK_APPLICATION(litos->app), action_accels[i].action, action_accels[i].accels);
 }
-

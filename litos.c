@@ -3,7 +3,7 @@
 GtkWidget* MyNewSourceview(struct lit *litos);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData);
-unsigned int saveornot_before_close(gint page, struct lit *litos);
+enum action saveornot_before_close (gint page, struct lit *litos);
 void highlight_buffer(struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
@@ -39,51 +39,47 @@ static void changeLblColor(struct lit *litos)
 }
 
 
-void freePage(int page, struct lit *litos)
+void freePage(const int page, struct lit *litos)
 {
 	g_free(litos->filename[page]);
 
 	int total_pages = gtk_notebook_get_n_pages(litos->notebook);
 
-	if (total_pages == 1)
+				/* If page 2 is closed move 3->2, 4->3, until last page */
+	int i;
+
+	for (i = page; i < total_pages; i++)
 	{
-        litos->filename[page] = NULL;
-		litos->fileSaved[page] = TRUE;
+		litos->filename[i] = litos->filename[i+1];
+
+		litos->fileSaved[i] = litos->fileSaved[i+1];
 	}
 
-	else			/* If page 2 is closed move 3->2, 4->3, until last page */
-	{
-		int i;
+	total_pages--;
 
-		for (i = page; i < total_pages; i++)
-		{
-			litos->filename[i] = litos->filename[i+1];
-
-			litos->fileSaved[i] = litos->fileSaved[i+1];
-		}
-
-		total_pages--;
-
-		litos->fileSaved[total_pages] = TRUE;
-		litos->filename[total_pages] = NULL;
-	}
+	litos->fileSaved[total_pages] = TRUE;
+	litos->filename[total_pages] = NULL;
 }
 
-void clear_page_buffer(int page, struct lit *litos)
+void clear_page_buffer(struct lit *litos)
 {
-	g_free(litos->filename[litos->page]);
+	if (litos->filename[0] != NULL)
+	{
+		g_free(litos->filename[0]);
+		litos->filename[0] = NULL;
+	}
 
 	gtk_notebook_set_tab_label_text(
 		litos->notebook,
 		gtk_notebook_get_nth_page(
 	    litos->notebook,
-	    page
+	    0
 		),
 		"Untitled"
 	);
 
 	gtk_window_set_title (GTK_WINDOW (litos->window), "Untitled");
-	
+
 	GtkTextBuffer *buffer = get_current_buffer(litos);
 
 	if ((gtk_text_buffer_get_char_count(buffer)) != 0)
@@ -96,33 +92,33 @@ void clear_page_buffer(int page, struct lit *litos)
 		changeLblColor(litos);
 	}
 
-	litos->filename[page] = NULL;
-	litos->fileSaved[page] = TRUE;
+	litos->fileSaved[0] = TRUE;
 }
 
-void close_tab (GtkButton *button, gpointer userData)
+enum action close_tab (GtkButton *button, gpointer userData)
 {
 	(void)button;
 
 	struct lit *litos = (struct lit*)userData;
 
+	enum action response = ZERO;
+
 	if (litos->fileSaved[litos->page] == FALSE)
-		saveornot_before_close(litos->page, litos);
+		 response = saveornot_before_close(litos->page, litos);
 
 	else
 	{
 		if (gtk_notebook_get_n_pages(litos->notebook) == 1)
-		{
-			printf("Number pages: %d\n", gtk_notebook_get_n_pages(litos->notebook));
-			clear_page_buffer(litos->page, litos);
-		}
-		
+			clear_page_buffer(litos);
+
 		else
 		{
 			freePage((int)litos->page, litos);
 			gtk_notebook_remove_page(litos->notebook, litos->page);
 		}
 	}
+
+	return response;
 }
 
 void menu_save (gpointer userData)
