@@ -20,17 +20,13 @@ on_delete_event (GtkWidget *widget,
 
 	const int last_page = gtk_notebook_get_n_pages(litos->notebook) - 1;
 
-	enum action response = ZERO;
-
 	gint i;
 
 	for (i = last_page; i >= 0; i--)
 	{
  		if (litos->fileSaved[i] == FALSE)
 		{
-			response = close_tab(NULL, litos);
-
-			if (response != CLOSE)
+			if ((close_tab(NULL, litos)) != CLOSE)
 				return FALSE;
 		}
  	}
