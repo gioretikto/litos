@@ -1,14 +1,44 @@
 #include "litos.h"
 
-void close_tab (GtkButton *button, gpointer userData);
+enum action close_tab (GtkButton *button, gpointer userData);
 void set_acels (struct lit *litos);
 void about_dialog (GtkButton *button, gpointer userData);
 void menu_newtab (GtkWidget *widget, gpointer userData);
-
 void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
 void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos);
-void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app);
 GtkSourceView* currentTabSourceView(struct lit *litos);
+
+gboolean
+on_delete_event (GtkWidget *widget,
+         GdkEvent  *event,
+         gpointer   userData)
+{
+	(void)widget;
+	(void)event;
+
+	struct lit *litos = (struct lit*)userData;
+
+	const int last_page = gtk_notebook_get_n_pages(litos->notebook) - 1;
+
+	enum action response = ZERO;
+
+	gint i;
+
+	for (i = last_page; i >= 0; i--)
+	{
+ 		if (litos->fileSaved[i] == FALSE)
+		{
+			response = close_tab(NULL, litos);
+
+			if (response != CLOSE)
+				return FALSE;
+		}
+ 	}
+
+	g_application_quit (G_APPLICATION (litos->app));
+
+	return TRUE;
+}
 
 void swap(struct lit *litos, int a, int b)
 {
@@ -41,7 +71,7 @@ static void page_reordered_cb (
 	int end_page = (int)page_num;
 
 	if (litos->page > end_page)
-		for(i = litos->page; i > end_page; i--) { swap(litos, i - 1, i); }
+		for (i = litos->page; i > end_page; i--) { swap(litos, i - 1, i); }
 
 	else
 		for(i = litos->page; i < end_page; i++) { swap(litos, i + 1, i); }
@@ -111,7 +141,7 @@ void activate_cb (GtkApplication* app, gpointer userData)
 
 	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 
-	g_signal_connect (G_OBJECT (litos->window), "delete-event", G_CALLBACK (action_quit_activated), litos);
+	g_signal_connect (litos->window, "delete-event", G_CALLBACK (on_delete_event), litos);
    	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), litos);
 	g_signal_connect (about_button, "clicked", G_CALLBACK (about_dialog), NULL);
 	g_signal_connect(litos->notebook, "switch-page", G_CALLBACK(switchPage_cb), litos);

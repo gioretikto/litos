@@ -9,10 +9,10 @@ void open_dialog (GtkWidget *widget, gpointer userData);
 void ctrlF (GtkButton *button, gpointer userData);
 void insertChar (struct lit *litos, const char *insertChar);
 void on_save_as_response(GFile *file, struct lit *litos);
+gboolean on_delete_event (GtkWidget *widget, GdkEvent  *event, gpointer userData);
 
 void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
-	(void)userData;
 	(void)action;
 	(void)parameter;
 
@@ -94,28 +94,7 @@ void action_quit_activated(GSimpleAction *action, GVariant *parameter, void* use
 	(void)action;
 	(void)parameter;
 
-	gint i;
-
-	struct lit *litos = (struct lit*)userData;
-
-	const int last_page = gtk_notebook_get_n_pages(litos->notebook) - 1;
-
-	enum action response = ZERO;
-
-	for (i = last_page; i >= 0; i--)
-	{
- 		if (litos->fileSaved[i] == FALSE)
-		{
-			response = close_tab(NULL, litos);
-
-			printf("response %d\n", response);
-
-			if (response != CLOSE)
-				return;
-		}
- 	}
-
-	g_application_quit (G_APPLICATION (litos->app));
+	on_delete_event(NULL, NULL, userData);
 }
 
 void action_save_as_dialog (GSimpleAction *action, GVariant *parameter, void* userData)
