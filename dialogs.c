@@ -11,7 +11,7 @@ void freePage(int page, struct lit *litos);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 void clear_page_buffer(struct lit *litos);
 
-enum action saveornot_before_close(const gint page, struct lit *litos)
+gboolean saveornot_before_close(const gint page, struct lit *litos)
 {
 	GtkWidget *message_dialog;
 
@@ -30,13 +30,13 @@ enum action saveornot_before_close(const gint page, struct lit *litos)
 	switch (res)
 	{
 		case GTK_RESPONSE_CANCEL:
-			return CANCEL;
+			return TRUE;
 
 		case GTK_RESPONSE_ACCEPT:
 
 			menu_save(NULL, litos);
 
-			return SAVE;
+			return TRUE;
 
 		case GTK_RESPONSE_REJECT:
 
@@ -49,13 +49,13 @@ enum action saveornot_before_close(const gint page, struct lit *litos)
 				gtk_notebook_remove_page(litos->notebook, page);
 			}
 
-			return CLOSE;
+			return FALSE;
 
 		default: /*close bottun was pressed*/
 			g_print("The bottun(Close without Saving/Cancel/Save) was not pressed.");
 	}
 
-	return ZERO;
+	return TRUE;
 }
 
 void open_dialog (GtkWidget *widget, gpointer userData)

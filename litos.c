@@ -3,7 +3,7 @@
 GtkWidget* MyNewSourceview(struct lit *litos);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData);
-enum action saveornot_before_close (gint page, struct lit *litos);
+gboolean saveornot_before_close (gint page, struct lit *litos);
 void highlight_buffer(struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
@@ -95,16 +95,14 @@ void clear_page_buffer(struct lit *litos)
 	litos->fileSaved[0] = TRUE;
 }
 
-enum action close_tab (GtkButton *button, gpointer userData)
+gboolean close_tab (GtkButton *button, gpointer userData)
 {
 	(void)button;
 
 	struct lit *litos = (struct lit*)userData;
 
-	enum action response = ZERO;
-
 	if (litos->fileSaved[litos->page] == FALSE)
-		 response = saveornot_before_close(litos->page, litos);
+		 return saveornot_before_close(litos->page, litos);
 
 	else
 	{
@@ -118,7 +116,7 @@ enum action close_tab (GtkButton *button, gpointer userData)
 		}
 	}
 
-	return response;
+	return TRUE;
 }
 
 void menu_save (gpointer userData)

@@ -1,12 +1,13 @@
 #include "litos.h"
 
-enum action close_tab (GtkButton *button, gpointer userData);
+gboolean close_tab (GtkButton *button, gpointer userData);
 void set_acels (struct lit *litos);
 void about_dialog (GtkButton *button, gpointer userData);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
 void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
+void freePage(int page, struct lit *litos);
 
 gboolean
 on_delete_event (GtkWidget *widget,
@@ -26,15 +27,21 @@ on_delete_event (GtkWidget *widget,
 	{
  		if (litos->fileSaved[i] == FALSE)
 		{
-			if ((close_tab(NULL, litos)) != CLOSE)
+			if (close_tab(NULL, litos))
 				return TRUE; /* Returning TRUE means we don't want the window to be destroyed*/
 		}
+
+		else
+		{
+			freePage(i, litos);
+			gtk_notebook_remove_page(litos->notebook, i);
+		}			
  	}
 
 	return FALSE;
 }
 
-void swap(struct lit *litos, int a, int b)
+void swap(struct lit *litos, const int a, const int b)
 {
 	char *filename_tmp = litos->filename[a];
 
@@ -62,7 +69,7 @@ static void page_reordered_cb (
 	struct lit *litos = (struct lit*)userData;
 
 	int i;
-	int end_page = (int)page_num;
+	const int end_page = (int)page_num;
 
 	if (litos->page > end_page)
 		for (i = litos->page; i > end_page; i--) { swap(litos, i - 1, i); }
@@ -75,7 +82,7 @@ static void page_reordered_cb (
 	gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[end_page]);
 }
 
-void switchPage_cb(GtkNotebook *notebook, gpointer page, guint page_num, gpointer userData)
+void switchPage_cb(GtkNotebook *notebook, gpointer page, const guint page_num, gpointer userData)
 {
 	(void) notebook;
 	(void) page;
