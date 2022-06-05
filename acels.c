@@ -79,7 +79,7 @@ void action_insert_endlist_tag(GSimpleAction *action, GVariant *parameter, gpoin
 
 void action_insert_space_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "&emsp;■□");}
 
-void action_insert_comment(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "<!-- -->");}
+void action_insert_div_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "<div class=\"eq\">");}
 
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(userData);}
 
@@ -143,6 +143,7 @@ void set_acels (struct lit *litos)
 		{"italic", action_apply_italic, NULL, NULL, NULL, {0,0,0}},
 		{"h2", action_apply_heading, NULL, NULL, NULL, {0,0,0}},
 		{"minus", action_insert_minus, NULL, NULL, NULL, {0,0,0}},
+		{"div", action_insert_div_tag, NULL, NULL, NULL, {0,0,0}},
 		{"arrow", action_insert_arrow, NULL, NULL, NULL, {0,0,0}},
 		{"arrow_left", action_insert_arrow_left, NULL, NULL, NULL, {0,0,0}},
 		{"dot", action_insert_dot, NULL, NULL, NULL, {0,0,0}},
@@ -151,7 +152,6 @@ void set_acels (struct lit *litos)
 		{"sup", action_apply_sup_tag, NULL, NULL, NULL, {0,0,0}},
 		{"sub", action_apply_sub_tag, NULL, NULL, NULL, {0,0,0}},
 		{"space", action_insert_space_tag, NULL, NULL, NULL, {0,0,0}},
-		{"comment", action_insert_comment, NULL, NULL, NULL, {0,0,0}},
 		{"close_tab", action_close_tab, NULL, NULL, NULL, {0,0,0}},
 		{"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
 	};
@@ -166,6 +166,7 @@ void set_acels (struct lit *litos)
 	  { "app.bold", { "<Control>b", NULL} },
 	  { "app.h2", { "<Control>h", NULL} },
 	  { "app.italic", { "<Control>i", NULL} },
+	  { "app.div", { "<Control>g", NULL} },
 	  { "app.minus", { "<Control>m", NULL} },
 	  { "app.dot", { "<Control>d", NULL} },
 	  { "app.list", { "<Control>l", NULL} },
@@ -178,7 +179,6 @@ void set_acels (struct lit *litos)
 	  { "app.close_tab", { "<Control>w", NULL} },
 	  { "app.quit", { "<Control>q", NULL} },
 	  { "app.save", { "<Control>s", NULL} },
-	  { "app.comment", { "<Shift><Control>c", NULL} },
 	  { "app.save_as", { "<Shift><Control>s", NULL} },
 	  { "app.find_selection", { "<Control>f", NULL} },
 	};
