@@ -90,6 +90,27 @@ void open_dialog (GtkWidget *widget, gpointer userData)
     {
         GtkTextBuffer *buffer = get_current_buffer(litos);
         GFile *file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
+
+		if (litos->filename[0] != NULL)
+		{
+			int total_pages = gtk_notebook_get_n_pages(litos->notebook);
+
+			int i;
+
+			for (i = 0; i < total_pages; i++)	/* Check whether the file is already opened: in positive case focus on its tab */
+			{
+			   if (strcmp(litos->filename[i],g_file_get_path (file)) == 0)
+				{
+					gtk_notebook_set_current_page (litos->notebook,i);
+
+					gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
+
+					gtk_widget_destroy (dialog);
+
+					return;
+				}
+			}
+		}
  
         if ((gtk_text_buffer_get_char_count(buffer)) != 0)
 		{
