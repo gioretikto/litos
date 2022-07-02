@@ -1,5 +1,4 @@
 #include "litos.h"
-#define VERSION "2.7"
 
 void open_file (GFile *file, gpointer userData, gboolean template);
 void menu_save (GtkWidget *widget, gpointer userData);
@@ -99,17 +98,23 @@ void open_dialog (GtkWidget *widget, gpointer userData)
 
 			for (i = 0; i < total_pages; i++)	/* Check whether the file is already opened: in positive case focus on its tab */
 			{
-			   if (strcmp(litos->filename[i],g_file_get_path (file)) == 0)
+				if (litos->filename[i] == NULL)
+					continue;
+
+				else
 				{
-					gtk_notebook_set_current_page (litos->notebook,i);
+						if (strcmp(litos->filename[i],g_file_get_path (file)) == 0)
+						{
+							gtk_notebook_set_current_page (litos->notebook,i);
 
-					gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
+							gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 
-					gtk_widget_destroy (dialog);
+							gtk_widget_destroy (dialog);
 
-					return;
+							return;
+						}
+					}
 				}
-			}
 		}
  
         if ((gtk_text_buffer_get_char_count(buffer)) != 0)

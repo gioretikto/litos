@@ -1,4 +1,5 @@
 #include "litos.h"
+#include <string.h>
 
 GtkWidget* MyNewSourceview(struct lit *litos);
 void menu_newtab (GtkWidget *widget, gpointer userData);
@@ -249,11 +250,9 @@ void open_file (GFile *file, gpointer userData, gboolean template)
     GtkTextBuffer *buffer = get_current_buffer(litos);
 
 	if ((gtk_text_buffer_get_char_count(buffer)) != 0)
-	{
 		menu_newtab(NULL, litos);
-	}
 
-	if(template == FALSE)
+	if (template == FALSE)
 		litos->filename[litos->page] = g_file_get_path (file);
 
 	g_file_load_contents_async (file,
