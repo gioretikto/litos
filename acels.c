@@ -61,6 +61,13 @@ void action_apply_italic(GSimpleAction *action, GVariant *parameter, gpointer us
 	applyTags(userData, "i");
 }
 
+void action_apply_br_tag(GSimpleAction *action, GVariant *parameter, gpointer userData)
+{
+	(void)action;
+	(void)parameter;
+	applyTags(userData, "br");
+}
+
 void action_apply_sup_tag(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
@@ -151,6 +158,7 @@ void set_acels (struct lit *litos)
 		{"bond", action_insert_bond, NULL, NULL, NULL, {0,0,0}},
 		{"sup", action_apply_sup_tag, NULL, NULL, NULL, {0,0,0}},
 		{"sub", action_apply_sub_tag, NULL, NULL, NULL, {0,0,0}},
+		{"br", action_apply_br_tag, NULL, NULL, NULL, {0,0,0}},
 		{"space", action_insert_space_tag, NULL, NULL, NULL, {0,0,0}},
 		{"close_tab", action_close_tab, NULL, NULL, NULL, {0,0,0}},
 		{"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
@@ -173,8 +181,9 @@ void set_acels (struct lit *litos)
 	  { "app.arrow", { "<Control>t", NULL} },
 	  { "app.bond", { "<Shift><Control>l", NULL} },
 	  { "app.sup", { "<Control>p", NULL} },
-	  { "app.arrow_left", { "<Control>r", NULL} },
+	  { "app.arrow_left", { "<Control>y", NULL} },
 	  { "app.sub", { "<Control>u", NULL} },
+	  { "app.br", { "<Control>r", NULL} },
 	  { "app.space", { "<Control>e", NULL} },
 	  { "app.close_tab", { "<Control>w", NULL} },
 	  { "app.quit", { "<Control>q", NULL} },

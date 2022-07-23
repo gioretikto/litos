@@ -173,14 +173,8 @@ void applyTags (struct lit *litos, const char *tag)
 
 	else
 	{
-		if (*tag == 'b')
-			gtk_text_buffer_insert_at_cursor (buffer, "<br>", (gint)strlen("<br>"));
-
-		else
-		{
-			snprintf(replaceString, sizeof(replaceString), "</%s>", tag);
-			gtk_text_buffer_insert_at_cursor (buffer, replaceString,(gint)strlen(replaceString));
-		}
+		snprintf(replaceString, sizeof(replaceString), "</%s>", tag);
+		gtk_text_buffer_insert_at_cursor (buffer, replaceString,(gint)strlen(replaceString));
 	}		
 }
 

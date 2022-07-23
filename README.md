@@ -23,7 +23,7 @@ From source code repository:
 
 ### Usage
 
-* Ctrl-b If text is selected tranforms "string" into "&lt;b&gt;string&lt;/b&gt;" otherwise enters the tag &lt;br&gt;
+* Ctrl-b If text is selected tranforms "string" into "&lt;b&gt;string&lt;/b&gt;"
 * Ctrl-i To tranform "string" into "&lt;i&gt;string&lt;/i&gt;"
 * Ctrl-h To tranform "string" into "&lt;h2&gt;string&lt;/h2&gt;"
 * Ctrl-p To tranform "string" into "&lt;sup&gt;string&lt;/sup&gt;"
@@ -31,8 +31,9 @@ From source code repository:
 * Ctrl-e insert "&emsp;■□&emsp;" characters
 * Ctrl-d insert ⋅ character
 * Ctrl-m insert − character
+* Ctrl-r insert &lt;br&gt; characters
 * Ctrl-t insert ⟶⟼⇒ characters
-* Ctrl-r insert ⇌⟵⇐ characters
+* Ctrl-y insert ⇌⟵⇐ characters
 * Shift + Ctrl l insert — character
 
 To create file from Templates make sure you've the "Templates" dir in you home direcotry and the file $HOME/.config/user-dirs.dirs exists (see https://wiki.archlinux.org/title/XDG_user_directories)
