@@ -84,7 +84,7 @@ void clear_page_buffer(struct lit *litos)
 	GtkTextBuffer *buffer = get_current_buffer(litos);
 
 	if ((gtk_text_buffer_get_char_count(buffer)) != 0)
-	{		
+	{	
 		GtkTextIter start, end;
 		gtk_text_buffer_get_start_iter (buffer, &start);
 		gtk_text_buffer_get_end_iter (buffer, &end);
@@ -141,15 +141,6 @@ void on_save_as_response(GFile *file, struct lit *litos)
 {
     if (!g_file_query_exists(file, NULL))
 	{
-		gtk_notebook_set_tab_label_text(
-			litos->notebook,
-			gtk_notebook_get_nth_page(
-	        litos->notebook,
-	        litos->page
-			),
-			g_file_get_basename (file)
-		);
-
 		g_file_create_async (file,
 				G_FILE_CREATE_NONE,
 				G_PRIORITY_DEFAULT,
@@ -159,6 +150,15 @@ void on_save_as_response(GFile *file, struct lit *litos)
 
 	else
 		save_file (G_OBJECT(file), NULL, litos);
+
+	gtk_notebook_set_tab_label_text(
+		litos->notebook,
+		gtk_notebook_get_nth_page(
+        litos->notebook,
+        litos->page
+		),
+		g_file_get_basename (file)
+	);
 }
 
 static void save_file (GObject *source_object, GAsyncResult *result, gpointer userData)
@@ -334,8 +334,8 @@ static void open_file_complete (GObject *source_object, GAsyncResult *res, gpoin
 	gtk_notebook_set_tab_label_text(
 		litos->notebook,
 		gtk_notebook_get_nth_page(
-	    litos->notebook,
-	    litos->page
+	    	litos->notebook,
+	    	litos->page
 		),
 		g_file_get_basename (file)
 	);

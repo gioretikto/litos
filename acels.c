@@ -61,12 +61,7 @@ void action_apply_italic(GSimpleAction *action, GVariant *parameter, gpointer us
 	applyTags(userData, "i");
 }
 
-void action_apply_br_tag(GSimpleAction *action, GVariant *parameter, gpointer userData)
-{
-	(void)action;
-	(void)parameter;
-	applyTags(userData, "br");
-}
+void action_insert_br_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "<br>");}
 
 void action_apply_sup_tag(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
@@ -82,7 +77,7 @@ void action_apply_sub_tag(GSimpleAction *action, GVariant *parameter, gpointer u
 	applyTags(userData, "sub");
 }
 
-void action_insert_endlist_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "</li>");}
+void action_insert_endlist_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "</p></li>");}
 
 void action_insert_space_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "&emsp;■□");}
 
@@ -158,7 +153,7 @@ void set_acels (struct lit *litos)
 		{"bond", action_insert_bond, NULL, NULL, NULL, {0,0,0}},
 		{"sup", action_apply_sup_tag, NULL, NULL, NULL, {0,0,0}},
 		{"sub", action_apply_sub_tag, NULL, NULL, NULL, {0,0,0}},
-		{"br", action_apply_br_tag, NULL, NULL, NULL, {0,0,0}},
+		{"br", action_insert_br_tag, NULL, NULL, NULL, {0,0,0}},
 		{"space", action_insert_space_tag, NULL, NULL, NULL, {0,0,0}},
 		{"close_tab", action_close_tab, NULL, NULL, NULL, {0,0,0}},
 		{"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
