@@ -243,22 +243,12 @@ static void save_file_complete (GObject *source_object, GAsyncResult *result, gp
 	}
 }
 
-void open_file (GFile *file, gpointer userData, gboolean template)
+void open_file (GFile *file, gpointer userData)
 {
-	struct lit *litos = (struct lit*)userData;
-
-    GtkTextBuffer *buffer = get_current_buffer(litos);
-
-	if ((gtk_text_buffer_get_char_count(buffer)) != 0)
-		menu_newtab(NULL, litos);
-
-	if (template == FALSE)
-		litos->filename[litos->page] = g_file_get_path (file);
-
 	g_file_load_contents_async (file,
 			NULL,
 			(GAsyncReadyCallback) open_file_complete,
-			litos);
+			userData);
 }
 
 static void open_file_complete (GObject *source_object, GAsyncResult *res, gpointer userData)
@@ -310,6 +300,14 @@ static void open_file_complete (GObject *source_object, GAsyncResult *res, gpoin
 
 	GtkTextBuffer *current_buffer = get_current_buffer(litos);
 
+	if ((gtk_text_buffer_get_char_count(current_buffer)) != 0)
+		menu_newtab(NULL, litos);
+
+	if (litos->isTemplate == FALSE)
+		litos->filename[litos->page] = g_file_get_path (file);
+
+	current_buffer = get_current_buffer(litos);
+
 	/* Set the text using the contents of the file */
 	gtk_text_buffer_set_text (current_buffer, contents, (gint)length);
 
@@ -327,9 +325,11 @@ static void open_file_complete (GObject *source_object, GAsyncResult *res, gpoin
 	litos->fileSaved[litos->page] = TRUE;
 
 	if (litos->filename[litos->page] == NULL)
-		printf("File name is NULL\n");
+		printf("Filename is NULL\n");
 	else
 		printf("Filename is %s\n", g_file_peek_path (file));
+
+	litos->isTemplate = FALSE;
 
 	gtk_notebook_set_tab_label_text(
 		litos->notebook,
@@ -392,7 +392,7 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 	g_signal_connect (litos->buffer, "notify::text", G_CALLBACK (monitor_change), litos);
 }
 
-void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)	/*Function called when the file gets modified */
+void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)	/* Function called when the file gets modified */
 {
 	(void)gobject;
 

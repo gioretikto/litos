@@ -3,7 +3,7 @@
 #include <glib.h>
 #include <gtksourceview/gtksource.h>
 
-#define VERSION "2.8"
+#define VERSION "2.9"
 #define MAX_TAB 20
 
 struct lit{
@@ -14,6 +14,7 @@ struct lit{
 	GtkSourceSearchContext *search_context;
 	GtkApplication *app;
 	_Bool fileSaved[MAX_TAB];
+	_Bool isTemplate;
 	char *filename[MAX_TAB];
 	int page;
 };

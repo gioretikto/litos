@@ -9,8 +9,7 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 void freePage(int page, struct lit *litos);
 
-gboolean
-on_delete_event (GtkWidget *widget,
+gboolean on_delete_event (GtkWidget *widget,
          GdkEvent  *event,
          gpointer   userData)
 {
@@ -145,7 +144,7 @@ void activate_cb (GtkApplication* app, gpointer userData)
 	g_signal_connect (litos->window, "delete-event", G_CALLBACK (on_delete_event), litos);
    	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), litos);
 	g_signal_connect (about_button, "clicked", G_CALLBACK (about_dialog), NULL);
-	g_signal_connect(litos->notebook, "switch-page", G_CALLBACK(switchPage_cb), litos);
+	g_signal_connect (litos->notebook, "switch-page", G_CALLBACK(switchPage_cb), litos);
 	g_signal_connect (litos->notebook, "page-reordered", G_CALLBACK (page_reordered_cb), litos);
 
 	gtk_widget_show_all (litos->window);

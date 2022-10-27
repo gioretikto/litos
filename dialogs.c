@@ -1,6 +1,6 @@
 #include "litos.h"
 
-void open_file (GFile *file, gpointer userData, gboolean template);
+void open_file (GFile *file, gpointer userData);
 void menu_save (GtkWidget *widget, gpointer userData);
 void save_as_dialog(struct lit *litos);
 void save_as_file(GtkFileChooser *chooser, struct lit *litos);
@@ -126,7 +126,7 @@ void open_dialog (GtkWidget *widget, gpointer userData)
 		else
 			litos->filename[litos->page] = g_file_get_path(file);	
 
-        open_file (file, litos, FALSE);
+        open_file (file, litos);
     }
 
     gtk_widget_destroy (dialog);
@@ -161,7 +161,9 @@ void openFromTemplate (GtkWidget *widget, gpointer userData)
 
 		GFile *file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
 
-		open_file (file, litos, TRUE);
+		litos->isTemplate = TRUE;
+
+		open_file (file, litos);
     }
 
 	gtk_widget_destroy (dialog);

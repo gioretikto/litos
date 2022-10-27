@@ -5,11 +5,11 @@ extern void activate_cb (GtkApplication* app, gpointer user_data);
 void open_file (GFile *file, gpointer userData, gboolean template);
 
 static void
-app_open_cb (GApplication  *app,
-		GFile        **files,
-		gint           n_files,
-		gchar* hint,
-		gpointer userData)
+app_open_cb (GApplication	*app,
+		GFile	**files,
+		gint	n_files,
+		gchar*	hint,
+		gpointer	userData)
 {
 	(void) hint;
 
@@ -41,6 +41,7 @@ main (int    argc,
 	{
 		litos.fileSaved[i] = TRUE;
 		litos.filename[i] = NULL;
+		litos.isTemplate = FALSE;
 	}
 
 	litos.page = 0;
