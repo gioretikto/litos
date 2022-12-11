@@ -9,6 +9,8 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 void freePage(int page, struct lit *litos);
 
+void spellCheck(struct lit *litos);
+
 gboolean on_delete_event (GtkWidget *widget,
          GdkEvent  *event,
          gpointer   userData)
@@ -102,13 +104,14 @@ void activate_cb (GtkApplication* app, gpointer userData)
 
 	litos->window = gtk_application_window_new (app);
 
-	GtkWidget *about_button, *find_menu_button, *close_tab_button, *file_menu_button;
+	GtkWidget *about_button, *find_menu_button, *close_tab_button, *file_menu_button, *spell_button;
 
 	litos->app = app;
 
 	litos->headbar = gtk_header_bar_new();
 
 	close_tab_button = gtk_button_new_with_label("Close Tab");
+	spell_button = gtk_button_new_with_label("Check Spell");
 	about_button = gtk_button_new_with_label("About");
 
 	gtk_header_bar_set_title (GTK_HEADER_BAR (litos->headbar), "Litos");
@@ -129,6 +132,7 @@ void activate_cb (GtkApplication* app, gpointer userData)
 	gtk_container_add(GTK_CONTAINER (litos->headbar), file_menu_button);
 	gtk_container_add(GTK_CONTAINER (litos->headbar), find_menu_button);
 	gtk_container_add(GTK_CONTAINER (litos->headbar), close_tab_button);
+	gtk_container_add(GTK_CONTAINER (litos->headbar), spell_button);
 	gtk_container_add(GTK_CONTAINER (litos->headbar), about_button);
 
 	litos->notebook = GTK_NOTEBOOK(gtk_notebook_new());
@@ -144,6 +148,7 @@ void activate_cb (GtkApplication* app, gpointer userData)
 	g_signal_connect (litos->window, "delete-event", G_CALLBACK (on_delete_event), litos);
    	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), litos);
 	g_signal_connect (about_button, "clicked", G_CALLBACK (about_dialog), NULL);
+	g_signal_connect (spell_button, "clicked", G_CALLBACK (spellCheck), litos);
 	g_signal_connect (litos->notebook, "switch-page", G_CALLBACK(switchPage_cb), litos);
 	g_signal_connect (litos->notebook, "page-reordered", G_CALLBACK (page_reordered_cb), litos);
 

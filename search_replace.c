@@ -107,9 +107,9 @@ void ctrlF (GtkButton *button, gpointer userData)
 		litos->search_context = NULL;
 	}
 
-	if (gtk_text_buffer_get_selection_bounds(buffer, &start, &end))
+	if (gtk_text_buffer_get_selection_bounds(buffer, &start, &end)) /* TRUE if some text is selected; places the bounds of the selection in start and end (if the selection has 																	   length 0, then start and end are filled in with the same value)*/
 	{
-		searchString = gtk_text_buffer_get_text (buffer,
+		searchString = gtk_text_buffer_get_text (buffer,			/* Extract the selected string from the buffer */
 							&start,
 							&end,
 							FALSE);
