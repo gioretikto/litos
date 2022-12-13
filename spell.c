@@ -41,27 +41,20 @@ void spellCheck (GtkWidget *button, struct lit *litos)
 		const gchar *word = gtk_text_buffer_get_text (buffer,
                                             &start, &end, FALSE);
 
-		g_print ("word is: %s\n", word);
+		g_print ("[%4d] : %s\n", idx++, word);
 
-		const gchar *p = word;
+		start = end;
 
-		if(p[0] == '<')			/* if word contains a tag skip it */
-		{
-			while(*p != '>')
-				p++;
-		}
+		if (strcmp(word,"html") == 0)
+			continue;
 
-		g_print ("[%4d] : %s\n", idx++, p);
-
-		correct = aspell_speller_check(spell_checker, p, (int)strlen(p));
+		correct = aspell_speller_check(spell_checker, word, (int)strlen(word));
 
 		if (!correct)
 		{
-			g_print ("Error on: %s\n", p);
-			highlightWord(litos, p);
+			g_print ("Error on: %s\n", word);
+				highlightWord(litos, word);
 		}
-
-		start = end;
 
 		for (;;)
 		{
