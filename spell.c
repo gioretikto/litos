@@ -45,9 +45,6 @@ void spellCheck (GtkWidget *button, struct lit *litos)
 
 		start = end;
 
-		if (strcmp(word,"html") == 0)
-			continue;
-
 		correct = aspell_speller_check(spell_checker, word, (int)strlen(word));
 
 		if (!correct)
