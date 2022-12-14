@@ -1,20 +1,16 @@
 #include <aspell.h>
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include "litos.h"
 
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 void highlightWord(struct lit *litos, const gchar *searchString);
-
+char *highlight_ptr(struct lit *litos,const char *start,size_t len);
 void spellCheck (GtkWidget *button, struct lit *litos)
 {
 	(void)button;
-
-	const gchar *word = NULL;
-	char line[256];
-
-	int correct;
-
+	gchar *word = NULL;
 	AspellConfig * spell_config = new_aspell_config();
 
 	aspell_config_replace(spell_config, "lang", "en_US");
@@ -28,10 +24,9 @@ void spellCheck (GtkWidget *button, struct lit *litos)
 	else
 		spell_checker = to_aspell_speller(possible_err);
 
-	gint idx = 0;
 	GtkTextIter start, end;
 	GtkTextBuffer *buffer = get_current_buffer(litos);
-
+	AspellDocumentChecker *Adoc = NULL;
 	gtk_text_buffer_get_start_iter (buffer, &start);
 	gtk_text_buffer_get_end_iter (buffer, &end);
 
@@ -39,52 +34,34 @@ void spellCheck (GtkWidget *button, struct lit *litos)
 
 	printf("%s\n", word);
 
-	//aspell_document_checker_process(word, line, -1); 
-
-	//correct = aspell_speller_check(spell_checker, word, (int)strlen(word));
-
-	/*if (!correct)
-	{
-		g_print ("Error on: %s\n", word);
-		highlightWord(litos, word);
-	}*/
-
-	/*while (gtk_text_iter_forward_word_end (&end))
-	{
-		word = gtk_text_buffer_get_text (buffer,
-                                            &start, &end, FALSE);
-
-		for (;;)
-		{
-			if (!gtk_text_iter_forward_char (&start))
-				goto wordsdone;
-			if (gtk_text_iter_starts_word (&start))
-				break;
-		}
-
-		if (!isalpha(word[0]) || strlen(word) <= 2)
-			continue;
-
-		else
-		{
-			g_print ("[%4d] : %s\n", idx++, word);
-
-			if(strcmp(word, "DOCTYPE") != 0 && strcmp(word, "html") != 0 && strcmp(word, "utf") != 0 && strcmp(word, "charset") != 0 && strcmp(word, "lang") != 0 && strcmp(word, "href") != 0 && strcmp(word, "forall") != 0 && strcmp(word, "subseteq") != 0)
-			{
-				correct = aspell_speller_check(spell_checker, word, (int)strlen(word));
-
-				if (!correct)
-				{
-					g_print ("Error on: %s\n", word);
-					highlightWord(litos, word);
-				}
-			}
-		}
+	possible_err = new_aspell_document_checker(spell_checker);
+	if(aspell_error_number(possible_err)){
+		puts(aspell_error_message(possible_err));
+		goto cleanup;
 	}
-
-	wordsdone:;
-
-	gtk_text_buffer_end_user_action (buffer);   /* end user action */
-
+	Adoc = to_aspell_document_checker(possible_err);
+	aspell_document_checker_process(Adoc, word, (int)strlen(word));
+	AspellToken token;
+	for(;;){
+		token = aspell_document_checker_next_misspelling(Adoc);
+		//if(token.len <= 3) continue;
+		if(!token.len) break;
+		char * wrong = highlight_ptr(litos,word+token.offset, token.len);
+		printf("%s\n", wrong);
+		
+	}
+	g_free(word);
+ cleanup:
+	delete_aspell_document_checker(Adoc);
 	delete_aspell_speller(spell_checker);
+}
+char *highlight_ptr(struct lit *litos,const char *start,size_t len){
+	char *word = malloc(len+1);
+	if(!word){
+		abort();
+	}
+	strncpy(word, start, len);
+	word[len] = '\0';
+	highlightWord(litos, word);
+	return word;
 }
