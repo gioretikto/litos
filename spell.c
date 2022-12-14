@@ -44,8 +44,8 @@ void spellCheck (GtkWidget *button, struct lit *litos)
 	AspellToken token;
 	for(;;){
 		token = aspell_document_checker_next_misspelling(Adoc);
-		//if(token.len <= 3) continue;
 		if(!token.len) break;
+		if(token.len <= 3) continue;
 		char * wrong = highlight_ptr(litos,word+token.offset, token.len);
 		printf("%s\n", wrong);
 		
