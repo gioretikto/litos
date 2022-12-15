@@ -19,13 +19,23 @@ void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointe
 	(void)action;
 	(void)parameter;
 
+	int i;
+
 	struct lit *litos = (struct lit*)userData;
 
 	GtkSourceBuffer *buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
 
-	clearSearchHighlight(G_OBJECT(buffer), NULL, litos->search_context);
+	if(litos->search_context == NULL)
+	{
+		clearSearchHighlight(G_OBJECT(buffer), NULL, litos->search_context);
 
-	//litos->search_context = NULL;
+		litos->search_context = NULL;
+	}
+
+	for(i = 0; i < litos->search_context2->len; i++)
+	{
+		clearSearchHighlight(G_OBJECT(buffer), NULL,  g_ptr_array_index (litos->search_context2,i));
+	}
 }
 
 void action_find_selection(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; ctrlF(NULL, userData);}

@@ -7,8 +7,7 @@ GtkTextBuffer* get_current_buffer(struct lit *litos);
 
 GtkSourceView* currentTabSourceView(struct lit *litos);
 void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
-void setSearch(struct lit *litos, const char *searchString);
-void highlightError(struct lit *litos, const gchar *searchString);
+void highlightErrors(struct lit *litos, const gchar *searchString);
 char *highlight_ptr(struct lit *litos,const char *start,size_t len);
 void spellCheck (GtkWidget *button, struct lit *litos)
 {
@@ -62,32 +61,38 @@ void spellCheck (GtkWidget *button, struct lit *litos)
 	delete_aspell_speller(spell_checker);
 }
 
-char *highlight_ptr(struct lit *litos,const char *start,size_t len){
-	char *word = malloc(len+1);
-	if(!word){
+char *highlight_ptr(struct lit *litos,const char *start,size_t len)
+{
+	char *word = g_strndup(start, len);
+
+	if(!word)
 		abort();
-	}
+
 	strncpy(word, start, len);
 	word[len] = '\0';
-	highlightError(litos, word);
+	highlightErrors(litos, word);
 	return word;
 }
 
-void highlightError(struct lit *litos, const gchar *searchString)
+void highlightErrors(struct lit *litos, const gchar *searchString)
 {
 	GtkSourceBuffer *buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
 
-	GtkTextIter start_sel, end_sel;
+	GtkTextIter start_sel, end_sel, current_loc;
 
-	setSearch(litos, searchString);
+	GtkSourceSearchSettings *settings = gtk_source_search_settings_new ();
 
-	gtk_text_buffer_get_selection_bounds(GTK_TEXT_BUFFER(buffer), &start_sel, &end_sel);
+	gtk_source_search_settings_set_search_text (settings, searchString);
 
-	GtkTextIter current_loc;
+	GtkSourceSearchContext *search_context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), settings);
+
+	g_ptr_array_add (litos->search_context2, gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), settings));
 
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &current_loc);
 
-	gtk_source_search_context_forward (litos->search_context, &current_loc, &start_sel, &end_sel, NULL);
+	gtk_source_search_context_forward (search_context, &current_loc, &start_sel, &end_sel, NULL);
+
+	gtk_text_buffer_get_selection_bounds(GTK_TEXT_BUFFER(buffer), &start_sel, &end_sel);
 
 	gtk_text_view_scroll_to_iter (GTK_TEXT_VIEW(currentTabSourceView(litos)),
 			&start_sel,

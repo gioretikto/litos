@@ -48,6 +48,8 @@ main (int    argc,
 
 	litos.search_context = NULL;
 
+	litos.search_context2 = g_ptr_array_new_with_free_func(g_object_unref);
+
 	app = gtk_application_new ("org.litos.gtk", G_APPLICATION_HANDLES_OPEN);
 
 	g_signal_connect (app, "activate", G_CALLBACK (activate_cb), &litos);
@@ -57,6 +59,8 @@ main (int    argc,
 	status = g_application_run (G_APPLICATION (app), argc, argv);
 
 	g_object_unref (app);
+
+	g_ptr_array_unref(litos.search_context2);
 
 	return status;
 }
