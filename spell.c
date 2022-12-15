@@ -1,7 +1,6 @@
 #include <aspell.h>
 #include <string.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include "litos.h"
 
 GtkTextBuffer* get_current_buffer(struct lit *litos);
@@ -33,21 +32,26 @@ void spellCheck (GtkWidget *button, struct lit *litos)
 	text_buffer = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
 
 	possible_err = new_aspell_document_checker(spell_checker);
+
 	if(aspell_error_number(possible_err)){
 		puts(aspell_error_message(possible_err));
 		goto cleanup;
 	}
+
 	Adoc = to_aspell_document_checker(possible_err);
 	aspell_document_checker_process(Adoc, text_buffer, (int)strlen(text_buffer));
 	AspellToken token;
-	for(;;){
+
+	for(;;){																	/* returns the next misspelled word in the processed string
+ 																				* if there are no more misspelled word than token.word
+ 																				* will be null and token.size will be 0 */
 		token = aspell_document_checker_next_misspelling(Adoc);
 		if(!token.len) break;
 		if(token.len <= 3) continue; /* do not correct words with less than 4 char */ 
 		char * wrong = highlight_ptr(litos,text_buffer+token.offset, token.len);
-		printf("%s\n", wrong);
-		
+		printf("%s\n", wrong);		
 	}
+
 	g_free(text_buffer);
  cleanup:
 	delete_aspell_document_checker(Adoc);
