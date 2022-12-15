@@ -10,7 +10,7 @@ char *highlight_ptr(struct lit *litos,const char *start,size_t len);
 void spellCheck (GtkWidget *button, struct lit *litos)
 {
 	(void)button;
-	gchar *word = NULL;
+	gchar *text_buffer = NULL;
 	AspellConfig * spell_config = new_aspell_config();
 
 	aspell_config_replace(spell_config, "lang", "en_US");
@@ -30,9 +30,7 @@ void spellCheck (GtkWidget *button, struct lit *litos)
 	gtk_text_buffer_get_start_iter (buffer, &start);
 	gtk_text_buffer_get_end_iter (buffer, &end);
 
-	word = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
-
-	printf("%s\n", word);
+	text_buffer = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
 
 	possible_err = new_aspell_document_checker(spell_checker);
 	if(aspell_error_number(possible_err)){
@@ -40,17 +38,17 @@ void spellCheck (GtkWidget *button, struct lit *litos)
 		goto cleanup;
 	}
 	Adoc = to_aspell_document_checker(possible_err);
-	aspell_document_checker_process(Adoc, word, (int)strlen(word));
+	aspell_document_checker_process(Adoc, text_buffer, (int)strlen(text_buffer));
 	AspellToken token;
 	for(;;){
 		token = aspell_document_checker_next_misspelling(Adoc);
 		if(!token.len) break;
-		if(token.len <= 3) continue;
-		char * wrong = highlight_ptr(litos,word+token.offset, token.len);
+		if(token.len <= 3) continue; /* do not correct words with less than 4 char */ 
+		char * wrong = highlight_ptr(litos,text_buffer+token.offset, token.len);
 		printf("%s\n", wrong);
 		
 	}
-	g_free(word);
+	g_free(text_buffer);
  cleanup:
 	delete_aspell_document_checker(Adoc);
 	delete_aspell_speller(spell_checker);
