@@ -25,7 +25,7 @@ void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointe
 
 	GtkSourceBuffer *buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
 
-	if(litos->search_context == NULL)
+	if(litos->search_context != NULL)
 	{
 		clearSearchHighlight(G_OBJECT(buffer), NULL, litos->search_context);
 
