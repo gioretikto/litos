@@ -84,13 +84,9 @@ void highlightErrors(struct lit *litos, const gchar *searchString)
 
 	gtk_source_search_settings_set_search_text (settings, searchString);
 
-	GtkSourceSearchContext *search_context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), settings);
-
 	g_ptr_array_add (litos->search_context2, gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), settings));
 
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &current_loc);
-
-	gtk_source_search_context_forward (search_context, &current_loc, &start_sel, &end_sel, NULL);
 
 	gtk_text_buffer_get_selection_bounds(GTK_TEXT_BUFFER(buffer), &start_sel, &end_sel);
 

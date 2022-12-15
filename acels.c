@@ -33,9 +33,7 @@ void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointe
 	}
 
 	for(i = 0; i < litos->search_context2->len; i++)
-	{
-		clearSearchHighlight(G_OBJECT(buffer), NULL,  g_ptr_array_index (litos->search_context2,i));
-	}
+		clearSearchHighlight(G_OBJECT(buffer), NULL, g_ptr_array_index (litos->search_context2,i));
 }
 
 void action_find_selection(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; ctrlF(NULL, userData);}
