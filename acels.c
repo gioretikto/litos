@@ -11,6 +11,9 @@ void insertChar (struct lit *litos, const char *insertChar);
 void on_save_as_response(GFile *file, struct lit *litos);
 gboolean on_delete_event (GtkWidget *widget, GdkEvent  *event, gpointer userData);
 
+GtkTextBuffer* get_current_buffer(struct lit *litos);
+void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
+
 void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
@@ -18,14 +21,11 @@ void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointe
 
 	struct lit *litos = (struct lit*)userData;
 
-	if (litos->search_context != NULL)
-	{
-		gtk_source_search_context_set_highlight
-			(litos->search_context,
-			FALSE);
+	GtkSourceBuffer *buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
 
-		litos->search_context = NULL;
-	}
+	clearSearchHighlight(G_OBJECT(buffer), NULL, litos->search_context);
+
+	//litos->search_context = NULL;
 }
 
 void action_find_selection(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; ctrlF(NULL, userData);}

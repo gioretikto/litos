@@ -4,7 +4,11 @@
 #include "litos.h"
 
 GtkTextBuffer* get_current_buffer(struct lit *litos);
-void highlightWord(struct lit *litos, const gchar *searchString);
+
+GtkSourceView* currentTabSourceView(struct lit *litos);
+void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
+void setSearch(struct lit *litos, const char *searchString);
+void highlightError(struct lit *litos, const gchar *searchString);
 char *highlight_ptr(struct lit *litos,const char *start,size_t len);
 void spellCheck (GtkWidget *button, struct lit *litos)
 {
@@ -47,7 +51,7 @@ void spellCheck (GtkWidget *button, struct lit *litos)
  																				* will be null and token.size will be 0 */
 		token = aspell_document_checker_next_misspelling(Adoc);
 		if(!token.len) break;
-		if(token.len <= 3) continue; /* do not correct words with less than 4 char */ 
+		if(token.len <= 3) continue; /* do not correct words with less than 4 char */
 		char * wrong = highlight_ptr(litos,text_buffer+token.offset, token.len);
 		printf("%s\n", wrong);		
 	}
@@ -57,6 +61,7 @@ void spellCheck (GtkWidget *button, struct lit *litos)
 	delete_aspell_document_checker(Adoc);
 	delete_aspell_speller(spell_checker);
 }
+
 char *highlight_ptr(struct lit *litos,const char *start,size_t len){
 	char *word = malloc(len+1);
 	if(!word){
@@ -64,6 +69,32 @@ char *highlight_ptr(struct lit *litos,const char *start,size_t len){
 	}
 	strncpy(word, start, len);
 	word[len] = '\0';
-	highlightWord(litos, word);
+	highlightError(litos, word);
 	return word;
+}
+
+void highlightError(struct lit *litos, const gchar *searchString)
+{
+	GtkSourceBuffer *buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
+
+	GtkTextIter start_sel, end_sel;
+
+	setSearch(litos, searchString);
+
+	gtk_text_buffer_get_selection_bounds(GTK_TEXT_BUFFER(buffer), &start_sel, &end_sel);
+
+	GtkTextIter current_loc;
+
+	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &current_loc);
+
+	gtk_source_search_context_forward (litos->search_context, &current_loc, &start_sel, &end_sel, NULL);
+
+	gtk_text_view_scroll_to_iter (GTK_TEXT_VIEW(currentTabSourceView(litos)),
+			&start_sel,
+			0,
+			TRUE,
+			0.0,
+			0.0);
+
+	//g_signal_connect (buffer, "notify::text", G_CALLBACK (clearSearchHighlight), litos->search_context);
 }
