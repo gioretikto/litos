@@ -19,7 +19,7 @@ void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointe
 	(void)action;
 	(void)parameter;
 
-	int i;
+	unsigned int i;
 
 	struct lit *litos = (struct lit*)userData;
 
