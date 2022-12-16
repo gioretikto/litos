@@ -68,7 +68,6 @@ char *highlight_ptr(struct lit *litos,const char *start,size_t len)
 	if(!word)
 		abort();
 
-	strncpy(word, start, len);
 	word[len] = '\0';
 	highlightErrors(litos, word);
 	return word;
