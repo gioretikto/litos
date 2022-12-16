@@ -6,7 +6,7 @@
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 
 GtkSourceView* currentTabSourceView(struct lit *litos);
-void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
+
 void highlightErrors(struct lit *litos, const gchar *searchString);
 char *highlight_ptr(struct lit *litos,const char *start,size_t len);
 void spellCheck (GtkWidget *button, struct lit *litos)
@@ -96,6 +96,4 @@ void highlightErrors(struct lit *litos, const gchar *searchString)
 			TRUE,
 			0.0,
 			0.0);
-
-	//g_signal_connect (buffer, "notify::text", G_CALLBACK (clearSearchHighlight), litos->search_context);
 }

@@ -10,8 +10,8 @@ struct lit{
 	GtkWidget *window;
 	GtkNotebook *notebook;
 	GtkWidget *headbar;
-	GtkSourceBuffer *buffer;
-	GtkSourceSearchContext *search_context;
+	GtkSourceBuffer *buffer;				/* to highlight words searched */
+	GtkSourceSearchContext *search_context; /* to highlight mispelled words through aspell */
 	GPtrArray *search_context2;
 	GtkApplication *app;
 	_Bool fileSaved[MAX_TAB];

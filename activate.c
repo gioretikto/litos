@@ -110,8 +110,8 @@ void activate_cb (GtkApplication* app, gpointer userData)
 
 	litos->headbar = gtk_header_bar_new();
 
-	close_tab_button = gtk_button_new_with_label("Close Tab");
 	spell_button = gtk_button_new_with_label("Check Spell");
+	close_tab_button = gtk_button_new_with_label("Close Tab");
 	about_button = gtk_button_new_with_label("About");
 
 	gtk_header_bar_set_title (GTK_HEADER_BAR (litos->headbar), "Litos");
@@ -131,8 +131,8 @@ void activate_cb (GtkApplication* app, gpointer userData)
 
 	gtk_container_add(GTK_CONTAINER (litos->headbar), file_menu_button);
 	gtk_container_add(GTK_CONTAINER (litos->headbar), find_menu_button);
-	gtk_container_add(GTK_CONTAINER (litos->headbar), close_tab_button);
 	gtk_container_add(GTK_CONTAINER (litos->headbar), spell_button);
+	gtk_container_add(GTK_CONTAINER (litos->headbar), close_tab_button);
 	gtk_container_add(GTK_CONTAINER (litos->headbar), about_button);
 
 	litos->notebook = GTK_NOTEBOOK(gtk_notebook_new());
