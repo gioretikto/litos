@@ -50,7 +50,7 @@ void spellCheck (GtkWidget *button, struct lit *litos)
  																				* will be null and token.size will be 0 */
 		token = aspell_document_checker_next_misspelling(Adoc);
 		if(!token.len) break;
-		if(token.len <= 3) continue; /* do not correct words with less than 4 char */
+		if(token.len <= 3) continue; /* do not correct words with less than 4 chars */
 		char * wrong = highlight_ptr(litos,text_buffer+token.offset, token.len);
 		printf("%s\n", wrong);		
 	}

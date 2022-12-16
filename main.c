@@ -23,8 +23,7 @@ app_open_cb (GApplication	*app,
 		open_file (files[i], litos, FALSE);
 }
 
-int
-main (int    argc,
+int main (int    argc,
       char **argv)
 {
 	int status;
