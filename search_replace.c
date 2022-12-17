@@ -57,7 +57,7 @@ void searchWord (GtkButton *button, gpointer userData)
 
 	struct lit *litos = (struct lit*)userData;
 
-	const char *searchString = NULL;
+	const gchar *searchString = NULL;
 	const gchar *replaceString = NULL;
 	const gchar *highlightString = NULL;
 
