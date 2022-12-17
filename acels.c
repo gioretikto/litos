@@ -6,7 +6,7 @@ gboolean close_tab (GtkButton *button, gpointer userData);
 void applyTags(struct lit *litos, char *what_tag);
 unsigned int saveornot_before_close(gint page, struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
-void searchWord (GtkButton *button, gpointer userData);
+void getStringFromBuffer (GtkButton *button, gpointer userData);
 void insertChar (struct lit *litos, const char *insertChar);
 void on_save_as_response(GFile *file, struct lit *litos);
 gboolean on_delete_event (GtkWidget *widget, GdkEvent  *event, gpointer userData);
