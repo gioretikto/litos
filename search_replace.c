@@ -73,6 +73,8 @@ void searchWord (GtkButton *button, gpointer userData)
 							FALSE);
 
 		gtk_entry_set_text(GTK_ENTRY(search_entry), gtk_text_iter_get_text (&start, &end));
+
+		highlightString = searchString;
 	}
 
 	else
