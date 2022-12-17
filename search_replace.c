@@ -131,9 +131,11 @@ void replaceButtonClicked (GtkButton *button, gpointer userData)
 			-1,
 			NULL);
 
-	searchString(litos, replaceString);
-
 	gtk_entry_set_text(GTK_ENTRY(replace_entry),"");
+
+    /* Highlight the replaced string */
+
+	searchString(litos, replaceString);  /* 1st set the search_context then highlight*/
 
 	highlightWord(litos);
 }
