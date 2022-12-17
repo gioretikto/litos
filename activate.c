@@ -5,7 +5,7 @@ void set_acels (struct lit *litos);
 void about_dialog (GtkButton *button, gpointer userData);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
-void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos);
+void createSearchPopover(GtkMenuButton *search_menu_button, struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 void freePage(int page, struct lit *litos);
 
@@ -104,7 +104,7 @@ void activate_cb (GtkApplication* app, gpointer userData)
 
 	litos->window = gtk_application_window_new (app);
 
-	GtkWidget *about_button, *find_menu_button, *close_tab_button, *file_menu_button, *spell_button;
+	GtkWidget *about_button, *search_menu_button, *close_tab_button, *file_menu_button, *spell_button;
 
 	litos->app = app;
 
@@ -121,16 +121,16 @@ void activate_cb (GtkApplication* app, gpointer userData)
 	gtk_window_maximize (GTK_WINDOW (litos->window));
 
 	file_menu_button = gtk_menu_button_new ();
-	find_menu_button = gtk_menu_button_new ();
+	search_menu_button = gtk_menu_button_new ();
 
 	createFilePopover(file_menu_button, GTK_POS_TOP, litos);
-	createFindPopover(GTK_MENU_BUTTON(find_menu_button), litos);
+	createSearchPopover(GTK_MENU_BUTTON(search_menu_button), litos);
 
 	gtk_button_set_image (GTK_BUTTON (file_menu_button), gtk_image_new_from_icon_name ("open-menu-symbolic", GTK_ICON_SIZE_BUTTON));
-	gtk_button_set_image (GTK_BUTTON (find_menu_button), gtk_image_new_from_icon_name ("edit-find-replace", GTK_ICON_SIZE_BUTTON));
+	gtk_button_set_image (GTK_BUTTON (search_menu_button), gtk_image_new_from_icon_name ("edit-find-replace", GTK_ICON_SIZE_BUTTON));
 
 	gtk_container_add(GTK_CONTAINER (litos->headbar), file_menu_button);
-	gtk_container_add(GTK_CONTAINER (litos->headbar), find_menu_button);
+	gtk_container_add(GTK_CONTAINER (litos->headbar), search_menu_button);
 	gtk_container_add(GTK_CONTAINER (litos->headbar), spell_button);
 	gtk_container_add(GTK_CONTAINER (litos->headbar), close_tab_button);
 	gtk_container_add(GTK_CONTAINER (litos->headbar), about_button);

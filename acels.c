@@ -6,7 +6,7 @@ gboolean close_tab (GtkButton *button, gpointer userData);
 void applyTags(struct lit *litos, char *what_tag);
 unsigned int saveornot_before_close(gint page, struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
-void ctrlF (GtkButton *button, gpointer userData);
+void searchWord (GtkButton *button, gpointer userData);
 void insertChar (struct lit *litos, const char *insertChar);
 void on_save_as_response(GFile *file, struct lit *litos);
 gboolean on_delete_event (GtkWidget *widget, GdkEvent  *event, gpointer userData);
@@ -14,7 +14,18 @@ gboolean on_delete_event (GtkWidget *widget, GdkEvent  *event, gpointer userData
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
 
-void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointer userData)
+void freeSearchContext(struct lit *litos)
+{
+	gtk_source_search_context_set_highlight
+		(litos->search_context,
+		FALSE);
+
+	g_object_unref(litos->search_context);
+
+	litos->search_context = NULL;
+}
+
+void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointer userData)		/* Called when ESC is pressed */
 {
 	(void)action;
 	(void)parameter;
@@ -23,23 +34,19 @@ void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointe
 
 	struct lit *litos = (struct lit*)userData;
 
-	GtkSourceBuffer *buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
+	if (litos->search_context != NULL)
+		freeSearchContext(litos);
 
-	if(litos->search_context != NULL)
+	if (litos->search_context2->len != 0)
 	{
-		clearSearchHighlight(G_OBJECT(buffer), NULL, litos->search_context);
-		g_object_unref(litos->search_context);
-		litos->search_context = NULL;
-	}
+		for(i = 0; i < litos->search_context2->len; i++)
+			gtk_source_search_context_set_highlight (g_ptr_array_index (litos->search_context2,i),FALSE);
 
-	for(i = 0; i < litos->search_context2->len; i++)
-	{
-		clearSearchHighlight(G_OBJECT(buffer), NULL, g_ptr_array_index (litos->search_context2,i));
 		g_ptr_array_remove_range(litos->search_context2, 0, litos->search_context2->len);
 	}
 }
 
-void action_find_selection(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; ctrlF(NULL, userData);}
+void action_search_selection(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; searchWord(NULL, userData);}
 
 void action_insert_minus(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "−");}
 
@@ -151,7 +158,7 @@ void set_acels (struct lit *litos)
 		{"open", action_open_dialog, NULL, NULL, NULL, {0,0,0}},
 		{"save", action_save_dialog, NULL, NULL, NULL, {0,0,0}},
 		{"save_as", action_save_as_dialog, NULL, NULL, NULL, {0,0,0}},
-		{"find_selection", action_find_selection, NULL, NULL, NULL, {0,0,0}},
+		{"search", action_search_selection, NULL, NULL, NULL, {0,0,0}},
 		{"bold", action_apply_bold, NULL, NULL, NULL, {0,0,0}},
 		{"italic", action_apply_italic, NULL, NULL, NULL, {0,0,0}},
 		{"h2", action_apply_heading, NULL, NULL, NULL, {0,0,0}},
@@ -195,7 +202,7 @@ void set_acels (struct lit *litos)
 	  { "app.quit", { "<Control>q", NULL} },
 	  { "app.save", { "<Control>s", NULL} },
 	  { "app.save_as", { "<Shift><Control>s", NULL} },
-	  { "app.find_selection", { "<Control>f", NULL} },
+	  { "app.search", { "<Control>f", NULL} },
 	};
 
 	g_action_map_add_action_entries(G_ACTION_MAP(litos->app), app_entries, G_N_ELEMENTS(app_entries), litos);

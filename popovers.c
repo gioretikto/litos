@@ -1,6 +1,6 @@
 #include "litos.h"
 
-void ctrlF (GtkButton *button, gpointer userData);
+void searchWord (GtkButton *button, gpointer userData);
 void replaceButtonClicked (GtkButton *button, gpointer userData);
 void open_dialog (GtkWidget *widget, gpointer userData);
 void openFromTemplate (GtkWidget *widget, gpointer userData);
@@ -11,34 +11,34 @@ void menu_newtab (GtkWidget *widget, gpointer userData);
 GtkWidget *search_entry, *replace_entry, *button_check_case;
 GtkWidget *lbl_number_occurences;
 
-void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
+void createSearchPopover(GtkMenuButton *search_menu_button, struct lit *litos)
 {
-	GtkWidget *vbox, *hbox_find, *hbox_replace, *label_find, *label_replace, *find_button, *replace_button, *popover;
+	GtkWidget *vbox, *hbox_search, *hbox_replace, *label_search, *label_replace, *search_button, *replace_button, *popover;
 
-	label_find = gtk_label_new ("Find:");
+	label_search = gtk_label_new ("Search:");
 	label_replace = gtk_label_new ("Replace:");
 
 	lbl_number_occurences= gtk_label_new (NULL);
 
-	find_button = gtk_button_new_with_label("Find");
+	search_button = gtk_button_new_with_label("Search");
 	replace_button = gtk_button_new_with_label("Replace All");
 
 	vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-	hbox_find = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+	hbox_search = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 	hbox_replace = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 	button_check_case = gtk_check_button_new_with_mnemonic(_("_Match case\t"));
 
 	search_entry = gtk_entry_new ();
 	replace_entry = gtk_entry_new ();
 
-	gtk_container_add (GTK_CONTAINER (vbox), hbox_find);
+	gtk_container_add (GTK_CONTAINER (vbox), hbox_search);
 	gtk_container_add (GTK_CONTAINER (vbox), hbox_replace);
 
-	gtk_container_add (GTK_CONTAINER (hbox_find), label_find);
-	gtk_container_add (GTK_CONTAINER (hbox_find), search_entry);
-	gtk_container_add (GTK_CONTAINER (hbox_find), find_button);
-	gtk_container_add (GTK_CONTAINER (hbox_find), button_check_case);
-	gtk_container_add (GTK_CONTAINER (hbox_find), lbl_number_occurences);
+	gtk_container_add (GTK_CONTAINER (hbox_search), label_search);
+	gtk_container_add (GTK_CONTAINER (hbox_search), search_entry);
+	gtk_container_add (GTK_CONTAINER (hbox_search), search_button);
+	gtk_container_add (GTK_CONTAINER (hbox_search), button_check_case);
+	gtk_container_add (GTK_CONTAINER (hbox_search), lbl_number_occurences);
 
 	gtk_container_add (GTK_CONTAINER (hbox_replace), label_replace);
 	gtk_container_add (GTK_CONTAINER (hbox_replace), replace_entry);
@@ -46,12 +46,12 @@ void createFindPopover(GtkMenuButton *find_menu_button, struct lit *litos)
 
 	popover = gtk_popover_new (NULL);
 	gtk_container_add (GTK_CONTAINER (popover), vbox);
-	gtk_menu_button_set_popover (find_menu_button, popover);
+	gtk_menu_button_set_popover (search_menu_button, popover);
 	gtk_popover_set_position (GTK_POPOVER (popover), GTK_POS_RIGHT);
 	
 	gtk_widget_show_all (vbox);
 
-	g_signal_connect (find_button, "clicked", G_CALLBACK (ctrlF), litos);
+	g_signal_connect (search_button, "clicked", G_CALLBACK (searchWord), litos);
 	g_signal_connect (replace_button, "clicked", G_CALLBACK (replaceButtonClicked), litos);
 }
 
