@@ -12,8 +12,6 @@ void on_save_as_response(GFile *file, struct lit *litos);
 gboolean on_delete_event (GtkWidget *widget, GdkEvent  *event, gpointer userData);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 
-void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
-
 void freeSearchContext(struct lit *litos)
 {
 	g_object_unref(litos->search_context);
