@@ -6,24 +6,22 @@ gboolean close_tab (GtkButton *button, gpointer userData);
 void applyTags(struct lit *litos, char *what_tag);
 unsigned int saveornot_before_close(gint page, struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
-void getStringFromBuffer (GtkButton *button, gpointer userData);
+void searchWord (GtkButton *button, gpointer userData);
 void insertChar (struct lit *litos, const char *insertChar);
 void on_save_as_response(GFile *file, struct lit *litos);
 gboolean on_delete_event (GtkWidget *widget, GdkEvent  *event, gpointer userData);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 
+void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
+
 void freeSearchContext(struct lit *litos)
 {
-	gtk_source_search_context_set_highlight
-		(litos->search_context,
-		FALSE);
-
 	g_object_unref(litos->search_context);
 
 	litos->search_context = NULL;
 }
 
-void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointer userData)		/* Called when ESC is pressed */
+void EscButtonPressed(GSimpleAction *action, GVariant *parameter, gpointer userData)		/* Remove highlights: Called when ESC is pressed */
 {
 	(void)action;
 	(void)parameter;
@@ -33,7 +31,13 @@ void action_remove_highlight(GSimpleAction *action, GVariant *parameter, gpointe
 	struct lit *litos = (struct lit*)userData;
 
 	if (litos->search_context != NULL)
+	{
+		gtk_source_search_context_set_highlight
+			(litos->search_context,
+			FALSE);
+
 		freeSearchContext(litos);
+	}
 
 	if (litos->search_context2->len != 0)
 	{
@@ -152,7 +156,7 @@ void set_acels (struct lit *litos)
 
 	const GActionEntry app_entries[] = {
 		{"new", action_new_tab, NULL, NULL, NULL, {0,0,0}},
-		{"esc", action_remove_highlight, NULL, NULL, NULL, {0,0,0}},
+		{"esc", EscButtonPressed, NULL, NULL, NULL, {0,0,0}},
 		{"open", action_open_dialog, NULL, NULL, NULL, {0,0,0}},
 		{"save", action_save_dialog, NULL, NULL, NULL, {0,0,0}},
 		{"save_as", action_save_as_dialog, NULL, NULL, NULL, {0,0,0}},

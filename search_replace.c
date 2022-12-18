@@ -15,7 +15,9 @@ void searchString(struct lit *litos, const char *stringToSearch)
 {
 	GtkSourceSearchSettings *settings = gtk_source_search_settings_new ();
 
-	GtkSourceBuffer *buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
+	GtkSourceBuffer *source_buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
+
+	GtkTextBuffer *buffer = GTK_TEXT_BUFFER(source_buffer);
 
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button_check_case)))
 		gtk_source_search_settings_set_case_sensitive (settings, TRUE);
@@ -28,14 +30,13 @@ void searchString(struct lit *litos, const char *stringToSearch)
 	if (litos->search_context != NULL)
 		freeSearchContext(litos);
 
-	else
-		litos->search_context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(get_current_buffer(litos)), settings);
+	litos->search_context = gtk_source_search_context_new(source_buffer, settings);
 
 	/* Count occurences */
 
 	GtkTextIter iter, start, end;
 
-	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &iter);
+	gtk_text_buffer_get_start_iter (buffer, &iter);
 
 	gtk_source_search_context_forward (litos->search_context, &iter, &start, &end, NULL);
 
@@ -106,9 +107,11 @@ void searchWord (GtkButton *button, gpointer userData)
 	if (stringToSearch == NULL || *stringToSearch == '\0')
 		return;
 
-	searchString(litos, stringToSearch);
+    /* Highlight the replaced string */
 
-	highlightWord(litos);
+	searchString(litos, stringToSearch);	/* 1st set the search_context*/
+
+	highlightWord(litos);					/* then highlight */
 }
 
 void replaceButtonClicked (GtkButton *button, gpointer userData)
@@ -135,12 +138,12 @@ void replaceButtonClicked (GtkButton *button, gpointer userData)
 
     /* Highlight the replaced string */
 
-	searchString(litos, replaceString);  /* 1st set the search_context then highlight*/
+	searchString(litos, replaceString);  /* 1st set the search_context*/
 
-	highlightWord(litos);
+	highlightWord(litos);				/* then highlight*/
 }
 
-/* Called when Ctrl+B, Ctrl-i, etc is toggled */
+/* Called when Ctrl+B, Ctrl+i, etc is toggled */
 void applyTags (struct lit *litos, const char *tag)
 {
 	char *string = NULL;
@@ -184,9 +187,13 @@ void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData
 
 	struct lit *litos = (struct lit*)userData;
 
-	if(litos->search_context != NULL)
+	if (litos->search_context != NULL)
 	{
-		g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), userData);
+		gtk_source_search_context_set_highlight
+		(litos->search_context,
+		FALSE);
 		freeSearchContext(litos);
 	}
+
+	g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), userData);
 }
