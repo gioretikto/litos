@@ -17,8 +17,6 @@ void searchString(struct lit *litos, const char *stringToSearch)
 
 	GtkSourceBuffer *source_buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
 
-	GtkTextBuffer *buffer = GTK_TEXT_BUFFER(source_buffer);
-
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button_check_case)))
 		gtk_source_search_settings_set_case_sensitive (settings, TRUE);
 
@@ -30,13 +28,13 @@ void searchString(struct lit *litos, const char *stringToSearch)
 	if (litos->search_context != NULL)
 		freeSearchContext(litos);
 
-	litos->search_context = gtk_source_search_context_new(source_buffer, settings);
+	litos->search_context = gtk_source_search_context_new((source_buffer), settings);
 
 	/* Count occurences */
 
 	GtkTextIter iter, start, end;
 
-	gtk_text_buffer_get_start_iter (buffer, &iter);
+	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(source_buffer), &iter);
 
 	gtk_source_search_context_forward (litos->search_context, &iter, &start, &end, NULL);
 
