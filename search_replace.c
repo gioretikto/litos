@@ -186,12 +186,7 @@ void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData
 	struct lit *litos = (struct lit*)userData;
 
 	if (litos->search_context != NULL)
-	{
-		gtk_source_search_context_set_highlight
-		(litos->search_context,
-		FALSE);
 		freeSearchContext(litos);
-	}
 
 	g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), userData);
 }

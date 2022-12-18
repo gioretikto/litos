@@ -14,6 +14,14 @@ GtkTextBuffer* get_current_buffer(struct lit *litos);
 
 void freeSearchContext(struct lit *litos)
 {
+	if(gtk_source_search_context_get_highlight(litos->search_context))
+	{
+		printf("TRUE\n");
+		gtk_source_search_context_set_highlight
+				(litos->search_context,
+				FALSE);
+	}
+
 	g_object_unref(litos->search_context);
 
 	litos->search_context = NULL;
@@ -29,13 +37,7 @@ void EscButtonPressed(GSimpleAction *action, GVariant *parameter, gpointer userD
 	struct lit *litos = (struct lit*)userData;
 
 	if (litos->search_context != NULL)
-	{
-		gtk_source_search_context_set_highlight
-			(litos->search_context,
-			FALSE);
-
 		freeSearchContext(litos);
-	}
 
 	if (litos->search_context2->len != 0)
 	{
