@@ -179,23 +179,25 @@ void insertChar (struct lit *litos, const char *insertChar)
 	gtk_text_buffer_insert_at_cursor (buffer, insertChar, (gint)strlen(insertChar));
 }
 
-void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData)	/*Function called when the file gets modified to remove seach highlights */
+void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer search_context)	/*Function called when the file gets modified to remove seach highlights */
 {
 	(void)pspec;
 
-	if(userData != NULL)
+	if(search_context != NULL)
 	{
-		if(gtk_source_search_context_get_highlight(userData))
+		if(gtk_source_search_context_get_highlight(search_context))
 		{
 			gtk_source_search_context_set_highlight
-				(userData,
+				(search_context,
 				FALSE);
 		}
 
-		g_object_unref(userData);
+		printf("ptr = %p\n", (void *)search_context);
 
-		userData = NULL;
+		g_object_unref(search_context);
+
+		search_context = NULL;
 	}
 
-	g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), userData);
+	g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), search_context);
 }
