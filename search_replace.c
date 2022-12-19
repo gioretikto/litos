@@ -7,8 +7,6 @@ void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData
 
 extern GtkWidget *search_entry, *replace_entry, *button_check_case;
 
-void freeSearchContext(struct lit *litos);
-
 extern GtkWidget *lbl_number_occurences;
 
 void searchString(struct lit *litos, const char *stringToSearch)
@@ -26,9 +24,9 @@ void searchString(struct lit *litos, const char *stringToSearch)
 	gtk_source_search_settings_set_search_text (settings, stringToSearch);
 
 	if (litos->search_context != NULL)
-		freeSearchContext(litos);
+		clearSearchHighlight(G_OBJECT(source_buffer), NULL, litos->search_context);
 
-	litos->search_context = gtk_source_search_context_new((source_buffer), settings);
+	litos->search_context = gtk_source_search_context_new(source_buffer, settings);
 
 	/* Count occurences */
 
@@ -54,15 +52,17 @@ void searchString(struct lit *litos, const char *stringToSearch)
 
 void highlightWord(struct lit *litos)
 {
-	GtkSourceBuffer *buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
+	GtkTextBuffer *buffer = get_current_buffer(litos);
+
+	GtkSourceBuffer *source_buffer = GTK_SOURCE_BUFFER(buffer);
 
 	GtkTextIter start_sel, end_sel;
 
-	gtk_text_buffer_get_selection_bounds(GTK_TEXT_BUFFER(buffer), &start_sel, &end_sel);
+	gtk_text_buffer_get_selection_bounds(buffer, &start_sel, &end_sel);
 
 	GtkTextIter current_loc;
 
-	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &current_loc);
+	gtk_text_buffer_get_start_iter (buffer, &current_loc);
 
 	gtk_source_search_context_forward (litos->search_context, &current_loc, &start_sel, &end_sel, NULL);
 
@@ -73,7 +73,7 @@ void highlightWord(struct lit *litos)
 			0.0,
 			0.0);
 
-	g_signal_connect (buffer, "notify::text", G_CALLBACK (clearSearchHighlight), litos); /* when file gets modified, remove search highlights*/
+	g_signal_connect (source_buffer, "notify::text", G_CALLBACK (clearSearchHighlight), litos->search_context); /* when file gets modified, remove search highlights*/
 }
 
 /* Called when Ctrl+F or search button are toggled */
@@ -132,13 +132,13 @@ void replaceButtonClicked (GtkButton *button, gpointer userData)
 			-1,
 			NULL);
 
-	gtk_entry_set_text(GTK_ENTRY(replace_entry),"");
-
     /* Highlight the replaced string */
 
-	searchString(litos, replaceString);  /* 1st set the search_context*/
+	searchString(litos, replaceString);  /* 1st set the search_context */
 
-	highlightWord(litos);				/* then highlight*/
+	highlightWord(litos);				/* then highlight */
+
+	gtk_entry_set_text(GTK_ENTRY(replace_entry),"");
 }
 
 /* Called when Ctrl+B, Ctrl+i, etc is toggled */
@@ -155,9 +155,9 @@ void applyTags (struct lit *litos, const char *tag)
 	if (gtk_text_buffer_get_selection_bounds(buffer, &start_sel, &end_sel))
 	{
 		string = gtk_text_buffer_get_text (buffer,
-		                     &start_sel,
-		                      &end_sel,
-		                      FALSE);
+							&start_sel,
+							&end_sel,
+							FALSE);
 
 		snprintf(replaceString, sizeof(replaceString), "<%s>%s</%s>", tag, string, tag);
 		gtk_text_buffer_delete (buffer, &start_sel, &end_sel);
@@ -183,10 +183,19 @@ void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData
 {
 	(void)pspec;
 
-	struct lit *litos = (struct lit*)userData;
+	if(userData != NULL)
+	{
+		if(gtk_source_search_context_get_highlight(userData))
+		{
+			gtk_source_search_context_set_highlight
+				(userData,
+				FALSE);
+		}
 
-	if (litos->search_context != NULL)
-		freeSearchContext(litos);
+		g_object_unref(userData);
+
+		userData = NULL;
+	}
 
 	g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), userData);
 }

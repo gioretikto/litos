@@ -12,20 +12,7 @@ void on_save_as_response(GFile *file, struct lit *litos);
 gboolean on_delete_event (GtkWidget *widget, GdkEvent  *event, gpointer userData);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 
-void freeSearchContext(struct lit *litos)
-{
-	if(gtk_source_search_context_get_highlight(litos->search_context))
-	{
-		printf("TRUE\n");
-		gtk_source_search_context_set_highlight
-				(litos->search_context,
-				FALSE);
-	}
-
-	g_object_unref(litos->search_context);
-
-	litos->search_context = NULL;
-}
+void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
 
 void EscButtonPressed(GSimpleAction *action, GVariant *parameter, gpointer userData)		/* Remove highlights: Called when ESC is pressed */
 {
@@ -37,7 +24,10 @@ void EscButtonPressed(GSimpleAction *action, GVariant *parameter, gpointer userD
 	struct lit *litos = (struct lit*)userData;
 
 	if (litos->search_context != NULL)
-		freeSearchContext(litos);
+	{
+		GtkSourceBuffer *source_buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
+		clearSearchHighlight(G_OBJECT(source_buffer), NULL, litos->search_context);
+	}
 
 	if (litos->search_context2->len != 0)
 	{
