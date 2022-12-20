@@ -27,10 +27,6 @@ void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData
 		}
 
 		printf("ptr = %p\n", (void *)litos->search_context);
-
-		g_object_unref(litos->search_context);
-
-		litos->search_context = NULL;
 	}
 
 	g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), litos->search_context);
@@ -45,9 +41,15 @@ void searchString(struct lit *litos, const char *stringToSearch)
 
 	if (litos->search_context != NULL)			/* Before making a new search clear the previous search context */
 	{
-		clearSearchHighlight(G_OBJECT(highlightSearchBuffer), NULL, litos);
+		if (gtk_source_search_context_get_highlight(litos->search_context))
+			clearSearchHighlight(G_OBJECT(highlightSearchBuffer), NULL, litos);
+
 		highlightSearchBuffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
+		g_object_unref(litos->search_context);
+		litos->search_context = NULL;
 	}
+
+	highlightSearchBuffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
 
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button_check_case)))
 		gtk_source_search_settings_set_case_sensitive (settings, TRUE);
@@ -119,11 +121,13 @@ void replaceButtonClicked (GtkButton *button, gpointer userData)
 
 	gtk_entry_set_text(GTK_ENTRY(replace_entry),"");
 
+	countOccurences(litos->search_context);
+
     /* Highlight the replaced string */
 
-	//searchString(litos, replaceString);  /* 1st set the search_context */
+	searchString(litos, replaceString);  /* 1st set the search_context */
 
-	//highlightWord(litos);				/* then highlight */
+	highlightWord(litos);				/* then highlight */
 }
 
 void countOccurences(gpointer search_context) /* Count occurences */

@@ -26,9 +26,7 @@ void EscButtonPressed(GSimpleAction *action, GVariant *parameter, gpointer userD
 	struct lit *litos = (struct lit*)userData;
 
 	if (litos->search_context != NULL)
-	{
 		clearSearchHighlight(G_OBJECT(highlightSearchBuffer), NULL, litos);
-	}
 
 	if (litos->search_context2->len != 0)
 	{
