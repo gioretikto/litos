@@ -11,25 +11,20 @@ extern GtkSourceBuffer *highlightSearchBuffer;
 void countOccurences(gpointer search_context);
 void highlightWord(struct lit *litos);
 
-void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData)	/*Function called when the file gets modified to remove seach highlights */
+void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer search_context)	/*Function called when the file gets modified to remove seach highlights */
 {
 	(void)pspec;
 
-	struct lit *litos = (struct lit*)userData;
-
-	if (litos->search_context != NULL)
+	if (gtk_source_search_context_get_highlight(search_context))
 	{
-		if(gtk_source_search_context_get_highlight(litos->search_context))
-		{
-			gtk_source_search_context_set_highlight
-				(litos->search_context,
-				FALSE);
-		}
+		gtk_source_search_context_set_highlight
+			(search_context,
+			FALSE);
 
-		printf("ptr = %p\n", (void *)litos->search_context);
+		printf("ptr = %p\n", (void *)search_context);
 	}
-
-	g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), litos);
+	
+	g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), search_context);
 }
 
 void searchString(struct lit *litos, const char *stringToSearch)
@@ -39,7 +34,7 @@ void searchString(struct lit *litos, const char *stringToSearch)
 	if (litos->search_context != NULL)			/* Before making a new search clear the previous search context */
 	{
 		if (gtk_source_search_context_get_highlight(litos->search_context))
-			clearSearchHighlight(G_OBJECT(highlightSearchBuffer), NULL, litos);
+			clearSearchHighlight(G_OBJECT(highlightSearchBuffer), NULL, litos->search_context);
 
 		g_object_unref(litos->search_context);
 		litos->search_context = NULL;
@@ -117,6 +112,8 @@ void replaceButtonClicked (GtkButton *button, gpointer userData)
 			-1,
 			NULL);
 
+	highlightWord(litos);
+
 	gtk_entry_set_text(GTK_ENTRY(replace_entry),"");
 
 	char str[80];
@@ -129,10 +126,6 @@ void replaceButtonClicked (GtkButton *button, gpointer userData)
 	);
 
 	g_print("%d replacement\n", count_replaced);
-
-	searchString(litos, replaceString);
-
-	highlightWord(litos);				/* then highlight */
 }
 
 void countOccurences(gpointer search_context) /* Count occurences */
@@ -178,7 +171,7 @@ void highlightWord(struct lit *litos)
 			0.0,
 			0.0);
 
-	g_signal_connect (highlightSearchBuffer, "notify::text", G_CALLBACK (clearSearchHighlight), litos); /* when file gets modified, remove search highlights*/
+	g_signal_connect (highlightSearchBuffer, "notify::text", G_CALLBACK (clearSearchHighlight), litos->search_context); /* when file gets modified, remove search highlights*/
 }
 
 /* Called when Ctrl+B, Ctrl+i, etc is toggled */
