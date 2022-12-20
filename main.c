@@ -4,6 +4,8 @@
 extern void activate_cb (GtkApplication* app, gpointer user_data);
 void open_file (GFile *file, gpointer userData, gboolean template);
 
+GtkSourceBuffer *highlightSearchBuffer;
+
 static void
 app_open_cb (GApplication	*app,
 		GFile	**files,
@@ -33,6 +35,7 @@ int main (int    argc,
 	litos.window = NULL;
 
 	GtkApplication* app;
+	highlightSearchBuffer = NULL;
 
 	int i;
 

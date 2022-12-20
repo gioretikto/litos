@@ -389,7 +389,7 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 
 	gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);
 
-	g_signal_connect (litos->buffer, "notify::text", G_CALLBACK (monitor_change), litos);
+	g_signal_connect (litos->source_buffer, "notify::text", G_CALLBACK (monitor_change), litos);
 }
 
 void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)	/* Function called when the file gets modified */

@@ -14,6 +14,8 @@ GtkTextBuffer* get_current_buffer(struct lit *litos);
 
 void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
 
+extern GtkSourceBuffer *highlightSearchBuffer;
+
 void EscButtonPressed(GSimpleAction *action, GVariant *parameter, gpointer userData)		/* Remove highlights: Called when ESC is pressed */
 {
 	(void)action;
@@ -25,8 +27,7 @@ void EscButtonPressed(GSimpleAction *action, GVariant *parameter, gpointer userD
 
 	if (litos->search_context != NULL)
 	{
-		GtkSourceBuffer *source_buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
-		clearSearchHighlight(G_OBJECT(source_buffer), NULL, litos->search_context);
+		clearSearchHighlight(G_OBJECT(highlightSearchBuffer), NULL, litos);
 	}
 
 	if (litos->search_context2->len != 0)

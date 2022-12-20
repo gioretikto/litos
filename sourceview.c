@@ -15,11 +15,11 @@ GtkWidget* MyNewSourceview(struct lit *litos)
 {
 	GtkWidget *source_view;
 
-	litos->buffer = gtk_source_buffer_new (NULL);
+	litos->source_buffer = gtk_source_buffer_new (NULL);
 
-	source_view = gtk_source_view_new_with_buffer (litos->buffer);
+	source_view = gtk_source_view_new_with_buffer (litos->source_buffer);
 
-	gtk_source_buffer_set_style_scheme (litos->buffer,
+	gtk_source_buffer_set_style_scheme (litos->source_buffer,
 	gtk_source_style_scheme_manager_get_scheme (
 	gtk_source_style_scheme_manager_get_default (), "solarized-dark"));
 
@@ -53,8 +53,8 @@ void highlight_buffer(struct lit *litos) /* Apply different font styles dependin
 	else
 		lang = gtk_source_language_manager_guess_language(lm, litos->filename[litos->page], NULL);
 		
-	gtk_source_buffer_set_language (litos->buffer, lang);
+	gtk_source_buffer_set_language (litos->source_buffer, lang);
 
 	if (lang != NULL)
-		gtk_source_buffer_set_highlight_syntax (litos->buffer, TRUE);
+		gtk_source_buffer_set_highlight_syntax (litos->source_buffer, TRUE);
 }

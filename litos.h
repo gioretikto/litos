@@ -10,7 +10,7 @@ struct lit{
 	GtkWidget *window;
 	GtkNotebook *notebook;
 	GtkWidget *headbar;
-	GtkSourceBuffer *buffer;				
+	GtkSourceBuffer *source_buffer;
 	GtkSourceSearchContext *search_context; /* to highlight words searched */
 	GPtrArray *search_context2;				/* to highlight mispelled words through aspell */
 	GtkApplication *app;
