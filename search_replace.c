@@ -29,22 +29,18 @@ void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData
 		printf("ptr = %p\n", (void *)litos->search_context);
 	}
 
-	g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), litos->search_context);
+	g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), litos);
 }
 
 void searchString(struct lit *litos, const char *stringToSearch)
 {
 	GtkSourceSearchSettings *settings = gtk_source_search_settings_new ();
 
-	if (highlightSearchBuffer == NULL)
-		highlightSearchBuffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
-
 	if (litos->search_context != NULL)			/* Before making a new search clear the previous search context */
 	{
 		if (gtk_source_search_context_get_highlight(litos->search_context))
 			clearSearchHighlight(G_OBJECT(highlightSearchBuffer), NULL, litos);
 
-		highlightSearchBuffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
 		g_object_unref(litos->search_context);
 		litos->search_context = NULL;
 	}
@@ -106,6 +102,8 @@ void replaceButtonClicked (GtkButton *button, gpointer userData)
 
 	struct lit *litos = (struct lit*)userData;
 
+	guint count_replaced = 0;
+
 	const gchar *stringToSearch = gtk_entry_get_text(GTK_ENTRY(search_entry));
 	const gchar *replaceString = gtk_entry_get_text(GTK_ENTRY(replace_entry));
 
@@ -114,18 +112,25 @@ void replaceButtonClicked (GtkButton *button, gpointer userData)
 
 	searchString(litos, stringToSearch);
 
-	gtk_source_search_context_replace_all (litos->search_context,
+	count_replaced = gtk_source_search_context_replace_all (litos->search_context,
 			replaceString,
 			-1,
 			NULL);
 
 	gtk_entry_set_text(GTK_ENTRY(replace_entry),"");
 
-	countOccurences(litos->search_context);
+	char str[80];
 
-    /* Highlight the replaced string */
+	sprintf(str, "%d replacement", count_replaced);
 
-	searchString(litos, replaceString);  /* 1st set the search_context */
+	gtk_label_set_label (
+		GTK_LABEL(lbl_number_occurences),
+		str
+	);
+
+	g_print("%d replacement\n", count_replaced);
+
+	searchString(litos, replaceString);
 
 	highlightWord(litos);				/* then highlight */
 }
