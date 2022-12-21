@@ -4,7 +4,7 @@
 GtkWidget* MyNewSourceview(struct lit *litos);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData);
-gboolean saveornot_before_close (struct lit *litos);
+gboolean saveornot_before_close (gint page, struct lit *litos);
 void highlight_buffer(struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
@@ -39,16 +39,17 @@ static void changeLblColor(struct lit *litos)
 	gtk_notebook_set_tab_label (litos->notebook, gtk_notebook_get_nth_page(litos->notebook, litos->page), label);
 }
 
-void freePage(struct lit *litos)
+
+void freePage(const int page, struct lit *litos)
 {
-	g_free(litos->filename[litos->page]);
+	g_free(litos->filename[page]);
 
 	int total_pages = gtk_notebook_get_n_pages(litos->notebook);
 
 				/* If page 2 is closed move 3->2, 4->3, until last page */
 	int i;
 
-	for (i = litos->page; i < total_pages; i++)
+	for (i = page; i < total_pages; i++)
 	{
 		litos->filename[i] = litos->filename[i+1];
 
@@ -102,7 +103,7 @@ gboolean close_tab (GtkButton *button, gpointer userData)
 	struct lit *litos = (struct lit*)userData;
 
 	if (litos->fileSaved[litos->page] == FALSE)
-		 return saveornot_before_close(litos);
+		 return saveornot_before_close(litos->page, litos);
 
 	else
 	{
@@ -111,9 +112,7 @@ gboolean close_tab (GtkButton *button, gpointer userData)
 
 		else
 		{
-			guint page = (guint)gtk_notebook_get_current_page (litos->notebook) -1;
-			g_ptr_array_remove_index(litos->source_view, page);
-			freePage(litos);
+			freePage((int)litos->page, litos);
 			gtk_notebook_remove_page(litos->notebook, litos->page);
 		}
 	}
@@ -354,8 +353,6 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 
 	GtkWidget *source_view = MyNewSourceview(litos);
 
-	g_ptr_array_add (litos->source_view, source_view);
-
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
 	GTK_POLICY_AUTOMATIC,
 	GTK_POLICY_AUTOMATIC);
@@ -392,7 +389,7 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 
 	gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);
 
-	g_signal_connect (gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view)), "notify::text", G_CALLBACK (monitor_change), litos);
+	g_signal_connect (litos->source_buffer, "notify::text", G_CALLBACK (monitor_change), litos);
 }
 
 void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)	/* Function called when the file gets modified */

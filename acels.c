@@ -4,6 +4,7 @@ void menu_newtab (GtkWidget *widget, gpointer userData);
 void menu_save (gpointer userData);
 gboolean close_tab (GtkButton *button, gpointer userData);
 void applyTags(struct lit *litos, char *what_tag);
+unsigned int saveornot_before_close(gint page, struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
 void searchWord (GtkButton *button, gpointer userData);
 void insertChar (struct lit *litos, const char *insertChar);

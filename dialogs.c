@@ -6,16 +6,16 @@ void save_as_dialog(struct lit *litos);
 void save_as_file(GtkFileChooser *chooser, struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 void menu_newtab (GtkWidget *widget, gpointer userData);
-void freePage(struct lit *litos);
+void freePage(int page, struct lit *litos);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 void clear_page_buffer(struct lit *litos);
 
-gboolean saveornot_before_close(struct lit *litos)
+gboolean saveornot_before_close(const gint page, struct lit *litos)
 {
 	GtkWidget *message_dialog;
 
 	message_dialog = gtk_message_dialog_new(GTK_WINDOW(litos->window), GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING,
-                      GTK_BUTTONS_NONE, "Save changes to document %s before closing?", litos->filename[litos->page]);
+                      GTK_BUTTONS_NONE, "Save changes to document %s before closing?", litos->filename[page]);
 
 	gtk_dialog_add_buttons (GTK_DIALOG(message_dialog), "Close without Saving", GTK_RESPONSE_REJECT,
                                                       "Cancel", GTK_RESPONSE_CANCEL, "Save", GTK_RESPONSE_ACCEPT,  NULL);
@@ -44,8 +44,8 @@ gboolean saveornot_before_close(struct lit *litos)
 
 			else
 			{
-				freePage(litos);
-				gtk_notebook_remove_page(litos->notebook, litos->page);
+				freePage(page, litos);
+				gtk_notebook_remove_page(litos->notebook, page);
 			}
 
 			return FALSE;
