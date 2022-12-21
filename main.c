@@ -51,6 +51,7 @@ int main (int    argc,
 	litos.search_context = NULL;
 
 	litos.search_context2 = g_ptr_array_new_with_free_func(g_object_unref);
+	litos.source_view = g_ptr_array_new_with_free_func(g_object_unref);
 
 	app = gtk_application_new ("org.litos.gtk", G_APPLICATION_HANDLES_OPEN);
 

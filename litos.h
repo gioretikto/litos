@@ -3,7 +3,7 @@
 #include <glib.h>
 #include <gtksourceview/gtksource.h>
 
-#define VERSION "3.0"
+#define VERSION "3.1"
 #define MAX_TAB 20
 
 struct lit{
@@ -11,6 +11,7 @@ struct lit{
 	GtkNotebook *notebook;
 	GtkWidget *headbar;
 	GtkSourceBuffer *source_buffer;
+	GPtrArray *source_view;
 	GtkSourceSearchContext *search_context; /* to highlight words searched */
 	GPtrArray *search_context2;				/* to highlight mispelled words through aspell */
 	GtkApplication *app;

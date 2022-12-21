@@ -7,7 +7,7 @@ void menu_newtab (GtkWidget *widget, gpointer userData);
 void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
 void createSearchPopover(GtkMenuButton *search_menu_button, struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
-void freePage(int page, struct lit *litos);
+void freePage(struct lit *litos);
 
 void spellCheck(struct lit *litos);
 
@@ -34,10 +34,14 @@ gboolean on_delete_event (GtkWidget *widget,
 
 		else
 		{
-			freePage(i, litos);
+			litos->page = i;
+			freePage(litos);
 			gtk_notebook_remove_page(litos->notebook, i);
 		}			
  	}
+
+	if (litos->source_view->len != 0)
+		g_ptr_array_remove_range(litos->source_view, 0, litos->source_view->len);
 
 	return FALSE;
 }
@@ -58,10 +62,10 @@ void swap(struct lit *litos, const int a, const int b)
 }
 
 static void page_reordered_cb (
-  GtkNotebook* self,
-  GtkWidget* child,
-  guint page_num,
-  gpointer userData
+	GtkNotebook* self,
+	GtkWidget* child,
+	guint page_num,
+	gpointer userData
 )
 {
 	(void) self;
