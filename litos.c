@@ -1,7 +1,7 @@
 #include "litos.h"
 #include <string.h>
 
-GtkWidget* MyNewSourceview(struct lit *litos);
+GtkWidget* MyNewSourceview();
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData);
 gboolean saveornot_before_close (gint page, struct lit *litos);
@@ -40,16 +40,16 @@ static void changeLblColor(struct lit *litos)
 }
 
 
-void freePage(const int page, struct lit *litos)
+void freePage(struct lit *litos)
 {
-	g_free(litos->filename[page]);
+	g_free(litos->filename[litos->page]);
 
 	int total_pages = gtk_notebook_get_n_pages(litos->notebook);
 
 				/* If page 2 is closed move 3->2, 4->3, until last page */
 	int i;
 
-	for (i = page; i < total_pages; i++)
+	for (i = litos->page; i < total_pages; i++)
 	{
 		litos->filename[i] = litos->filename[i+1];
 
@@ -112,7 +112,7 @@ gboolean close_tab (GtkButton *button, gpointer userData)
 
 		else
 		{
-			freePage((int)litos->page, litos);
+			freePage(litos);
 			gtk_notebook_remove_page(litos->notebook, litos->page);
 		}
 	}
@@ -351,7 +351,7 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 
 	GtkWidget *tabbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
 
-	GtkWidget *source_view = MyNewSourceview(litos);
+	GtkWidget *source_view = MyNewSourceview();
 
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
 	GTK_POLICY_AUTOMATIC,
@@ -389,7 +389,7 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 
 	gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);
 
-	g_signal_connect (litos->source_buffer, "notify::text", G_CALLBACK (monitor_change), litos);
+	g_signal_connect (gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view)), "notify::text", G_CALLBACK (monitor_change), litos);
 }
 
 void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)	/* Function called when the file gets modified */

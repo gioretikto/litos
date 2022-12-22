@@ -11,15 +11,15 @@ GtkSourceView* currentTabSourceView(struct lit *litos)
 	return GTK_SOURCE_VIEW(gtk_bin_get_child(GTK_BIN(g_list_nth_data(children, 0))));
 }
 
-GtkWidget* MyNewSourceview(struct lit *litos)
+GtkWidget* MyNewSourceview()
 {
 	GtkWidget *source_view;
 
-	litos->source_buffer = gtk_source_buffer_new (NULL);
+	GtkSourceBuffer *source_buffer = gtk_source_buffer_new (NULL);
 
-	source_view = gtk_source_view_new_with_buffer (litos->source_buffer);
+	source_view = gtk_source_view_new_with_buffer (source_buffer);
 
-	gtk_source_buffer_set_style_scheme (litos->source_buffer,
+	gtk_source_buffer_set_style_scheme (source_buffer,
 	gtk_source_style_scheme_manager_get_scheme (
 	gtk_source_style_scheme_manager_get_default (), "solarized-dark"));
 
@@ -48,13 +48,15 @@ void highlight_buffer(struct lit *litos) /* Apply different font styles dependin
 
 	GtkSourceLanguage *lang;
 
+	GtkSourceBuffer *source_buffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
+
 	if (litos->filename[litos->page] == NULL)
 		lang = gtk_source_language_manager_get_language(lm,"html");
 	else
 		lang = gtk_source_language_manager_guess_language(lm, litos->filename[litos->page], NULL);
 		
-	gtk_source_buffer_set_language (litos->source_buffer, lang);
+	gtk_source_buffer_set_language (source_buffer, lang);
 
 	if (lang != NULL)
-		gtk_source_buffer_set_highlight_syntax (litos->source_buffer, TRUE);
+		gtk_source_buffer_set_highlight_syntax (source_buffer, TRUE);
 }
