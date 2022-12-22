@@ -100,12 +100,12 @@ void action_close_tab(GSimpleAction *action, GVariant *parameter, void* userData
 
 void action_open_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; open_dialog(NULL, userData);}
 
-void action_quit_activated(GSimpleAction *action, GVariant *parameter, void* userData)
+void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
 	(void)parameter;
 
-	on_delete_event(NULL, NULL, userData);
+	gtk_window_close(GTK_WINDOW(((struct lit*)userData)->window));
 }
 
 void action_save_as_dialog (GSimpleAction *action, GVariant *parameter, void* userData)
