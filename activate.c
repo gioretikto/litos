@@ -7,7 +7,7 @@ void menu_newtab (GtkWidget *widget, gpointer userData);
 void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
 void createSearchPopover(GtkMenuButton *search_menu_button, struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
-void freePage(struct lit *litos);
+void freePage(int page, struct lit *litos);
 
 void spellCheck(struct lit *litos);
 
@@ -34,8 +34,7 @@ gboolean on_delete_event (GtkWidget *widget,
 
 		else
 		{
-			litos->page = i;
-			freePage(litos);
+			freePage(i, litos);
 			gtk_notebook_remove_page(litos->notebook, i);
 		}			
  	}

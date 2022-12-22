@@ -40,16 +40,16 @@ static void changeLblColor(struct lit *litos)
 }
 
 
-void freePage(struct lit *litos)
+void freePage(const int page, struct lit *litos)
 {
-	g_free(litos->filename[litos->page]);
+	g_free(litos->filename[page]);
 
 	int total_pages = gtk_notebook_get_n_pages(litos->notebook);
 
 				/* If page 2 is closed move 3->2, 4->3, until last page */
 	int i;
 
-	for (i = litos->page; i < total_pages; i++)
+	for (i = page; i < total_pages; i++)
 	{
 		litos->filename[i] = litos->filename[i+1];
 
@@ -112,7 +112,7 @@ gboolean close_tab (GtkButton *button, gpointer userData)
 
 		else
 		{
-			freePage(litos);
+			freePage((int)litos->page, litos);
 			gtk_notebook_remove_page(litos->notebook, litos->page);
 		}
 	}
