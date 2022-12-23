@@ -94,8 +94,6 @@ gboolean on_delete_event (GtkWidget *widget,
 		}			
  	}
 
-	g_object_unref (provider);
-
 	return FALSE;
 }
 
@@ -146,10 +144,17 @@ void activate_cb (GtkApplication* app, gpointer userData)
 	set_acels(litos);
 
 	provider = gtk_css_provider_new ();
+
 	gtk_css_provider_load_from_data (provider,
 							"textview { font-family: Monospace; font-size: 11pt;}",
 							-1,
 							NULL);
+
+	gtk_style_context_add_provider_for_screen (gdk_screen_get_default (),
+                                              GTK_STYLE_PROVIDER (provider),
+                                              GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+	g_object_unref (provider);
 
 	menu_newtab(NULL, litos);
 

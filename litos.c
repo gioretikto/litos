@@ -361,11 +361,6 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 
 	gtk_widget_set_hexpand (scrolled_window, TRUE);
 
-
-	gtk_style_context_add_provider (gtk_widget_get_style_context (source_view),
-                                    GTK_STYLE_PROVIDER (provider),
-                                    GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
 	gtk_container_add(GTK_CONTAINER(scrolled_window), source_view);
 
 	gtk_container_add (GTK_CONTAINER(tabbox), scrolled_window);
