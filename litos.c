@@ -37,8 +37,8 @@ static void changeLblColor(struct lit *litos)
 	gtk_label_set_markup (GTK_LABEL(label), markup);
 
 	gtk_notebook_set_tab_label (litos->notebook, gtk_notebook_get_nth_page(litos->notebook, litos->page), label);
-}
 
+}
 
 void freePage(const int page, struct lit *litos)
 {
@@ -180,7 +180,7 @@ static void save_file (GObject *source_object, GAsyncResult *result, gpointer us
 	gtk_text_buffer_get_end_iter (buffer, &end);
 
 	/* Retrieve all the visible text between the two bounds */
-	char *text = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
+	gchar *text = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
 
 	/* If there is nothing to save, return early */
 	if (text == NULL || *text == '\0')
@@ -341,6 +341,8 @@ static void open_file_complete (GObject *source_object, GAsyncResult *res, gpoin
 	);
 }
 
+extern GtkCssProvider *provider;
+
 void menu_newtab (GtkWidget *widget, gpointer userData)
 {
 	(void)widget;
@@ -359,15 +361,10 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 
 	gtk_widget_set_hexpand (scrolled_window, TRUE);
 
-	GtkCssProvider *provider = gtk_css_provider_new ();
-	gtk_css_provider_load_from_data (provider,
-							"textview { font-family: Monospace; font-size: 11pt;}",
-							-1,
-							NULL);
+
 	gtk_style_context_add_provider (gtk_widget_get_style_context (source_view),
                                     GTK_STYLE_PROVIDER (provider),
                                     GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-	g_object_unref (provider);
 
 	gtk_container_add(GTK_CONTAINER(scrolled_window), source_view);
 

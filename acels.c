@@ -105,7 +105,7 @@ void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer 
 	(void)action;
 	(void)parameter;
 
-	gtk_window_close(GTK_WINDOW(((struct lit*)userData)->window));
+	gtk_window_close(GTK_WINDOW(((struct lit*)userData)->window)); /* it will call on_delete_event(NULL, NULL, userData); */
 }
 
 void action_save_as_dialog (GSimpleAction *action, GVariant *parameter, void* userData)

@@ -11,37 +11,6 @@ void freePage(int page, struct lit *litos);
 
 void spellCheck(struct lit *litos);
 
-gboolean on_delete_event (GtkWidget *widget,
-         GdkEvent  *event,
-         gpointer   userData)
-{
-	(void)widget;
-	(void)event;
-
-	struct lit *litos = (struct lit*)userData;
-
-	const int last_page = gtk_notebook_get_n_pages(litos->notebook) - 1;
-
-	gint i;
-
-	for (i = last_page; i >= 0; i--)
-	{
- 		if (litos->fileSaved[i] == FALSE)
-		{
-			if (close_tab(NULL, litos))
-				return TRUE; /* Returning TRUE means we don't want the window to be destroyed*/
-		}
-
-		else
-		{
-			freePage(i, litos);
-			gtk_notebook_remove_page(litos->notebook, i);
-		}			
- 	}
-
-	return FALSE;
-}
-
 void swap(struct lit *litos, const int a, const int b)
 {
 	char *filename_tmp = litos->filename[a];
@@ -95,6 +64,41 @@ void switchPage_cb(GtkNotebook *notebook, gpointer page, const guint page_num, g
 	gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[page_num]);
 }
 
+GtkCssProvider *provider;
+
+gboolean on_delete_event (GtkWidget *widget,
+         GdkEvent  *event,
+         gpointer   userData)
+{
+	(void)widget;
+	(void)event;
+
+	struct lit *litos = (struct lit*)userData;
+
+	const int last_page = gtk_notebook_get_n_pages(litos->notebook) - 1;
+
+	gint i;
+
+	for (i = last_page; i >= 0; i--)
+	{
+ 		if (litos->fileSaved[i] == FALSE)
+		{
+			if (close_tab(NULL, litos))
+				return TRUE; /* Returning TRUE means we don't want the window to be destroyed*/
+		}
+
+		else
+		{
+			freePage(i, litos);
+			gtk_notebook_remove_page(litos->notebook, i);
+		}			
+ 	}
+
+	g_object_unref (provider);
+
+	return FALSE;
+}
+
 void activate_cb (GtkApplication* app, gpointer userData)
 {
 	struct lit *litos = (struct lit*)userData;
@@ -140,6 +144,12 @@ void activate_cb (GtkApplication* app, gpointer userData)
 	gtk_container_add(GTK_CONTAINER(litos->window), GTK_WIDGET(litos->notebook));
 
 	set_acels(litos);
+
+	provider = gtk_css_provider_new ();
+	gtk_css_provider_load_from_data (provider,
+							"textview { font-family: Monospace; font-size: 11pt;}",
+							-1,
+							NULL);
 
 	menu_newtab(NULL, litos);
 

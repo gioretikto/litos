@@ -126,6 +126,7 @@ void open_dialog (GtkWidget *widget, gpointer userData)
 		else
 			litos->filename[litos->page] = g_file_get_path(file);	
 
+		g_object_unref(file);
         open_file (file, litos);
     }
 
@@ -160,6 +161,8 @@ void openFromTemplate (GtkWidget *widget, gpointer userData)
 			menu_newtab(NULL, litos);
 
 		GFile *file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
+
+		g_object_unref(file);
 
 		litos->isTemplate = TRUE;
 
