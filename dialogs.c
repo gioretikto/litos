@@ -1,7 +1,7 @@
 #include "litos.h"
 
 void open_file (GFile *file, gpointer userData);
-void menu_save (GtkWidget *widget, gpointer userData);
+void menu_save (gpointer userData);
 void save_as_dialog(struct lit *litos);
 void save_as_file(GtkFileChooser *chooser, struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
@@ -33,7 +33,7 @@ gboolean saveornot_before_close(const gint page, struct lit *litos)
 
 		case GTK_RESPONSE_ACCEPT:
 
-			menu_save(NULL, litos);
+			menu_save(litos);
 
 			return TRUE;
 

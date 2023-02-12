@@ -103,7 +103,7 @@ gboolean close_tab (GtkButton *button, gpointer userData)
 	struct lit *litos = (struct lit*)userData;
 
 	if (litos->fileSaved[litos->page] == FALSE)
-		 return saveornot_before_close(litos->page, litos);
+		return saveornot_before_close(litos->page, litos);
 
 	else
 	{
