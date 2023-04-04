@@ -230,7 +230,7 @@ static void save_file_complete (GObject *source_object, GAsyncResult *result, gp
 
 	else
 	{
-		if(litos->fileSaved[litos->page] == FALSE)
+		if (litos->fileSaved[litos->page] == FALSE)
 		{
 			changeLblColor(litos);
 			litos->fileSaved[litos->page] = TRUE;
@@ -351,39 +351,43 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 
 	struct lit *litos = (struct lit*)userData;
 
-	GtkWidget *scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+	if(gtk_notebook_get_n_pages(litos->notebook) < MAX_TAB)
+	{
+		GtkWidget *scrolled_window = gtk_scrolled_window_new (NULL, NULL);
 
-	GtkWidget *tabbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
+		GtkWidget *tabbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
 
-	GtkWidget *source_view = MyNewSourceview();
+		GtkWidget *source_view = MyNewSourceview();
 
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
-	GTK_POLICY_AUTOMATIC,
-	GTK_POLICY_AUTOMATIC);
+		gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
+		GTK_POLICY_AUTOMATIC,
+		GTK_POLICY_AUTOMATIC);
 
-	gtk_widget_set_hexpand (scrolled_window, TRUE);
+		gtk_widget_set_hexpand (scrolled_window, TRUE);
 
-	gtk_container_add(GTK_CONTAINER(scrolled_window), source_view);
+		gtk_container_add(GTK_CONTAINER(scrolled_window), source_view);
 
-	gtk_container_add (GTK_CONTAINER(tabbox), scrolled_window);
+		gtk_container_add (GTK_CONTAINER(tabbox), scrolled_window);
 
-	gtk_widget_show_all(GTK_WIDGET(tabbox));
+		gtk_widget_show_all(GTK_WIDGET(tabbox));
 
-	gtk_notebook_append_page_menu(
-		litos->notebook,
-		tabbox,
-		gtk_label_new("Untitled"),
-		gtk_label_new("Untitled")
-	);
+		gtk_notebook_append_page_menu(
+			litos->notebook,
+			tabbox,
+			gtk_label_new("Untitled"),
+			gtk_label_new("Untitled")
+		);
 
-	gtk_notebook_set_current_page(
-		litos->notebook,
-		gtk_notebook_get_n_pages(litos->notebook)-1
-	);
+		gtk_notebook_set_current_page(
+			litos->notebook,
+			gtk_notebook_get_n_pages(litos->notebook)-1
+		);
 
-	gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);
+		gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);
 
-	g_signal_connect (gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view)), "notify::text", G_CALLBACK (monitor_change), litos);
+		g_signal_connect (gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view)), "notify::text", G_CALLBACK (monitor_change), litos);
+
+	}
 }
 
 void monitor_change (GObject *gobject, GParamSpec *pspec, gpointer userData)	/* Function called when the file gets modified */

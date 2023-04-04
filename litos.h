@@ -3,8 +3,8 @@
 #include <glib.h>
 #include <gtksourceview/gtksource.h>
 
-#define VERSION "3.0"
-#define MAX_TAB 20
+#define VERSION "3.1"
+#define MAX_TAB 15
 
 struct lit{
 	GtkWidget *window;
@@ -16,5 +16,5 @@ struct lit{
 	_Bool fileSaved[MAX_TAB];
 	_Bool isTemplate;
 	char *filename[MAX_TAB];
-	int page;
+	int page;	/* holds current page */
 };
