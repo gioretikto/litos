@@ -230,9 +230,11 @@ static void save_file_complete (GObject *source_object, GAsyncResult *result, gp
 
 	else
 	{
-		changeLblColor(litos);
-
-		litos->fileSaved[litos->page] = TRUE;
+		if(litos->fileSaved[litos->page] == FALSE)
+		{
+			changeLblColor(litos);
+			litos->fileSaved[litos->page] = TRUE;
+		}
 
 		if (litos->filename[litos->page] == NULL)
 			litos->filename[litos->page] = g_file_get_path(file);

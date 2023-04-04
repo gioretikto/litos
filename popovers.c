@@ -84,7 +84,7 @@ void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *lito
 	g_signal_connect (new_tab_button, "clicked", G_CALLBACK (menu_newtab), litos);
 	g_signal_connect (open_button, "clicked", G_CALLBACK (open_dialog), litos);
 	g_signal_connect (new_from_template_button, "clicked", G_CALLBACK (openFromTemplate), litos);
-	g_signal_connect (save_as_button, "clicked", G_CALLBACK (action_save_as_dialog), litos);
+	gtk_actionable_set_action_name(GTK_ACTIONABLE(save_as_button), "app.save_as");
 	g_signal_connect (save_button, "clicked", G_CALLBACK (menu_save), litos);
 
 	gtk_widget_show_all (file_box);

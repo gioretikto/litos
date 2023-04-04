@@ -27,10 +27,8 @@ void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer search_c
 	g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), search_context);
 }
 
-void searchString(struct lit *litos, const char *stringToSearch)
+void clearSearchContext (struct lit *litos)
 {
-	GtkSourceSearchSettings *settings = gtk_source_search_settings_new ();
-
 	if (litos->search_context != NULL)			/* Before making a new search clear the previous search context */
 	{
 		if (gtk_source_search_context_get_highlight(litos->search_context))
@@ -39,6 +37,13 @@ void searchString(struct lit *litos, const char *stringToSearch)
 		g_object_unref(litos->search_context);
 		litos->search_context = NULL;
 	}
+}
+
+void searchString(struct lit *litos, const char *stringToSearch)
+{
+	GtkSourceSearchSettings *settings = gtk_source_search_settings_new ();
+
+	clearSearchContext(litos);	/* Before making a new search clear the previous search context */
 
 	highlightSearchBuffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
 
@@ -112,7 +117,19 @@ void replaceButtonClicked (GtkButton *button, gpointer userData)
 			-1,
 			NULL);
 
-	searchString(litos, replaceString);
+	/* Search and Highlight replaced string */
+
+	GtkSourceSearchSettings *settings = gtk_source_search_settings_new ();
+
+	clearSearchContext(litos);
+
+	highlightSearchBuffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
+
+	gtk_source_search_settings_set_case_sensitive (settings, TRUE);
+
+	gtk_source_search_settings_set_search_text (settings, replaceString);
+
+	litos->search_context = gtk_source_search_context_new(highlightSearchBuffer, settings);
 
 	highlightWord(litos);
 
