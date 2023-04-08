@@ -2,7 +2,6 @@
 
 GtkSourceView* currentTabSourceView(struct lit *litos)
 {
-
 	GList *children = gtk_container_get_children(GTK_CONTAINER(gtk_notebook_get_nth_page(
 		litos->notebook,
 		(gint)litos->page

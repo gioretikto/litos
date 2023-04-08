@@ -3,7 +3,6 @@
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void menu_save (gpointer userData);
 gboolean close_tab (GtkButton *button, gpointer userData);
-void applyTags(struct lit *litos, char *what_tag);
 unsigned int saveornot_before_close(gint page, struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
 void searchWord (GtkButton *button, gpointer userData);
@@ -15,6 +14,44 @@ GtkTextBuffer* get_current_buffer(struct lit *litos);
 void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer userData);
 
 extern GtkSourceBuffer *highlightSearchBuffer;
+
+/* Called when Ctrl+m, Ctrl+l is toggled: insert '−' character */
+void insertChar (struct lit *litos, const char *insertChar)
+{
+	GtkTextBuffer *buffer = get_current_buffer(litos);
+
+	gtk_text_buffer_insert_at_cursor (buffer, insertChar, (gint)strlen(insertChar));
+}
+
+/* Called when Ctrl+B, Ctrl+i, etc is toggled */
+void insertHtmlTags (struct lit *litos, const char *tag)
+{
+	char *string = NULL;
+
+	char replaceString[350] = { 0 };
+
+	GtkTextIter start_sel, end_sel;
+
+	GtkTextBuffer *buffer = get_current_buffer(litos);
+
+	if (gtk_text_buffer_get_selection_bounds(buffer, &start_sel, &end_sel))
+	{
+		string = gtk_text_buffer_get_text (buffer,
+							&start_sel,
+							&end_sel,
+							FALSE);
+
+		snprintf(replaceString, sizeof(replaceString), "<%s>%s</%s>", tag, string, tag);
+		gtk_text_buffer_delete (buffer, &start_sel, &end_sel);
+		gtk_text_buffer_insert (buffer, &start_sel, replaceString, (gint)strlen(replaceString));
+	}
+
+	else
+	{
+		snprintf(replaceString, sizeof(replaceString), "</%s>", tag);
+		gtk_text_buffer_insert_at_cursor (buffer, replaceString,(gint)strlen(replaceString));
+	}
+}
 
 void EscButtonPressed(GSimpleAction *action, GVariant *parameter, gpointer userData)		/* Remove highlights: Called when ESC is pressed */
 {
@@ -53,21 +90,21 @@ void action_apply_bold(GSimpleAction *action, GVariant *parameter, gpointer user
 {
 	(void)action;
 	(void)parameter;
-	applyTags(userData, "b");
+	insertHtmlTags(userData, "b");
 }
 
 void action_apply_heading(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
 	(void)parameter;
-	applyTags(userData, "h2");
+	insertHtmlTags(userData, "h2");
 }
 
 void action_apply_italic(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
 	(void)parameter;
-	applyTags(userData, "i");
+	insertHtmlTags(userData, "i");
 }
 
 void action_insert_br_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "<br>");}
@@ -76,14 +113,14 @@ void action_apply_sup_tag(GSimpleAction *action, GVariant *parameter, gpointer u
 {
 	(void)action;
 	(void)parameter;
-	applyTags(userData, "sup");
+	insertHtmlTags(userData, "sup");
 }
 
 void action_apply_sub_tag(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
 	(void)parameter;
-	applyTags(userData, "sub");
+	insertHtmlTags(userData, "sub");
 }
 
 void action_insert_endlist_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "</p></li>");}

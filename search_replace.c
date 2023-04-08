@@ -1,4 +1,5 @@
 #include "litos.h"
+#include <ctype.h>
 
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
@@ -23,7 +24,7 @@ void clearSearchHighlight(GObject *gobject, GParamSpec *pspec, gpointer search_c
 
 		printf("ptr = %p\n", (void *)search_context);
 	}
-	
+
 	g_signal_handlers_disconnect_by_func(gobject, G_CALLBACK(clearSearchHighlight), search_context);
 }
 
@@ -110,28 +111,31 @@ void replaceButtonClicked (GtkButton *button, gpointer userData)
 	if (stringToSearch == NULL || replaceString == NULL)
 		return;
 
-	searchString(litos, stringToSearch);
+	/* Search and Highlight replaced string */
 
 	count_replaced = gtk_source_search_context_replace_all (litos->search_context,
 			replaceString,
 			-1,
 			NULL);
 
-	/* Search and Highlight replaced string */
+	if (!isspace(replaceString[0])) /* Don't search and highlight strings with spaces */
+	{
+		searchString(litos, stringToSearch);
 
-	GtkSourceSearchSettings *settings = gtk_source_search_settings_new ();
+		GtkSourceSearchSettings *settings = gtk_source_search_settings_new ();
 
-	clearSearchContext(litos);
+		clearSearchContext(litos);
 
-	highlightSearchBuffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
+		gtk_source_search_settings_set_case_sensitive (settings, TRUE);
 
-	gtk_source_search_settings_set_case_sensitive (settings, TRUE);
+		gtk_source_search_settings_set_search_text (settings, replaceString);
 
-	gtk_source_search_settings_set_search_text (settings, replaceString);
+		highlightSearchBuffer = GTK_SOURCE_BUFFER(get_current_buffer(litos));
 
-	litos->search_context = gtk_source_search_context_new(highlightSearchBuffer, settings);
+		litos->search_context = gtk_source_search_context_new(highlightSearchBuffer, settings);
 
-	highlightWord(litos);
+		highlightWord(litos);
+	}
 
 	gtk_entry_set_text(GTK_ENTRY(replace_entry),"");
 
@@ -193,40 +197,4 @@ void countOccurences(gpointer search_context) /* Count occurences */
 	g_print("%d occurences\n", counter);
 }
 
-/* Called when Ctrl+B, Ctrl+i, etc is toggled */
-void applyTags (struct lit *litos, const char *tag)
-{
-	char *string = NULL;
 
-	char replaceString[350] = { 0 };
-
-	GtkTextIter start_sel, end_sel;
-
-	GtkTextBuffer *buffer = get_current_buffer(litos);
-
-	if (gtk_text_buffer_get_selection_bounds(buffer, &start_sel, &end_sel))
-	{
-		string = gtk_text_buffer_get_text (buffer,
-							&start_sel,
-							&end_sel,
-							FALSE);
-
-		snprintf(replaceString, sizeof(replaceString), "<%s>%s</%s>", tag, string, tag);
-		gtk_text_buffer_delete (buffer, &start_sel, &end_sel);
-		gtk_text_buffer_insert (buffer, &start_sel, replaceString, (gint)strlen(replaceString));
-	}
-
-	else
-	{
-		snprintf(replaceString, sizeof(replaceString), "</%s>", tag);
-		gtk_text_buffer_insert_at_cursor (buffer, replaceString,(gint)strlen(replaceString));
-	}
-}
-
-/* Called when Ctrl+m, Ctrl+l is toggled: insert '−' character */
-void insertChar (struct lit *litos, const char *insertChar)
-{
-	GtkTextBuffer *buffer = get_current_buffer(litos);
-
-	gtk_text_buffer_insert_at_cursor (buffer, insertChar, (gint)strlen(insertChar));
-}
