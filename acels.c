@@ -125,6 +125,8 @@ void action_apply_sub_tag(GSimpleAction *action, GVariant *parameter, gpointer u
 
 void action_insert_endlist_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "</p></li>");}
 
+void action_insert_paragraph_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "</p>");}
+
 void action_insert_space_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "&emsp;■□");}
 
 void action_insert_div_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "<div class=\"eq\">\n<p>\n</div>");}
@@ -196,6 +198,7 @@ void set_acels (struct lit *litos)
 		{"arrow_left", action_insert_arrow_left, NULL, NULL, NULL, {0,0,0}},
 		{"dot", action_insert_dot, NULL, NULL, NULL, {0,0,0}},
 		{"list", action_insert_endlist_tag, NULL, NULL, NULL, {0,0,0}},
+		{"p", action_insert_paragraph_tag, NULL, NULL, NULL, {0,0,0}},
 		{"bond", action_insert_bond, NULL, NULL, NULL, {0,0,0}},
 		{"sup", action_apply_sup_tag, NULL, NULL, NULL, {0,0,0}},
 		{"sub", action_apply_sub_tag, NULL, NULL, NULL, {0,0,0}},
@@ -219,9 +222,10 @@ void set_acels (struct lit *litos)
 	  { "app.minus", { "<Control>m", NULL} },
 	  { "app.dot", { "<Control>d", NULL} },
 	  { "app.list", { "<Control>l", NULL} },
+	  { "app.p", { "<Control>p", NULL} },
 	  { "app.arrow", { "<Control>t", NULL} },
 	  { "app.bond", { "<Shift><Control>l", NULL} },
-	  { "app.sup", { "<Control>p", NULL} },
+	  { "app.sup", { "<Control><Shift>p", NULL} },
 	  { "app.arrow_left", { "<Control>y", NULL} },
 	  { "app.sub", { "<Control>u", NULL} },
 	  { "app.br", { "<Control>r", NULL} },
