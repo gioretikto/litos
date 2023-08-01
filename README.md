@@ -26,6 +26,8 @@ From source code repository:
 * Ctrl+b If text is selected tranforms "string" into "&lt;b&gt;string&lt;/b&gt;"
 * Ctrl+i To tranform "string" into "&lt;i&gt;string&lt;/i&gt;"
 * Ctrl+h To tranform "string" into "&lt;h2&gt;string&lt;/h2&gt;"
+* Ctrl+p insert "&lt;/p&gt;" tag
+* Ctrl+Shift +a insert "&lt;/a&gt;" tag
 * Ctrl+Shift + p To tranform "string" into "&lt;sup&gt;string&lt;/sup&gt;"
 * Ctrl+l insert "&lt;/li&gt;" tag
 * Ctrl+e insert "&emsp;■□&emsp;" characters
