@@ -22,6 +22,7 @@ $(TARGET): $(OBJS)
 clean:
 	rm -f $(OBJS)
 	rm -f $(DATADIR)$(TARGETDATA)
+	rm -f $(ICONDIR)$(ICON)
 install:
 	install $(TARGET) $(BINDIR)
 	install $(TARGETDATA) $(DESKTOPDIR) 
