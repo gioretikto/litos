@@ -3,7 +3,6 @@
 #include <glib.h>
 #include <gtksourceview/gtksource.h>
 
-#define VERSION "3.1"
 #define MAX_TAB 15
 
 struct lit{

@@ -93,11 +93,18 @@ void action_apply_bold(GSimpleAction *action, GVariant *parameter, gpointer user
 	insertHtmlTags(userData, "b");
 }
 
-void action_apply_heading(GSimpleAction *action, GVariant *parameter, gpointer userData)
+void action_apply_h2(GSimpleAction *action, GVariant *parameter, gpointer userData)
 {
 	(void)action;
 	(void)parameter;
 	insertHtmlTags(userData, "h2");
+}
+
+void action_apply_h3(GSimpleAction *action, GVariant *parameter, gpointer userData)
+{
+	(void)action;
+	(void)parameter;
+	insertHtmlTags(userData, "h3");
 }
 
 void action_apply_italic(GSimpleAction *action, GVariant *parameter, gpointer userData)
@@ -131,7 +138,9 @@ void action_insert_endparagraph_tag(GSimpleAction *action, GVariant *parameter, 
 
 void action_insert_space_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "&emsp;■□");}
 
-void action_insert_div_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "<div class=\"eq\">\n<p>\n</div>");}
+void action_insert_div_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "<div class=\"eq\">\n<p>this</p>\n</div>");}
+
+void action_insert_href(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "<a href=\"link\">this</a>");}
 
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(userData);}
 
@@ -193,9 +202,11 @@ void set_acels (struct lit *litos)
 		{"search", action_search_selection, NULL, NULL, NULL, {0,0,0}},
 		{"bold", action_apply_bold, NULL, NULL, NULL, {0,0,0}},
 		{"italic", action_apply_italic, NULL, NULL, NULL, {0,0,0}},
-		{"h2", action_apply_heading, NULL, NULL, NULL, {0,0,0}},
+		{"h2", action_apply_h2, NULL, NULL, NULL, {0,0,0}},
+		{"h3", action_apply_h3, NULL, NULL, NULL, {0,0,0}},
 		{"minus", action_insert_minus, NULL, NULL, NULL, {0,0,0}},
 		{"div", action_insert_div_tag, NULL, NULL, NULL, {0,0,0}},
+		{"href", action_insert_href, NULL, NULL, NULL, {0,0,0}},
 		{"arrow", action_insert_arrow, NULL, NULL, NULL, {0,0,0}},
 		{"arrow_left", action_insert_arrow_left, NULL, NULL, NULL, {0,0,0}},
 		{"dot", action_insert_dot, NULL, NULL, NULL, {0,0,0}},
@@ -220,12 +231,14 @@ void set_acels (struct lit *litos)
 	  { "app.open", { "<Control>o", NULL} },
 	  { "app.bold", { "<Control>b", NULL} },
 	  { "app.h2", { "<Control>h", NULL} },
+	  { "app.h3", { "<Control><Shift>h", NULL} },
 	  { "app.italic", { "<Control>i", NULL} },
 	  { "app.div", { "<Control>g", NULL} },
 	  { "app.minus", { "<Control>m", NULL} },
 	  { "app.dot", { "<Control>d", NULL} },
 	  { "app.list", { "<Control>l", NULL} },
 	  { "app.a", { "<Control><Shift>a", NULL} },
+	  { "app.href", { "<Control><Shift>r", NULL} },
 	  { "app.p", { "<Control>p", NULL} },
 	  { "app.arrow", { "<Control>t", NULL} },
 	  { "app.bond", { "<Shift><Control>l", NULL} },

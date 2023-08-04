@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=litos
 Exec=litos %U
-Icon=@APP_ID@
+Icon=litos
 DBusActivatable=true
 Terminal=false
 Type=Application

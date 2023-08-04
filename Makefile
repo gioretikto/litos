@@ -1,19 +1,16 @@
 CC = gcc
 CFLAGS = -std=c99 -W -Wextra -Wall -Wshadow -Wconversion -O2
-SYSTEM = `uname -s`
-
-ifeq ($(SYSTEM), SunOS)
-	CFLAGS+= -D__EXTENSIONS__
-endif
 
 LIBS = `pkg-config --cflags --libs gtk+-3.0 gtksourceview-4` -laspell
 
 SRCS = main.c activate.c litos.c dialogs.c search_replace.c popovers.c sourceview.c acels.c spell.c
 OBJS = $(SRCS:.c=.o)
-PREFIX ?= /usr/local
-BINDIR ?= $(PREFIX)/bin
-DATADIR ?= /usr/share/applications/
+PREFIX ?= /usr
+BINDIR ?= $(PREFIX)/local/bin/
+DESKTOPDIR ?= $(PREFIX)/share/applications/
+ICONDIR ?= $(PREFIX)/share/pixmaps
 TARGET = litos
+ICON = litos.png
 TARGETDATA = org.litos.gtk.desktop
 #HEADERS = <header files>
 
@@ -27,4 +24,5 @@ clean:
 	rm -f $(DATADIR)$(TARGETDATA)
 install:
 	install $(TARGET) $(BINDIR)
-	install	$(TARGETDATA) $(DATADIR)
+	install $(TARGETDATA) $(DESKTOPDIR) 
+	install $(ICON) $(ICONDIR)

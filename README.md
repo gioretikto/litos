@@ -1,4 +1,4 @@
-# litos v. 3.0
+# litos v. 3.2
 
 **litos** aims to be an easy-to-use and fast editor. My target is an editor for quickly editing text files, providing shortcuts for inserting HTML tags. I try to use the latest GTK features available, which means that if GTK adds something new in a major release that is useful for the editor, we will likely bump the GTK dependency and integrate this new feature in **litos**.
 
@@ -18,19 +18,23 @@ Mousepad depends on the following packages:
 
 From source code repository: 
 
-    % cd litos
-    % make
+	% cd litos
+	% make
+	% sudo make install
 
 ### Usage
 
 * Ctrl+b If text is selected tranforms "string" into "&lt;b&gt;string&lt;/b&gt;"
 * Ctrl+i To tranform "string" into "&lt;i&gt;string&lt;/i&gt;"
 * Ctrl+h To tranform "string" into "&lt;h2&gt;string&lt;/h2&gt;"
+* Ctrl+Shift+h To tranform "string" into "&lt;h3&gt;string&lt;/h3&gt;"
 * Ctrl+p insert "&lt;/p&gt;" tag
 * Ctrl+Shift +a insert "&lt;/a&gt;" tag
 * Ctrl+Shift + p To tranform "string" into "&lt;sup&gt;string&lt;/sup&gt;"
 * Ctrl+l insert "&lt;/li&gt;" tag
 * Ctrl+e insert "&emsp;■□&emsp;" characters
+* Ctrl+Shift+r insert "<a href=\"link\">this</a>"
+* Ctrl+g insert "<div class=\"eq\">this</p>"
 * Ctrl+d insert ⋅ character
 * Ctrl+m insert − character
 * Ctrl+r insert &lt;br&gt; characters
