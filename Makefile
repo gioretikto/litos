@@ -21,6 +21,7 @@ $(TARGET): $(OBJS)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 clean:
 	rm -f $(OBJS)
+uninstall:
 	rm -f $(DATADIR)$(TARGETDATA)
 	rm -f $(ICONDIR)$(ICON)
 install:

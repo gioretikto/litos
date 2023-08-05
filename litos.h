@@ -8,7 +8,6 @@
 struct lit{
 	GtkWidget *window;
 	GtkNotebook *notebook;
-	GtkWidget *headbar;
 	GtkSourceSearchContext *search_context; /* to highlight words searched */
 	GPtrArray *search_context2;				/* to highlight mispelled words through aspell */
 	GtkApplication *app;
