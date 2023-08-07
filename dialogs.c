@@ -1,5 +1,6 @@
 #include "litos.h"
 
+void on_save_as_response(GFile *file, struct lit *litos);
 void open_file (GFile *file, gpointer userData);
 void menu_save (gpointer userData);
 void save_as_dialog(struct lit *litos);
@@ -55,6 +56,37 @@ gboolean saveornot_before_close(const gint page, struct lit *litos)
 	}
 
 	return TRUE;
+}
+
+void action_save_as_dialog (GSimpleAction *action, GVariant *parameter, void* userData)
+{
+	(void)action;
+	(void)parameter;
+
+	struct lit *litos = (struct lit*)userData;
+
+	GtkWidget *dialog = gtk_file_chooser_dialog_new ("Save File",
+		                                  GTK_WINDOW(litos->window),
+		                                  GTK_FILE_CHOOSER_ACTION_SAVE,
+		                                  _("_Cancel"),
+		                                  GTK_RESPONSE_CANCEL,
+		                                  _("_Save"),
+		                                  GTK_RESPONSE_ACCEPT,
+		                                  NULL);
+
+	GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+
+	gtk_file_chooser_set_do_overwrite_confirmation (chooser, TRUE);
+
+	gint res = gtk_dialog_run (GTK_DIALOG (dialog));
+
+	if (res == GTK_RESPONSE_ACCEPT)
+	{
+		g_autoptr (GFile) file = gtk_file_chooser_get_file(chooser);
+		on_save_as_response (file, litos);
+	}
+
+	gtk_widget_destroy (dialog);
 }
 
 void open_dialog (GtkWidget *widget, gpointer userData)
@@ -181,7 +213,7 @@ void about_dialog (GtkButton *button, gpointer userData)
 
 	gtk_show_about_dialog (NULL,
 			"program-name", "Litos",
-			"version", "3.2",
+			"version", "3.2.1",
 			"license-type", GTK_LICENSE_GPL_3_0,
 			"website", "https://github.com/gioretikto/litos",
 			"authors", authors,

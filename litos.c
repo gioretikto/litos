@@ -283,7 +283,7 @@ static void open_file_complete (GObject *source_object, GAsyncResult *res, gpoin
 			error->message);
 
 		return;
-    }
+	}
 
 	/* Now that you have the contents of the file, you can display them in the GtkTextView widget. */
 
@@ -351,7 +351,7 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 
 	struct lit *litos = (struct lit*)userData;
 
-	if(gtk_notebook_get_n_pages(litos->notebook) < MAX_TAB)
+	if (gtk_notebook_get_n_pages(litos->notebook) < MAX_TAB)
 	{
 		GtkWidget *scrolled_window = gtk_scrolled_window_new (NULL, NULL);
 
@@ -386,7 +386,6 @@ void menu_newtab (GtkWidget *widget, gpointer userData)
 		gtk_notebook_set_tab_reorderable(litos->notebook, tabbox, TRUE);
 
 		g_signal_connect (gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view)), "notify::text", G_CALLBACK (monitor_change), litos);
-
 	}
 }
 

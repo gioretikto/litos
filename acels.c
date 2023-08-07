@@ -1,5 +1,6 @@
 #include "litos.h"
 
+void action_save_as_dialog (GSimpleAction *action, GVariant *parameter, void* userData);
 void menu_newtab (GtkWidget *widget, gpointer userData);
 void menu_save (gpointer userData);
 gboolean close_tab (GtkButton *button, gpointer userData);
@@ -7,7 +8,6 @@ unsigned int saveornot_before_close(gint page, struct lit *litos);
 void open_dialog (GtkWidget *widget, gpointer userData);
 void searchWord (GtkButton *button, gpointer userData);
 void insertChar (struct lit *litos, const char *insertChar);
-void on_save_as_response(GFile *file, struct lit *litos);
 gboolean on_delete_event (GtkWidget *widget, GdkEvent  *event, gpointer userData);
 GtkTextBuffer* get_current_buffer(struct lit *litos);
 
@@ -140,7 +140,7 @@ void action_insert_space_tag(GSimpleAction *action, GVariant *parameter, gpointe
 
 void action_insert_div_tag(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "<div class=\"eq\">\n<p>this</p>\n</div>");}
 
-void action_insert_href(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "<a href=\"link\">this</a>");}
+void action_insert_href(GSimpleAction *action, GVariant *parameter, gpointer userData) {(void)userData; (void)action; (void)parameter; insertChar(userData, "<a href=\"link.html\">this</a>");}
 
 void action_save_dialog(GSimpleAction *action, GVariant *parameter, void* userData) { (void)action; (void)parameter; menu_save(userData);}
 
@@ -155,38 +155,7 @@ void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer 
 	(void)action;
 	(void)parameter;
 
-	gtk_window_close(GTK_WINDOW(((struct lit*)userData)->window)); /* it will call on_delete_event(NULL, NULL, userData); */
-}
-
-void action_save_as_dialog (GSimpleAction *action, GVariant *parameter, void* userData)
-{
-	(void)action;
-	(void)parameter;
-
-	struct lit *litos = (struct lit*)userData;
-
-	GtkWidget *dialog = gtk_file_chooser_dialog_new ("Save File",
-		                                  GTK_WINDOW(litos->window),
-		                                  GTK_FILE_CHOOSER_ACTION_SAVE,
-		                                  _("_Cancel"),
-		                                  GTK_RESPONSE_CANCEL,
-		                                  _("_Save"),
-		                                  GTK_RESPONSE_ACCEPT,
-		                                  NULL);
-
-	GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-
-	gtk_file_chooser_set_do_overwrite_confirmation (chooser, TRUE);
-
-	gint res = gtk_dialog_run (GTK_DIALOG (dialog));
-
-	if (res == GTK_RESPONSE_ACCEPT)
-	{
-		g_autoptr (GFile) file = gtk_file_chooser_get_file(chooser);
-		on_save_as_response (file, litos);
-	}
-
-	gtk_widget_destroy (dialog);
+	gtk_window_close(GTK_WINDOW(((struct lit*)userData)->window)); /* it will trigger "delete-event" calling on_delete_event(NULL, NULL, userData); */
 }
 
 void set_acels (struct lit *litos)

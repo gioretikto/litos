@@ -196,5 +196,3 @@ void countOccurences(gpointer search_context) /* Count occurences */
 
 	g_print("%d occurences\n", counter);
 }
-
-

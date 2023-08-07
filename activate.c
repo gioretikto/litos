@@ -64,11 +64,7 @@ void switchPage_cb(GtkNotebook *notebook, gpointer page, const guint page_num, g
 	gtk_window_set_title (GTK_WINDOW (litos->window), litos->filename[page_num]);
 }
 
-GtkCssProvider *provider;
-
-gboolean on_delete_event (GtkWidget *widget,
-         GdkEvent  *event,
-         gpointer   userData)
+gboolean on_delete_event (GtkWidget *widget, GdkEvent  *event, gpointer   userData)
 {
 	(void)widget;
 	(void)event;
@@ -96,6 +92,8 @@ gboolean on_delete_event (GtkWidget *widget,
 
 	return FALSE;
 }
+
+GtkCssProvider *provider;
 
 void activate_cb (GtkApplication* app, gpointer userData)
 {

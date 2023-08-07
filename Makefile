@@ -11,7 +11,7 @@ DESKTOPDIR ?= $(PREFIX)/share/applications/
 ICONDIR ?= $(PREFIX)/share/pixmaps
 TARGET = litos
 ICON = litos.png
-TARGETDATA = org.litos.gtk.desktop
+DESKTOP = org.litos.gtk.desktop
 #HEADERS = <header files>
 
 %.o: %.c $(HEADERS)
@@ -22,9 +22,10 @@ $(TARGET): $(OBJS)
 clean:
 	rm -f $(OBJS)
 uninstall:
-	rm -f $(DATADIR)$(TARGETDATA)
+	rm -f $(DESKTOPDIR)$(DESKTOP)
 	rm -f $(ICONDIR)$(ICON)
+	rm -f $(BINDIR)$(TARGET)
 install:
 	install $(TARGET) $(BINDIR)
-	install $(TARGETDATA) $(DESKTOPDIR) 
+	install $(DESKTOP) $(DESKTOPDIR) 
 	install $(ICON) $(ICONDIR)
