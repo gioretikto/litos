@@ -4,12 +4,10 @@ gboolean close_tab (GtkButton *button, gpointer userData);
 void set_acels (struct lit *litos);
 void about_dialog (GtkButton *button, gpointer userData);
 void menu_newtab (GtkWidget *widget, gpointer userData);
-void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
+void createPreferencePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos);
 void createSearchPopover(GtkMenuButton *search_menu_button, struct lit *litos);
 GtkSourceView* currentTabSourceView(struct lit *litos);
 void freePage(int page, struct lit *litos);
-
-void spellCheck(struct lit *litos);
 
 void swap(struct lit *litos, const int a, const int b)
 {
@@ -104,15 +102,14 @@ void activate_cb (GtkApplication* app, gpointer userData)
 
 	litos->window = gtk_application_window_new (app);
 
-	GtkWidget *about_button, *search_menu_button, *close_tab_button, *file_menu_button, *spell_button, *headbar;
+	GtkWidget *headbar, *hb_preference_btn, *hb_search_btn, *hb_about_btn, *hb_close_tab_btn;
 
 	litos->app = app;
 
 	headbar = gtk_header_bar_new();
 
-	spell_button = gtk_button_new_with_label("Check Spell");
-	close_tab_button = gtk_button_new_with_label("Close Tab");
-	about_button = gtk_button_new_with_label("About");
+	hb_close_tab_btn = gtk_button_new_with_label("Close Tab");
+	hb_about_btn = gtk_button_new_with_label("About");
 
 	gtk_header_bar_set_title (GTK_HEADER_BAR (headbar), "Litos");
 	gtk_window_set_title (GTK_WINDOW (litos->window), "Litos");    
@@ -120,20 +117,19 @@ void activate_cb (GtkApplication* app, gpointer userData)
 	gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (headbar), TRUE);
 	gtk_window_maximize (GTK_WINDOW (litos->window));
 
-	file_menu_button = gtk_menu_button_new ();
-	search_menu_button = gtk_menu_button_new ();
+	hb_preference_btn = gtk_menu_button_new ();
+	hb_search_btn = gtk_menu_button_new ();
 
-	createFilePopover(file_menu_button, GTK_POS_TOP, litos);
-	createSearchPopover(GTK_MENU_BUTTON(search_menu_button), litos);
+	createPreferencePopover(hb_preference_btn, GTK_POS_TOP, litos);
+	createSearchPopover(GTK_MENU_BUTTON(hb_search_btn), litos);
 
-	gtk_button_set_image (GTK_BUTTON (file_menu_button), gtk_image_new_from_icon_name ("open-menu-symbolic", GTK_ICON_SIZE_BUTTON));
-	gtk_button_set_image (GTK_BUTTON (search_menu_button), gtk_image_new_from_icon_name ("edit-find-replace", GTK_ICON_SIZE_BUTTON));
+	gtk_button_set_image (GTK_BUTTON (hb_preference_btn), gtk_image_new_from_icon_name ("open-menu-symbolic", GTK_ICON_SIZE_BUTTON));
+	gtk_button_set_image (GTK_BUTTON (hb_search_btn), gtk_image_new_from_icon_name ("edit-find-replace", GTK_ICON_SIZE_BUTTON));
 
-	gtk_container_add(GTK_CONTAINER (headbar), file_menu_button);
-	gtk_container_add(GTK_CONTAINER (headbar), search_menu_button);
-	gtk_container_add(GTK_CONTAINER (headbar), spell_button);
-	gtk_container_add(GTK_CONTAINER (headbar), close_tab_button);
-	gtk_container_add(GTK_CONTAINER (headbar), about_button);
+	gtk_container_add(GTK_CONTAINER (headbar), hb_preference_btn);
+	gtk_container_add(GTK_CONTAINER (headbar), hb_search_btn);
+	gtk_container_add(GTK_CONTAINER (headbar), hb_close_tab_btn);
+	gtk_container_add(GTK_CONTAINER (headbar), hb_about_btn);
 
 	litos->notebook = GTK_NOTEBOOK(gtk_notebook_new());
 
@@ -159,9 +155,8 @@ void activate_cb (GtkApplication* app, gpointer userData)
 	gtk_widget_grab_focus(GTK_WIDGET(currentTabSourceView(litos)));
 
 	g_signal_connect (litos->window, "delete-event", G_CALLBACK (on_delete_event), litos);
-   	g_signal_connect (close_tab_button, "clicked", G_CALLBACK (close_tab), litos);
-	g_signal_connect (about_button, "clicked", G_CALLBACK (about_dialog), NULL);
-	g_signal_connect (spell_button, "clicked", G_CALLBACK (spellCheck), litos);
+   	g_signal_connect (hb_close_tab_btn, "clicked", G_CALLBACK (close_tab), litos);
+	g_signal_connect (hb_about_btn, "clicked", G_CALLBACK (about_dialog), NULL);
 	g_signal_connect (litos->notebook, "switch-page", G_CALLBACK(switchPage_cb), litos);
 	g_signal_connect (litos->notebook, "page-reordered", G_CALLBACK (page_reordered_cb), litos);
 

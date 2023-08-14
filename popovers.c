@@ -7,6 +7,7 @@ void openFromTemplate (GtkWidget *widget, gpointer userData);
 void action_save_as_dialog(struct lit *litos);
 void menu_save (GtkWidget *widget, gpointer userData);
 void menu_newtab (GtkWidget *widget, gpointer userData);
+void spellCheck(struct lit *litos);
 
 GtkWidget *search_entry, *replace_entry, *button_check_case;
 GtkWidget *lbl_number_occurences;
@@ -55,37 +56,38 @@ void createSearchPopover(GtkMenuButton *search_menu_button, struct lit *litos)
 	g_signal_connect (replace_button, "clicked", G_CALLBACK (replaceButtonClicked), litos);
 }
 
-void createFilePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos)
+void createPreferencePopover (GtkWidget *parent, GtkPositionType pos, struct lit *litos)
 {
 	GtkWidget *popover;
-
 	popover = gtk_popover_new (NULL);
 	gtk_popover_set_position (GTK_POPOVER (popover), pos);
 
 	gtk_menu_button_set_popover (GTK_MENU_BUTTON(parent), popover);
 	gtk_container_set_border_width (GTK_CONTAINER (popover), 6);
   
-  	GtkWidget *file_box, *new_tab_button, *open_button, *new_from_template_button, *save_button, *save_as_button;
+  	GtkWidget *preference_box, *new_tab_button, *open_button, *new_from_template_button, *save_button, *save_as_button, *spell_btn;
 
-  	file_box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-  	gtk_container_add (GTK_CONTAINER (popover), file_box);
+  	preference_box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+  	gtk_container_add (GTK_CONTAINER (popover), preference_box);
 
 	new_tab_button = gtk_button_new_with_label("New Tab");
 	open_button = gtk_button_new_with_label("Open");
 	new_from_template_button = gtk_button_new_with_label("New From Template");
 	save_button = gtk_button_new_with_label("Save");
 	save_as_button = gtk_button_new_with_label("Save As");
+	spell_btn = gtk_button_new_with_label("Check Spell");
 
-	gtk_container_add(GTK_CONTAINER (file_box), open_button);
-	gtk_container_add(GTK_CONTAINER (file_box), new_from_template_button);
-	gtk_container_add(GTK_CONTAINER (file_box), save_button);
-	gtk_container_add(GTK_CONTAINER (file_box), save_as_button);
+	gtk_container_add(GTK_CONTAINER (preference_box), open_button);
+	gtk_container_add(GTK_CONTAINER (preference_box), new_from_template_button);
+	gtk_container_add(GTK_CONTAINER (preference_box), save_button);
+	gtk_container_add(GTK_CONTAINER (preference_box), save_as_button);
+	gtk_container_add(GTK_CONTAINER (preference_box), spell_btn);
 
 	g_signal_connect (new_tab_button, "clicked", G_CALLBACK (menu_newtab), litos);
 	g_signal_connect (open_button, "clicked", G_CALLBACK (open_dialog), litos);
 	g_signal_connect (new_from_template_button, "clicked", G_CALLBACK (openFromTemplate), litos);
-	gtk_actionable_set_action_name(GTK_ACTIONABLE(save_as_button), "app.save_as");
 	g_signal_connect (save_button, "clicked", G_CALLBACK (menu_save), litos);
+	g_signal_connect (spell_btn, "clicked", G_CALLBACK (spellCheck), litos);
 
-	gtk_widget_show_all (file_box);
+	gtk_widget_show_all (preference_box);
 }

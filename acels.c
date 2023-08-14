@@ -155,13 +155,14 @@ void action_quit_activated(GSimpleAction *action, GVariant *parameter, gpointer 
 	(void)action;
 	(void)parameter;
 
-	gtk_window_close(GTK_WINDOW(((struct lit*)userData)->window)); /* it will trigger "delete-event" calling on_delete_event(NULL, NULL, userData); */
+	gtk_window_close(GTK_WINDOW(((struct lit*)userData)->window)); /* it will trigger "close-request" calling on_delete_event(NULL, NULL, userData); */
 }
 
 void set_acels (struct lit *litos)
 {
 	long unsigned int i;
 
+	/* map actions to callbacks */
 	const GActionEntry app_entries[] = {
 		{"new", action_new_tab, NULL, NULL, NULL, {0,0,0}},
 		{"esc", EscButtonPressed, NULL, NULL, NULL, {0,0,0}},
@@ -191,6 +192,7 @@ void set_acels (struct lit *litos)
 		{"quit", action_quit_activated, NULL, NULL, NULL, {0,0,0}}
 	};
 
+	/* define keyboard accelerators*/
 	struct {
 	  const gchar *action;
 	  const gchar *accels[2];
@@ -199,15 +201,15 @@ void set_acels (struct lit *litos)
 	  { "app.esc", { "Escape", NULL} },
 	  { "app.open", { "<Control>o", NULL} },
 	  { "app.bold", { "<Control>b", NULL} },
-	  { "app.h2", { "<Control>h", NULL} },
-	  { "app.h3", { "<Control><Shift>h", NULL} },
+	  { "app.h2", { "<Control>2", NULL} },
+	  { "app.h3", { "<Control>3", NULL} },
 	  { "app.italic", { "<Control>i", NULL} },
 	  { "app.div", { "<Control>g", NULL} },
 	  { "app.minus", { "<Control>m", NULL} },
 	  { "app.dot", { "<Control>d", NULL} },
 	  { "app.list", { "<Control>l", NULL} },
-	  { "app.a", { "<Control><Shift>a", NULL} },
-	  { "app.href", { "<Control><Shift>r", NULL} },
+	  { "app.a", { "<Control>h", NULL} },
+	  { "app.href", { "<Control><Shift>h", NULL} },
 	  { "app.p", { "<Control>p", NULL} },
 	  { "app.arrow", { "<Control>t", NULL} },
 	  { "app.bond", { "<Shift><Control>l", NULL} },
