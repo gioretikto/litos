@@ -213,7 +213,7 @@ void about_dialog (GtkButton *button, gpointer userData)
 
 	gtk_show_about_dialog (NULL,
 			"program-name", "Litos",
-			"version", "3.2.2",
+			"version", "3.2.3",
 			"license-type", GTK_LICENSE_GPL_3_0,
 			"website", "https://github.com/gioretikto/litos",
 			"authors", authors,

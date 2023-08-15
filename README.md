@@ -1,4 +1,4 @@
-# litos v. 3.2.2
+# litos v. 3.2.3
 
 **litos** aims to be an easy-to-use and fast editor. My target is an editor for quickly editing text files, providing shortcuts for inserting HTML tags. I try to use the latest GTK features available, which means that if GTK adds something new in a major release that is useful for the editor, we will likely bump the GTK dependency and integrate this new feature in **litos**.
 
@@ -30,7 +30,7 @@ From source code repository:
 * Ctrl+3 To tranform "string" into "&lt;h3&gt;string&lt;/h3&gt;"
 * Ctrl+p insert "&lt;/p&gt;" tag
 * Ctrl+ h insert "&lt;/a&gt;" tag
-* Ctrl+Shift+h insert "<a href=\"link\">this</a>"
+* Ctrl+h insert "<a href=\"link\">this</a>"
 * Ctrl+Shift + p To tranform "string" into "&lt;sup&gt;string&lt;/sup&gt;"
 * Ctrl+l insert "&lt;/li&gt;" tag
 * Ctrl+e insert "&emsp;■□&emsp;" characters
