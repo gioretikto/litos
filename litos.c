@@ -343,8 +343,6 @@ static void open_file_complete (GObject *source_object, GAsyncResult *res, gpoin
 	);
 }
 
-extern GtkCssProvider *provider;
-
 void menu_newtab (GtkWidget *widget, gpointer userData)
 {
 	(void)widget;
