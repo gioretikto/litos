@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="LitosAppWindow" parent="GtkApplicationWindow">
+    <property name="title">Litos</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="header">
+        <child type="end">
+          <object class="GtkToggleButton" id="search">
+            <property name="sensitive">0</property>
+            <property name="icon-name">edit-find-symbolic</property>
+          </object>
+        </child>
+	<child type="end">
+          <object class="GtkButton" id="about">
+            <property name="icon-name">logo-icon-about</property>
+            <signal name="clicked" handler="about_dialog"/>
+          </object>
+        </child>
+        <child type="start">
+          <object class="GtkMenuButton" id="gears">
+            <property name="direction">none</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox" id="content_box">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkSearchBar" id="searchbar">
+	  <child>
+            <object class="GtkBox" id="search_box">
+            <child>
+              <object class="GtkSearchEntry" id="searchentry">
+                <signal name="search-changed" handler="search_text_changed"/>
+              </object>
+            </child>
+	    <child>
+	      <object class="GtkButton" id="up_search">
+	        <property name="icon-name">go-up</property>
+	      </object>
+	    </child>
+	    <child>
+	      <object class="GtkButton" id="down_search">
+	        <property name="icon-name">go-down</property>
+	      </object>
+	   </child>
+         </object>
+        </child>
+	</object>
+	</child>
+        <child>
+	<object class="GtkNotebook" id="notebook">
+	</object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>
