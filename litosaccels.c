@@ -41,10 +41,12 @@ open_cb (GtkWidget *dialog, gint response, gpointer win)
 			if (!litos_app_check_duplicate(gfile_name,lwin))
 			{
 				LitosFile *file = litos_app_window_new_tab(lwin,gfile);
-				/*if (!litos_file_load(file,&error))
-					litos_app_error_dialog(GTK_WINDOW(win), error, gfile_name);*/
-				litos_file_highlight_buffer(file);
-				litos_app_window_apply_tag(win, litos_file_get_buffer(file));
+				if(file != NULL)
+				{
+					litos_file_set_gfile(file, NULL);
+					litos_file_highlight_buffer(file);
+				}
+
 			}
 
 			g_free(gfile_name);
@@ -102,24 +104,13 @@ open_tmpl_cb (GtkWidget *dialog, gint response, gpointer win)
 
 		if (gfile != NULL)
 		{
-			LitosFile * file = litos_app_window_new_tab(LITOS_APP_WINDOW(win), NULL);
+			LitosFile * file = litos_app_window_new_tab(LITOS_APP_WINDOW(win), gfile);
 
-			//char *contents;
-
-			GtkTextBuffer *buffer = litos_file_get_buffer(file);
-
-			if (!litos_file_load(gfile,buffer,&error))
-				litos_app_error_dialog(GTK_WINDOW(win), error, litos_file_get_name(file));
-
-			else
+			if(file != NULL)
 			{
+				GtkTextBuffer *buffer = litos_file_get_buffer(file);
 				litos_file_set_gfile(file, NULL);
 				litos_file_highlight_buffer(file);
-			//g_file_get_contents (g_file_get_path(gfile), &contents, NULL, NULL);
-
-			//gtk_text_buffer_set_text (buffer, contents, strlen(contents));
-
-				litos_app_window_apply_tag(win, buffer);
 			}
 		}
 	}

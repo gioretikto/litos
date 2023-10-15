@@ -527,8 +527,17 @@ LitosFile * litos_app_window_new_tab(LitosAppWindow *win, GFile *gf)
 	{
 		GError *error = NULL;
 		page.name = g_file_get_basename(gf);
+
 		if (!litos_file_load(gf,page.buffer,&error))
+		{
 			litos_app_error_dialog(GTK_WINDOW(win), error, page.name);
+			return NULL;
+		}
+
+		else
+		{
+			litos_app_window_apply_tag(win, page.buffer);
+		}
 	}
 
 	else		/* at ctrl-n or opening templates */
