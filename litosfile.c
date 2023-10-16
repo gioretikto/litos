@@ -64,7 +64,7 @@ static void _buffer_monitor_change(GObject *gobject, GParamSpec *pspec, gpointer
 {
 	LitosFile *file = LITOS_FILE(userdata);
 	litos_file_set_unsaved(file);
-	g_object_notify_by_pspec (G_OBJECT (file->buffer), obj_properties[PROP_SAVED]);
+	g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]);
 }
 
 static void
@@ -182,6 +182,11 @@ gboolean litos_file_get_saved(LitosFile *file)
 	return file->saved;
 }
 
+void litos_file_reset_gfile(LitosFile *file)
+{
+	file->gfile = NULL;
+}
+
 GtkWidget * litos_file_get_tabbox(LitosFile *file)
 {
 	return file->tabbox;
@@ -195,7 +200,7 @@ void litos_file_set_saved(LitosFile *file)
 void litos_file_set_unsaved(LitosFile *file)
 {
 	file->saved = FALSE;
-	g_object_notify_by_pspec (G_OBJECT (file->buffer), obj_properties[PROP_SAVED]);
+	g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]);
 }
 
 LitosFile * litos_file_set(struct Page *page)
@@ -244,15 +249,16 @@ void litos_file_highlight_buffer(LitosFile *file) /* Apply different font styles
 	}
 }
 
-gboolean litos_file_load (GFile *file, GtkTextBuffer *buffer, GError **error)
+gboolean litos_file_load (LitosFile *file, GError **error)
 {
 	char *contents;
 	gsize length;
 
-	if (g_file_load_contents (file, NULL, &contents, &length, NULL, error))
+	if (g_file_load_contents (file->gfile, NULL, &contents, &length, NULL, error))
 	{
-		gtk_text_buffer_set_text (buffer, contents, length);
-		g_object_notify_by_pspec (G_OBJECT (buffer), obj_properties[PROP_SAVED]);
+		gtk_text_buffer_set_text (file->buffer, contents, length);
+		g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]);
+		file->saved = TRUE;
 		g_free (contents);
 		return TRUE;
 	}
@@ -260,6 +266,7 @@ gboolean litos_file_load (GFile *file, GtkTextBuffer *buffer, GError **error)
 	else
 		return FALSE;
 }
+
 
 gboolean litos_file_save(LitosFile *file, GError *error)
 {
@@ -281,7 +288,7 @@ gboolean litos_file_save(LitosFile *file, GError *error)
 		else
 		{
 			file->saved = TRUE;
-			g_object_notify_by_pspec (G_OBJECT (file->buffer), obj_properties[PROP_SAVED]);
+			g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]);
 			g_free(contents);
 		}
 	}

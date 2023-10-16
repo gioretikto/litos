@@ -6,10 +6,9 @@
 #include "litosfile.h"
 
 void setAccels (GApplication *app);
-gboolean litos_file_load (LitosFile *file, GError **error);
+LitosFile * litos_app_window_open(LitosAppWindow *win, GFile *gf);
 GFile *litos_file_get_gfile(LitosFile* file);
 
-LitosFile * litos_app_window_new_tab(LitosAppWindow *win, GFile *gf);
 guint litos_app_window_get_array_len(LitosAppWindow *win);
 LitosFile * litos_app_window_get_file(LitosAppWindow *win, int *i);
 GtkNotebook * litos_app_window_get_nb(LitosAppWindow *win);
@@ -123,9 +122,7 @@ litos_app_open (GApplication  *app,
 
 			if (!litos_app_check_duplicate(filename,win))
 			{
-				LitosFile *litos_file = litos_app_window_new_tab(win,files[i]);
-				/*if (!litos_file_load(litos_file,&error))
-					litos_app_error_dialog(GTK_WINDOW(win), error, filename);*/
+				LitosFile *litos_file = litos_app_window_open(win,files[i]);
 			}
 
 			g_free(filename);
