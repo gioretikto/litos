@@ -213,6 +213,7 @@ LitosFile * litos_file_set(struct Page *page)
 	file->tabbox = page->tabbox;
 	file->close_btn_box = page->close_btn_box;
 	file->view = page->view;
+	file->lbl = page->lbl;
 	file->buffer = page->buffer;
 
 	g_signal_connect (file->buffer, "notify::text", G_CALLBACK (_buffer_monitor_change), file);
