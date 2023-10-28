@@ -4,6 +4,8 @@
 #include "litosappwin.h"
 #include "litosappprefs.h"
 
+GSettings *litos_app_get_settings(LitosApp *app);
+
 struct _LitosAppPrefs
 {
 	GtkDialog parent;
@@ -52,18 +54,25 @@ pos_to_transition (const GValue       *value,
 	}
 }
 
+void _application_set_font(LitosAppPrefs *prefs)
+{
+	LitosApp *app = LITOS_APP(g_application_get_default());
+
+	g_settings_bind_with_mapping (litos_app_get_settings(app), "font",
+				prefs->font, "font-desc",
+				G_SETTINGS_BIND_DEFAULT,
+				string_to_font_desc,
+				font_desc_to_string,
+				NULL, NULL);
+}
+
 static void
 litos_app_prefs_init (LitosAppPrefs *prefs)
 {
 	gtk_widget_init_template (GTK_WIDGET (prefs));
 	prefs->settings = g_settings_new ("org.gtk.litos");
 
-	g_settings_bind_with_mapping (prefs->settings, "font",
-				prefs->font, "font-desc",
-				G_SETTINGS_BIND_DEFAULT,
-				string_to_font_desc,
-				font_desc_to_string,
-				NULL, NULL);
+	g_signal_connect(G_OBJECT(prefs), "notify::application", G_CALLBACK (_application_set_font), NULL);
 }
 
 static void

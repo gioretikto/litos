@@ -19,6 +19,9 @@ GtkWidget * litos_file_get_lbl(LitosFile *file);
 GtkWidget * litos_file_get_tabbox(LitosFile *file);
 gboolean litos_file_load (LitosFile *file, GError **error);
 
+GSettings *litos_app_get_settings(LitosApp *app);
+GtkCssProvider * litos_app_get_css_provider(LitosApp *app);
+
 GtkWidget* MyNewSourceview();
 
 gboolean litos_app_window_remove_child(LitosAppWindow *win);
@@ -380,10 +383,13 @@ litos_app_window_init (LitosAppWindow *win)
 	win->search_context = NULL;
 	win->litosFileList = g_ptr_array_new_full(0, g_object_unref);
 
+	//g_signal_connect (win->settings, "changed::font-desc", G_CALLBACK (litos_app_window_font_changed_cb), win->litosFileList);
+
 	g_signal_connect (GTK_WINDOW(win), "close-request", G_CALLBACK (litos_app_window_quit), win);
 	g_signal_connect (win->down_search, "clicked", G_CALLBACK(next_match), win);
 	//g_signal_connect (win->up_search, "clicked", G_CALLBACK(previous_match), win);
 
+	
 	g_object_bind_property (win->search, "active",
 		win->searchbar, "search-mode-enabled",
 		G_BINDING_BIDIRECTIONAL);
@@ -489,7 +495,7 @@ void litos_app_error_dialog(GtkWindow *window, GError *error, char *filename)
 	g_error_free(error);
 }
 
-void litos_app_window_apply_tag(LitosAppWindow *win, GtkTextBuffer *buffer)
+/*void litos_app_window_apply_tag(LitosAppWindow *win, GtkTextBuffer *buffer)
 {
 	GtkTextTag *tag;
 	GtkTextIter start_iter, end_iter;
@@ -502,6 +508,37 @@ void litos_app_window_apply_tag(LitosAppWindow *win, GtkTextBuffer *buffer)
 	gtk_text_buffer_get_start_iter (buffer, &start_iter);
 	gtk_text_buffer_get_end_iter (buffer, &end_iter);
 	gtk_text_buffer_apply_tag (buffer, tag, &start_iter, &end_iter);
+}*/
+
+void litos_app_window_update_font (GtkWidget *view)
+{
+	LitosApp *app = LITOS_APP(g_application_get_default());
+
+	PangoFontDescription *font_desc;
+	gchar *font, *css_string;
+	GtkStyleContext	*context;
+	GtkCssProvider *css_provider;
+
+	font = g_settings_get_string (litos_app_get_settings(app),"font");
+
+	font_desc = pango_font_description_from_string (font);
+	context = gtk_widget_get_style_context (view);
+	css_provider = litos_app_get_css_provider(app);
+	g_free (font);
+
+	/* update font */
+	css_string = g_strdup_printf ("textview { font: %dpt %s; }",
+			pango_font_description_get_size (font_desc) / PANGO_SCALE,
+			pango_font_description_get_family (font_desc));
+	gtk_css_provider_load_from_data (css_provider, css_string, -1);
+
+	gtk_style_context_add_provider_for_display (gdk_display_get_default(),
+                                              GTK_STYLE_PROVIDER (css_provider),
+                                              GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+	/* cleanup */
+	pango_font_description_free (font_desc);
+	g_free (css_string);
 }
 
 static LitosFile *
@@ -535,6 +572,8 @@ litos_app_window_new_tab(LitosAppWindow *win, struct Page *page)
 		win->notebook,
 		gtk_notebook_append_page_menu (win->notebook, page->tabbox, page->close_btn_box, page->close_btn_box)
 	);
+
+	litos_app_window_update_font(page->view);
 
 	gtk_widget_grab_focus(GTK_WIDGET(page->view));
 
@@ -570,7 +609,7 @@ LitosFile * litos_app_window_open(LitosAppWindow *win, GFile *gf)
 	{
 		litos_file_highlight_buffer(file);
 
-		litos_app_window_apply_tag(win, page.buffer);
+		//litos_app_window_apply_tag(win, page.buffer);
 
 		g_signal_connect(G_OBJECT(file), "notify::saved", G_CALLBACK (_file_monitor_saved_change), win);
 
@@ -590,7 +629,7 @@ LitosFile * litos_app_window_new_file(LitosAppWindow *win)
 
 	LitosFile *file = litos_app_window_new_tab(win,&page);
 
-	litos_app_window_apply_tag(win, page.buffer);
+	//litos_app_window_apply_tag(win, page.buffer);
 
 	g_signal_connect(G_OBJECT(file), "notify::saved", G_CALLBACK (_file_monitor_saved_change), win);
 

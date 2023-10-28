@@ -18,6 +18,10 @@ void quit_activated (GSimpleAction *action, GVariant *parameter, gpointer app);
 struct _LitosApp
 {
 	GtkApplication parent;
+
+	GSettings *settings;
+
+	GtkCssProvider *css_provider;
 };
 
 G_DEFINE_TYPE(LitosApp, litos_app, GTK_TYPE_APPLICATION);
@@ -25,6 +29,8 @@ G_DEFINE_TYPE(LitosApp, litos_app, GTK_TYPE_APPLICATION);
 static void
 litos_app_init (LitosApp *app)
 {
+	app->settings = g_settings_new("org.gtk.litos");
+	app->css_provider = gtk_css_provider_new ();
 }
 
 static void
@@ -149,4 +155,14 @@ litos_app_new (void)
 			"application-id", "org.gtk.litos",
 			"flags", G_APPLICATION_HANDLES_OPEN,
 			NULL);
+}
+
+GSettings *litos_app_get_settings(LitosApp *app)
+{
+	return app->settings;
+}
+
+GtkCssProvider * litos_app_get_css_provider(LitosApp *app)
+{
+	return app->css_provider;
 }
