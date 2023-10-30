@@ -100,5 +100,7 @@ litos_app_prefs_class_init (LitosAppPrefsClass *class)
 LitosAppPrefs *
 litos_app_prefs_new (LitosAppWindow *win)
 {
-	return g_object_new (LITOS_APP_PREFS_TYPE, "transient-for", win, "use-header-bar", TRUE, NULL);
+	LitosAppPrefs *prefs = g_object_new (LITOS_APP_PREFS_TYPE, "transient-for", win, "use-header-bar", TRUE, NULL);
+	gtk_window_set_application(GTK_WINDOW(prefs), GTK_APPLICATION(g_application_get_default()));
+	return prefs;
 }
