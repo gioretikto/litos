@@ -388,7 +388,6 @@ litos_app_window_init (LitosAppWindow *win)
 	g_signal_connect (GTK_WINDOW(win), "close-request", G_CALLBACK (litos_app_window_quit), win);
 	g_signal_connect (win->down_search, "clicked", G_CALLBACK(next_match), win);
 	//g_signal_connect (win->up_search, "clicked", G_CALLBACK(previous_match), win);
-
 	
 	g_object_bind_property (win->search, "active",
 		win->searchbar, "search-mode-enabled",
@@ -495,34 +494,17 @@ void litos_app_error_dialog(GtkWindow *window, GError *error, char *filename)
 	g_error_free(error);
 }
 
-/*void litos_app_window_apply_tag(LitosAppWindow *win, GtkTextBuffer *buffer)
-{
-	GtkTextTag *tag;
-	GtkTextIter start_iter, end_iter;
-	tag = gtk_text_buffer_create_tag (buffer, NULL, NULL);
-
-	g_settings_bind (win->settings, "font",
-			tag, "font",
-			G_SETTINGS_BIND_DEFAULT);
-
-	gtk_text_buffer_get_start_iter (buffer, &start_iter);
-	gtk_text_buffer_get_end_iter (buffer, &end_iter);
-	gtk_text_buffer_apply_tag (buffer, tag, &start_iter, &end_iter);
-}*/
-
-void litos_app_window_update_font (GtkWidget *view)
+void litos_app_window_update_font ()
 {
 	LitosApp *app = LITOS_APP(g_application_get_default());
 
 	PangoFontDescription *font_desc;
 	gchar *font, *css_string;
-	GtkStyleContext	*context;
 	GtkCssProvider *css_provider;
 
 	font = g_settings_get_string (litos_app_get_settings(app),"font");
 
 	font_desc = pango_font_description_from_string (font);
-	context = gtk_widget_get_style_context (view);
 	css_provider = litos_app_get_css_provider(app);
 	g_free (font);
 
@@ -573,7 +555,7 @@ litos_app_window_new_tab(LitosAppWindow *win, struct Page *page)
 		gtk_notebook_append_page_menu (win->notebook, page->tabbox, page->close_btn_box, page->close_btn_box)
 	);
 
-	litos_app_window_update_font(page->view);
+	litos_app_window_update_font();
 
 	gtk_widget_grab_focus(GTK_WIDGET(page->view));
 
