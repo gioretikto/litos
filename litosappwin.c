@@ -19,9 +19,8 @@ GtkWidget * litos_file_get_lbl(LitosFile *file);
 GtkWidget * litos_file_get_tabbox(LitosFile *file);
 gboolean litos_file_load (LitosFile *file, GError **error);
 
-GSettings *litos_app_get_settings(LitosApp *app);
 GtkCssProvider * litos_app_get_css_provider(LitosApp *app);
-GSettings *litos_app_get_settings(LitosApp *app);
+GSettings *litos_app_get_settings(LitosApp *app);;
 
 GtkWidget* MyNewSourceview();
 
@@ -37,8 +36,8 @@ struct _LitosAppWindow
 	GtkWidget *search;
 	GtkWidget *searchbar;
 	GtkWidget *about;
-	GtkWidget *up_search;
-	GtkWidget *down_search;
+	GtkWidget *prev_button;
+	GtkWidget *next_button;
 	GtkWidget *button_check_case;
 	GtkSourceSearchContext *search_context;
 	GPtrArray *litosFileList;
@@ -97,6 +96,38 @@ GtkSourceView* currentTabSourceView(LitosAppWindow *win)
 	return GTK_SOURCE_VIEW(litos_file_get_view(file));
 }
 
+/*static void
+next_match (GObject      *object,
+                                        GAsyncResult *result,
+                                        gpointer      user_data)
+{
+  GtkSourceSearchContext *context = (GtkSourceSearchContext *)object;
+  g_autoptr(EditorSearchBar) self = user_data;
+  g_autoptr(GError) error = NULL;
+  GtkSourceBuffer *buffer;
+  GtkTextIter begin;
+  GtkTextIter end;
+  gboolean has_wrapped = FALSE;
+
+  g_assert (EDITOR_IS_SEARCH_BAR (self));
+  g_assert (G_IS_ASYNC_RESULT (result));
+  g_assert (GTK_SOURCE_IS_SEARCH_CONTEXT (context));
+
+  if (!gtk_source_search_context_forward_finish (context, result, &begin, &end, &has_wrapped, &error))
+    {
+      if (error != NULL)
+        g_debug ("Search forward error: %s", error->message);
+      return;
+    }
+
+  buffer = gtk_source_search_context_get_buffer (context);
+  gtk_text_buffer_select_range (GTK_TEXT_BUFFER (buffer), &begin, &end);
+  editor_search_bar_scroll_to_insert (self);
+
+  if (self->hide_after_move)
+    gtk_widget_activate_action (GTK_WIDGET (self), "search.hide", NULL);
+}*/
+
 static void
 next_match(GtkWidget *close_btn, gpointer user_data)
 {
@@ -104,9 +135,21 @@ next_match(GtkWidget *close_btn, gpointer user_data)
 
 	if (win->search_context != NULL)
 	{
-		GtkTextIter match_start, match_end;
+		GtkSourceBuffer *buffer;
+		GtkTextIter begin, end;
+		g_autoptr(GError) error = NULL;
 
-		GtkSourceView *view = currentTabSourceView(win);
+	if (!gtk_source_search_context_forward_finish (win->search_context, NULL, &begin, &end,FALSE, &error))
+	    {
+	      if (error != NULL)
+		g_debug ("Search forward error: %s", error->message);
+	      return;
+	    }
+
+		buffer = gtk_source_search_context_get_buffer (win->search_context);
+		gtk_text_buffer_select_range (GTK_TEXT_BUFFER (buffer), &begin, &end);
+
+		/*GtkSourceView *view = currentTabSourceView(win);
 
 		GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(view));
 		gtk_text_buffer_select_range (buffer, &match_start, &match_end);
@@ -119,7 +162,7 @@ next_match(GtkWidget *close_btn, gpointer user_data)
 
 		insert = gtk_text_buffer_get_insert (buffer);
 
-		gtk_text_view_scroll_mark_onscreen (GTK_TEXT_VIEW (view), insert);	
+		gtk_text_view_scroll_mark_onscreen (GTK_TEXT_VIEW (view), insert);*/	
 	}	
 }
 
@@ -173,10 +216,6 @@ search_text_changed (GtkEntry *entry,
 	{
 		GtkTextMark *insert;
 
-		gtk_text_buffer_select_range (buffer,
-					      &match_start,
-					      &match_end);
-
 		insert = gtk_text_buffer_get_insert (buffer);
 
 		/*gtk_text_view_scroll_mark_onscreen (GTK_TEXT_VIEW (view),
@@ -185,6 +224,10 @@ search_text_changed (GtkEntry *entry,
 		gtk_text_view_scroll_to_iter (GTK_TEXT_VIEW(view), &match_start,
 				0.0, FALSE, 0.0, 0.0);*/
 		gtk_text_buffer_move_mark (buffer, mark, &match_end);
+
+		gtk_text_buffer_select_range (buffer,
+					      &match_start,
+					      &match_end);
 	}
 }
 
@@ -364,7 +407,7 @@ gboolean litos_app_window_quit (GtkWindow *window, gpointer user_data)
 	return TRUE;
 }
 
-static void
+void
 litos_app_window_update_font ()
 {
 	LitosApp *app = LITOS_APP(g_application_get_default());
@@ -399,7 +442,6 @@ litos_app_window_init (LitosAppWindow *win)
 {
 	GtkBuilder *builder;
 	GMenuModel *menu;
-	LitosApp *app = LITOS_APP(g_application_get_default());
 
 	gtk_widget_init_template (GTK_WIDGET (win));
 
@@ -415,10 +457,10 @@ litos_app_window_init (LitosAppWindow *win)
 	win->search_context = NULL;
 	win->litosFileList = g_ptr_array_new_full(0, g_object_unref);
 
-	g_signal_connect (litos_app_get_settings(app), "changed::font-desc", G_CALLBACK (litos_app_window_update_font), NULL);
+	litos_app_window_update_font();
 
 	g_signal_connect (GTK_WINDOW(win), "close-request", G_CALLBACK (litos_app_window_quit), win);
-	g_signal_connect (win->down_search, "clicked", G_CALLBACK(next_match), win);
+	g_signal_connect (win->next_button, "clicked", G_CALLBACK(next_match), win);
 	//g_signal_connect (win->up_search, "clicked", G_CALLBACK(previous_match), win);
 	
 	g_object_bind_property (win->search, "active",
@@ -467,8 +509,8 @@ litos_app_window_class_init (LitosAppWindowClass *class)
 	gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), LitosAppWindow, search);
 	gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), LitosAppWindow, searchbar);
 	gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), LitosAppWindow, about);
-	gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), LitosAppWindow, up_search);
-	gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), LitosAppWindow, down_search);
+	gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), LitosAppWindow, prev_button);
+	gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), LitosAppWindow, next_button);
 	//gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), LitosAppWindow, button_check_case);
 
 	gtk_widget_class_bind_template_callback (GTK_WIDGET_CLASS (class), about_dialog);
@@ -557,8 +599,6 @@ litos_app_window_new_tab(LitosAppWindow *win, struct Page *page)
 		win->notebook,
 		gtk_notebook_append_page_menu (win->notebook, page->tabbox, page->close_btn_box, page->close_btn_box)
 	);
-
-	litos_app_window_update_font();
 
 	gtk_widget_grab_focus(GTK_WIDGET(page->view));
 

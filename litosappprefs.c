@@ -4,13 +4,13 @@
 #include "litosappwin.h"
 #include "litosappprefs.h"
 
+void litos_app_window_update_font ();
 GSettings *litos_app_get_settings(LitosApp *app);
 
 struct _LitosAppPrefs
 {
 	GtkDialog parent;
 
-	GSettings *settings;
 	GtkWidget *font;
 };
 
@@ -70,7 +70,8 @@ static void
 litos_app_prefs_init (LitosAppPrefs *prefs)
 {
 	gtk_widget_init_template (GTK_WIDGET (prefs));
-	prefs->settings = g_settings_new ("org.gtk.litos");
+
+	g_signal_connect(prefs->font, "font-set", G_CALLBACK (litos_app_window_update_font), NULL);
 
 	g_signal_connect(G_OBJECT(prefs), "notify::application", G_CALLBACK (_application_set_font), NULL);
 }
@@ -81,8 +82,6 @@ litos_app_prefs_dispose (GObject *object)
 	LitosAppPrefs *prefs;
 
 	prefs = LITOS_APP_PREFS (object);
-
-	g_clear_object (&prefs->settings);
 
 	G_OBJECT_CLASS (litos_app_prefs_parent_class)->dispose (object);
 }
