@@ -13,8 +13,6 @@ guint litos_app_window_get_array_len(LitosAppWindow *win);
 LitosFile * litos_app_window_get_file(LitosAppWindow *win, int *i);
 GtkNotebook * litos_app_window_get_nb(LitosAppWindow *win);
 
-void quit_activated (GSimpleAction *action, GVariant *parameter, gpointer app);
-
 struct _LitosApp
 {
 	GtkApplication parent;

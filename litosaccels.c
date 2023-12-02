@@ -20,10 +20,12 @@ LitosFile * litos_app_window_current_file(LitosAppWindow *win);
 LitosFile * litos_app_window_new_file(LitosAppWindow *win);
 guint litos_app_window_get_array_len(LitosAppWindow *win);
 gboolean litos_app_window_quit (GtkWindow *window, gpointer user_data);
+void ctrl_f(LitosAppWindow *win);
 
 void litos_app_error_dialog(GtkWindow *window, GError *error, char *filename);
 
 gboolean litos_app_check_duplicate(char *filename, LitosAppWindow *win);
+void set_search_entry(LitosAppWindow *win);
 
 static void
 open_cb (GtkWidget *dialog, gint response, gpointer window)
@@ -260,6 +262,18 @@ insertHtmlTags (GSimpleAction *action, GVariant *parameter, gpointer app)
 	g_free(tag);
 }
 
+static void
+find_selection (GSimpleAction *action, GVariant *parameter, gpointer app)
+{
+	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
+
+	LitosAppWindow *win = LITOS_APP_WINDOW(window);	
+
+	ctrl_f(win);
+
+	//set_search_entry(win);
+}
+
 void setAccels (GApplication *app)
 {
 	long unsigned int i;
@@ -275,6 +289,7 @@ void setAccels (GApplication *app)
 		{"save", save, NULL, NULL, NULL, {0,0,0}},
 		{"save_as", save_as_dialog, NULL, NULL, NULL, {0,0,0}},
 		{"close", close_activated, NULL, NULL, NULL},
+		{"find", find_selection, NULL, NULL, NULL, {0,0,0}},
 		{"quit", quit_activated, NULL, NULL, NULL }
 	};
 
@@ -283,28 +298,29 @@ void setAccels (GApplication *app)
 	  const gchar *action;
 	  const gchar *accels[2];
 	} action_accels[] = {
-	  { "app.open", { "<Control>o", NULL} },
-	  { "app.new", { "<Control>n", NULL} },
-	  { "app.save", { "<Control>s", NULL} },
-	  { "app.save_as", { "<Shift><Control>s", NULL} },
-	  { "app.close", { "<Control>w", NULL} },
-	  { "app.quit", { "<Control>q", NULL} },
-	  { "app.insert_html(\"<b>%s</b>\")", { "<Control>b", NULL} },
-	  { "app.insert_html(\"<i>%s</i>\")", { "<Control>i", NULL} },
-	  { "app.insert_html(\"<h2>%s</h2>\")", { "<Control>2", NULL} },
-	  { "app.insert_html(\"<h3>%s</h3>\")", { "<Control>3", NULL} },
-	  { "app.insert_html('<a href=\"this.html\">%s</a>')", { "<Control>h", NULL} },
-	  { "app.insert_html(\"<p>%s</p>\")", { "<Control>p", NULL} },
-	  { "app.insert_html(\"<li>%s</li>\")", { "<Control>l", NULL} },
-	  { "app.insert_html(\"<sup>%s</sup>\")", { "<Control><Shift>p", NULL} },
-	  { "app.insert_html(\"<sub>%s</sub>\")", { "<Control>u", NULL} },
-	  { "app.insert_char('<div class=\"eq\">\n<p>this</p>\n</div>\')", { "<Control>g", NULL} },
-	  { "app.insert_char(\"−\")", { "<Control>m", NULL} },
-	  { "app.insert_char(\"⋅\")", { "<Control>d", NULL} },
-	  { "app.insert_char(\"⟶⟼⇒\")", { "<Control>t", NULL} },
-	  { "app.insert_char(\"⇌⟵⇐\")", { "<Control>y", NULL} },
-	  { "app.insert_char(\"<br>\")", { "<Control>r", NULL} },
-	  { "app.insert_char(\"&emsp;■□\")", { "<Control>e", NULL} },
+		{ "app.open", { "<Control>o", NULL} },
+		{ "app.new", { "<Control>n", NULL} },
+		{ "app.save", { "<Control>s", NULL} },
+		{ "app.save_as", { "<Shift><Control>s", NULL} },
+		{ "app.close", { "<Control>w", NULL} },
+		{ "app.quit", { "<Control>q", NULL} },
+		{ "app.find", { "<Control>f", NULL} },
+		{ "app.insert_html(\"<b>%s</b>\")", { "<Control>b", NULL} },
+		{ "app.insert_html(\"<i>%s</i>\")", { "<Control>i", NULL} },
+		{ "app.insert_html(\"<h2>%s</h2>\")", { "<Control>2", NULL} },
+		{ "app.insert_html(\"<h3>%s</h3>\")", { "<Control>3", NULL} },
+		{ "app.insert_html('<a href=\"this.html\">%s</a>')", { "<Control>h", NULL} },
+		{ "app.insert_html(\"<p>%s</p>\")", { "<Control>p", NULL} },
+		{ "app.insert_html(\"<li>%s</li>\")", { "<Control>l", NULL} },
+		{ "app.insert_html(\"<sup>%s</sup>\")", { "<Control>e", NULL} },
+		{ "app.insert_html(\"<sub>%s</sub>\")", { "<Control>u", NULL} },
+		{ "app.insert_char('<div class=\"eq\">\n<p>this</p>\n</div>\')", { "<Control>g", NULL} },
+		{ "app.insert_char(\"−\")", { "<Control>m", NULL} },
+		{ "app.insert_char(\"⋅\")", { "<Control>d", NULL} },
+		{ "app.insert_char(\"⟶⟼⇒\")", { "<Control>y", NULL} },
+		{ "app.insert_char(\"⇌⟵⇐\")", { "<Control><Shift>y", NULL} },
+		{ "app.insert_char(\"<br>\")", { "<Control>r", NULL} },
+		{ "app.insert_char(\"&emsp;■□\")", { "<Control>t", NULL} },
 	};
 
 	g_action_map_add_action_entries(G_ACTION_MAP(app), app_entries, G_N_ELEMENTS(app_entries), app);
