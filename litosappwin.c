@@ -527,8 +527,6 @@ litos_app_window_init (LitosAppWindow *win)
 	g_object_bind_property (win->search, "active",
 		win->searchbar, "search-mode-enabled",
 		G_BINDING_BIDIRECTIONAL);
-
-	g_object_bind_property (win->button_check_case, "active", self, "selected", 0);
 }
 
 static void
