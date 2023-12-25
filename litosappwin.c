@@ -49,13 +49,16 @@ struct _LitosAppWindow
 	GSettings *settings;
 	GtkNotebook *notebook;
 	GtkWidget *gears;
-	GtkWidget *search;
+	GtkWidget *btn_find_icon;
 	GtkWidget *searchbar;
 	GtkWidget *search_entry;
+	GtkWidget *replace_entry;
 	GtkWidget *about;
-	GtkWidget *prev_button;
-	GtkWidget *next_button;
-	GtkWidget *button_check_case;
+	GtkWidget *btn_prev;
+	GtkWidget *btn_next;
+	GtkWidget *btn_check_case;
+	GtkWidget *btn_replace;
+	GtkWidget *lbl_number_occurences;
 	GtkSourceSearchContext *search_context;
 	GPtrArray *litosFileList;
 	gboolean quit;
@@ -190,7 +193,7 @@ litos_app_window_set_search_context(LitosAppWindow *win, const char *stringToSea
 
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(source_view));
 
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->button_check_case)))
+	if (gtk_check_button_get_active(GTK_CHECK_BUTTON(win->btn_check_case)))
 		gtk_source_search_settings_set_case_sensitive (settings, TRUE);
 
 	else
@@ -201,6 +204,40 @@ litos_app_window_set_search_context(LitosAppWindow *win, const char *stringToSea
 	win->search_context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), settings);
 
 	return source_view;
+}
+
+static void
+replace_btn_clicked (GtkButton *button, gpointer userData)
+{
+	LitosAppWindow *win = LITOS_APP_WINDOW(userData);
+
+	if (win->search_context == NULL)
+		return;
+		
+	guint count_replaced = 0;
+
+	const gchar *stringToSearch = gtk_editable_get_text(GTK_EDITABLE(win->search_entry));
+	const gchar *replaceString = gtk_editable_get_text(GTK_EDITABLE(win->replace_entry));
+
+	if (stringToSearch == NULL || replaceString == NULL)
+		return;
+
+	/* Search and Highlight replaced string */
+
+	count_replaced = gtk_source_search_context_replace_all (win->search_context,
+		replaceString,
+		-1,
+		NULL);
+
+	gtk_editable_set_text(GTK_EDITABLE(win->replace_entry),"");
+
+	char str[80];
+
+	sprintf(str, "%d replacement", count_replaced);
+
+	gtk_label_set_label (GTK_LABEL(win->lbl_number_occurences),
+		str
+	);
 }
 
 static void
@@ -247,13 +284,22 @@ search_text_changed (GtkEntry *entry,
 					      &match_start,
 					      &match_end);
 	}
+	
+	gint counter = gtk_source_search_context_get_occurrences_count (win->search_context);
+
+	char str[80];
+
+	sprintf(str, "%d occurences", counter);
+
+	gtk_label_set_label (GTK_LABEL(win->lbl_number_occurences),
+		str
+	);
 }
 
 void set_search_entry(LitosAppWindow *win)
 {
-	/*GtkTextIter start, end;
+	GtkTextIter start, end;
 	LitosFile *file = litos_app_window_current_file(win);
-	GtkEntryBuffer *entry_buffer;
 
 	GtkTextBuffer *buffer = litos_file_get_buffer(file);
 
@@ -266,20 +312,20 @@ void set_search_entry(LitosAppWindow *win)
 							&end,
 							FALSE);
 
-		gtk_entry_buffer_insert_text (entry_buffer,
-			0,
-			stringToSearch,
-			-1
-		);
+		gtk_editable_set_text(GTK_EDITABLE(win->search_entry),stringToSearch);
+	}
+}
 
-		gtk_entry_set_buffer(GTK_ENTRY(win->search_entry), entry_buffer);
-	}*/
+void Esc(LitosAppWindow *win)
+{
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(LITOS_APP_WINDOW(win)->btn_find_icon), FALSE);
 }
 
 void ctrl_f(LitosAppWindow *win)
 {
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(LITOS_APP_WINDOW(win)->search), TRUE);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(LITOS_APP_WINDOW(win)->btn_find_icon), TRUE);
 	gtk_widget_grab_focus(LITOS_APP_WINDOW(win)->search_entry);
+	set_search_entry(win);
 }
 
 void search_btn_clicked (GtkWidget *search_btn, gpointer user_data)
@@ -452,7 +498,7 @@ gboolean litos_app_window_quit (GtkWindow *window, gpointer user_data)
 	GtkApplication *app = gtk_window_get_application(window);
 
 	if (litos_app_window_get_array_len(win) == 0)
-		g_application_quit (G_APPLICATION (app));
+		return FALSE;
 	
 	else
 	{
@@ -460,8 +506,15 @@ gboolean litos_app_window_quit (GtkWindow *window, gpointer user_data)
 		while (win->quit == TRUE && litos_app_window_remove_child(win))
 			;
 	}
-
-	return TRUE;
+	
+	if (litos_app_window_get_array_len(win) == 0)
+	{
+		g_application_quit (G_APPLICATION (app));
+		return FALSE;
+	}
+	
+	else
+		return TRUE;
 }
 
 void
@@ -508,7 +561,7 @@ litos_app_window_init (LitosAppWindow *win)
 	g_object_unref (builder);
 
 	win->settings = g_settings_new ("org.gtk.litos");
-	gtk_widget_set_sensitive (win->search, TRUE);
+	gtk_widget_set_sensitive (win->btn_find_icon, TRUE);
 
 	win->quit = FALSE;
 	win->search_context = NULL;
@@ -517,16 +570,32 @@ litos_app_window_init (LitosAppWindow *win)
 	litos_app_window_update_font();
 
 	g_signal_connect (GTK_WINDOW(win), "close-request", G_CALLBACK (litos_app_window_quit), win);
-	g_signal_connect (win->prev_button, "clicked", G_CALLBACK(prev_match), win);
-	g_signal_connect (win->next_button, "clicked", G_CALLBACK(next_match), win);
-	g_signal_connect (win->search, "clicked", G_CALLBACK(search_btn_clicked), win);
+	g_signal_connect (win->btn_prev, "clicked", G_CALLBACK(prev_match), win);
+	g_signal_connect (win->btn_next, "clicked", G_CALLBACK(next_match), win);
+	g_signal_connect (win->btn_find_icon, "clicked", G_CALLBACK(search_btn_clicked), win);
+	g_signal_connect (win->btn_replace, "clicked", G_CALLBACK(replace_btn_clicked), win);
 
 	/* allow search entry to be automatically focused */
  	gtk_widget_set_can_focus(win->search_entry, TRUE);
 
-	g_object_bind_property (win->search, "active",
+	g_object_bind_property (win->btn_find_icon, "active",
 		win->searchbar, "search-mode-enabled",
 		G_BINDING_BIDIRECTIONAL);
+		
+	GdkDisplay *display = gdk_display_get_default ();
+	GtkCssProvider *provider = gtk_css_provider_new ();
+	gtk_css_provider_load_from_data (provider,
+		"text{"
+		"color: green;"
+		"background: black;"
+		"padding: 15px;"
+		"}",	 	
+		-1);
+
+	gtk_style_context_add_provider_for_display (display,
+				GTK_STYLE_PROVIDER (provider),
+				GTK_STYLE_PROVIDER_PRIORITY_USER);
+	g_object_unref (provider);
 }
 
 static void
@@ -564,16 +633,18 @@ litos_app_window_class_init (LitosAppWindowClass *class)
 	gtk_widget_class_set_template_from_resource (GTK_WIDGET_CLASS (class),
 						"/org/gtk/litos/window.ui");
 
-	BIND_CHILD (notebook);
+	BIND_CHILD (notebook)
 	BIND_CHILD (gears)
-	BIND_CHILD (search)
+	BIND_CHILD (btn_find_icon)
 	BIND_CHILD (searchbar)
 	BIND_CHILD (search_entry)
+	BIND_CHILD (replace_entry)
 	BIND_CHILD (about)
-	BIND_CHILD (search)
-	BIND_CHILD (prev_button)
-	BIND_CHILD (next_button)
-	BIND_CHILD (button_check_case)
+	BIND_CHILD (btn_prev)
+	BIND_CHILD (btn_next)
+	BIND_CHILD (lbl_number_occurences)
+	BIND_CHILD (btn_replace)
+	BIND_CHILD (btn_check_case)
 
 	gtk_widget_class_bind_template_callback (GTK_WIDGET_CLASS (class), about_dialog);
 	gtk_widget_class_bind_template_callback (GTK_WIDGET_CLASS (class), search_text_changed);

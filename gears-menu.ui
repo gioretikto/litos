@@ -13,16 +13,16 @@
         <attribute name="action">app.new</attribute>
       </item>
     </section>
-    <section>
+        <section>
       <item>
-        <attribute name="label" translatable="yes">_Open</attribute>
-        <attribute name="action">app.open</attribute>
+        <attribute name="label" translatable="yes">New From Template</attribute>
+        <attribute name="action">app.open_tmpl</attribute>
       </item>
     </section>
     <section>
       <item>
-        <attribute name="label" translatable="yes">New From Template</attribute>
-        <attribute name="action">app.open_tmpl</attribute>
+        <attribute name="label" translatable="yes">_Open</attribute>
+        <attribute name="action">app.open</attribute>
       </item>
     </section>
     <section>

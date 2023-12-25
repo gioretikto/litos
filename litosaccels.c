@@ -21,6 +21,7 @@ LitosFile * litos_app_window_new_file(LitosAppWindow *win);
 guint litos_app_window_get_array_len(LitosAppWindow *win);
 gboolean litos_app_window_quit (GtkWindow *window, gpointer user_data);
 void ctrl_f(LitosAppWindow *win);
+void Esc(LitosAppWindow *win);
 
 void litos_app_error_dialog(GtkWindow *window, GError *error, char *filename);
 
@@ -50,6 +51,14 @@ open_cb (GtkWidget *dialog, gint response, gpointer window)
 	}
 
 	gtk_window_destroy (GTK_WINDOW (dialog));
+}
+
+static void
+esc_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
+{
+	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
+	LitosAppWindow *win = LITOS_APP_WINDOW(window);
+	Esc(win);
 }
 
 static void
@@ -190,8 +199,8 @@ quit_activated (GSimpleAction *action, GVariant *parameter, gpointer app)
 
 static void
 new_file (GSimpleAction *action,
-                GVariant      *parameter,
-                gpointer       app)
+                GVariant *parameter,
+                gpointer app)
 {
 	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
 	LitosAppWindow *win = LITOS_APP_WINDOW(window);
@@ -270,8 +279,6 @@ find_selection (GSimpleAction *action, GVariant *parameter, gpointer app)
 	LitosAppWindow *win = LITOS_APP_WINDOW(window);	
 
 	ctrl_f(win);
-
-	//set_search_entry(win);
 }
 
 void setAccels (GApplication *app)
@@ -284,6 +291,7 @@ void setAccels (GApplication *app)
 		{"insert_html", insertHtmlTags, "s", NULL, NULL, {0,0,0}},
 		{"insert_char", insertChar, "s", NULL, NULL, {0,0,0}},
 		{"open", open_activated, NULL, NULL, NULL},
+		{"esc", esc_activated, NULL, NULL, NULL},
 		{"open_tmpl", open_tmpl, NULL, NULL, NULL},
 		{"new", new_file, NULL, NULL, NULL},
 		{"save", save, NULL, NULL, NULL, {0,0,0}},
@@ -304,6 +312,7 @@ void setAccels (GApplication *app)
 		{ "app.save_as", { "<Shift><Control>s", NULL} },
 		{ "app.close", { "<Control>w", NULL} },
 		{ "app.quit", { "<Control>q", NULL} },
+		{ "app.esc", { "Escape", NULL} },
 		{ "app.find", { "<Control>f", NULL} },
 		{ "app.insert_html(\"<b>%s</b>\")", { "<Control>b", NULL} },
 		{ "app.insert_html(\"<i>%s</i>\")", { "<Control>i", NULL} },
