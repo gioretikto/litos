@@ -2,7 +2,7 @@
 Name=litos
 Exec=litos %U
 Icon=litos
-DBusActivatable=true
+DBusActivatable=false
 Terminal=false
 Type=Application
 Categories=Utility;TextEditor;GTK;
