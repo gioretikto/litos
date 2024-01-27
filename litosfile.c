@@ -164,6 +164,7 @@ GtkWidget * litos_file_get_view(LitosFile *file)
 
 GFile *litos_file_get_gfile(LitosFile* file)
 {
+	g_object_ref(file->gfile);
 	return file->gfile;
 }
 
@@ -207,8 +208,10 @@ LitosFile * litos_file_set(struct Page *page)
 {
 	LitosFile *file = litos_file_new();
 
-	file->name = page->name;
 	file->gfile = page->gf;
+	g_object_ref(page->gf);
+	
+	file->name = page->name;
 	file->scrolled = page->scrolled;
 	file->tabbox = page->tabbox;
 	file->close_btn_box = page->close_btn_box;
