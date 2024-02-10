@@ -9,7 +9,6 @@ void litos_file_highlight_buffer(LitosFile *file);
 GtkTextBuffer *litos_file_get_buffer(LitosFile *file);
 GFile *litos_file_get_gfile(LitosFile* file);
 void litos_file_reset_gfile(LitosFile *file);
-void litos_file_set_gfile(LitosFile *file, GFile *gfile);
 gchar *litos_file_get_name(LitosFile *file);
 
 gboolean litos_app_window_remove_child(LitosAppWindow *win);
@@ -242,7 +241,7 @@ insertHtmlTags (GSimpleAction *action, GVariant *parameter, gpointer app)
 
 	char *string = NULL;
 
-	char replaceString[350] = { 0 };
+	char replaceString[650] = { 0 };
 
 	gchar *tag;
 
@@ -264,7 +263,7 @@ insertHtmlTags (GSimpleAction *action, GVariant *parameter, gpointer app)
 
 	else
 	{
-		snprintf(replaceString, sizeof(replaceString), "</%c>", tag[1]);
+		snprintf(replaceString, sizeof(replaceString), "</%c>", tag[1]);	/*e.g. enters </l> if Ctrl-l is pressed*/
 		gtk_text_buffer_insert_at_cursor (buffer, replaceString,(gint)strlen(replaceString));
 	}
 
@@ -320,7 +319,7 @@ void setAccels (GApplication *app)
 		{ "app.insert_html(\"<h3>%s</h3>\")", { "<Control>3", NULL} },
 		{ "app.insert_html('<a href=\"this.html\">%s</a>')", { "<Control>h", NULL} },
 		{ "app.insert_html(\"<p>%s</p>\")", { "<Control>p", NULL} },
-		{ "app.insert_html(\"<li>%s</li>\")", { "<Control>l", NULL} },
+		{ "app.insert_html(\"<li><p>%s</p></li>\")", { "<Control>l", NULL} },
 		{ "app.insert_html(\"<sup>%s</sup>\")", { "<Control>e", NULL} },
 		{ "app.insert_html(\"<sub>%s</sub>\")", { "<Control>u", NULL} },
 		{ "app.insert_char('<div class=\"eq\">\n<p>this</p>\n</div>\')", { "<Control>g", NULL} },

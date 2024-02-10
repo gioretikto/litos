@@ -75,6 +75,20 @@ litos_file_dispose (GObject *object)
 	g_signal_handlers_disconnect_by_func(file->buffer, _buffer_monitor_change, file);
 
 	g_free (file->name);
+	
+	g_clear_object(&file->gfile);
+	
+	g_clear_object(&file->scrolled);	
+	
+	g_clear_object(&file->tabbox);	
+	
+	g_clear_object(&file->close_btn_box);
+	
+	g_clear_object(&file->view);
+	
+	g_clear_object(&file->lbl);
+
+	g_clear_object(&file->buffer);	
 
 	G_OBJECT_CLASS (litos_file_parent_class)->dispose (object);
 }
@@ -147,11 +161,6 @@ LitosFile *litos_file_new()
 	return g_object_new (LITOS_TYPE_FILE, NULL);
 }
 
-void litos_file_set_gfile(LitosFile *file, GFile *gfile)
-{
-	file->gfile = gfile;
-}
-
 GtkWidget * litos_file_get_lbl(LitosFile *file)
 {
 	return file->lbl;
@@ -164,7 +173,6 @@ GtkWidget * litos_file_get_view(LitosFile *file)
 
 GFile *litos_file_get_gfile(LitosFile* file)
 {
-	g_object_ref(file->gfile);
 	return file->gfile;
 }
 
@@ -208,17 +216,29 @@ LitosFile * litos_file_set(struct Page *page)
 {
 	LitosFile *file = litos_file_new();
 
-	file->gfile = page->gf;
 	g_object_ref(page->gf);
+	file->gfile = page->gf;
 	
-	file->name = page->name;
-	file->scrolled = page->scrolled;
-	file->tabbox = page->tabbox;
-	file->close_btn_box = page->close_btn_box;
-	file->view = page->view;
-	file->lbl = page->lbl;
-	file->buffer = page->buffer;
-
+	file->name = page->name;	
+	
+	g_object_ref(page->scrolled);	
+	file->scrolled = page->scrolled;	
+	
+	g_object_ref(page->tabbox);	
+	file->tabbox = page->tabbox;	
+	
+	g_object_ref(page->close_btn_box);
+	file->close_btn_box = page->close_btn_box;	
+	
+	g_object_ref(page->view);
+	file->view = page->view;	
+	
+	g_object_ref(page->lbl);
+	file->lbl = page->lbl;	
+	
+	g_object_ref(page->buffer);	
+	file->buffer = page->buffer;	
+	
 	g_signal_connect (file->buffer, "notify::text", G_CALLBACK (_buffer_monitor_change), file);
 
 	return file;
