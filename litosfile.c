@@ -193,7 +193,7 @@ gboolean litos_file_get_saved(LitosFile *file)
 
 void litos_file_reset_gfile(LitosFile *file)
 {
-	file->gfile = NULL;
+	g_clear_object(&file->gfile);
 }
 
 GtkWidget * litos_file_get_tabbox(LitosFile *file)
