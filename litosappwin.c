@@ -319,6 +319,7 @@ void set_search_entry(LitosAppWindow *win)
 void Esc(LitosAppWindow *win)
 {
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(LITOS_APP_WINDOW(win)->btn_find_icon), FALSE);
+	gtk_editable_set_text(GTK_EDITABLE(win->search_entry),"");
 }
 
 void ctrl_f(LitosAppWindow *win)

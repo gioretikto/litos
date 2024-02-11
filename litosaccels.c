@@ -105,10 +105,10 @@ open_tmpl_cb (GtkWidget *dialog, gint response, gpointer window)
 
 		LitosAppWindow *win = LITOS_APP_WINDOW(window);
 
-		if (gfile != NULL)
+		if (gfile != NULL) /*gfile could be NULL in maybe some (unknown) edge case so you check gfile != NULL just in case so that it doesn't cause some error/crash */
 		{
 			LitosFile * file = litos_app_window_open(win, gfile);
-			litos_file_reset_gfile(file);
+			litos_file_reset_gfile(file); /*we don't want to save over the template but on a new file */
 		}
 	}
 

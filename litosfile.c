@@ -216,7 +216,9 @@ LitosFile * litos_file_set(struct Page *page)
 {
 	LitosFile *file = litos_file_new();
 
-	g_object_ref(page->gf);
+	if(page->gf != NULL)
+		g_object_ref(page->gf);
+
 	file->gfile = page->gf;
 	
 	file->name = page->name;	

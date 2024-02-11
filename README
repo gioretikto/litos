@@ -1,4 +1,4 @@
-# litos v. 4.0.0
+# litos v. 4.1.0
 
 **litos** aims to be an easy-to-use and fast editor. My target is an editor for quickly editing HTML files, providing shortcuts for inserting HTML tags. I try to use the latest GTK features available, which means that if GTK adds something new in a major release that is useful for the editor, I will likely bump the GTK dependency and integrate this new feature in **litos**.
 
