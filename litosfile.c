@@ -216,7 +216,7 @@ LitosFile * litos_file_set(struct Page *page)
 {
 	LitosFile *file = litos_file_new();
 
-	if(page->gf != NULL)
+	if (page->gf != NULL)
 		g_object_ref(page->gf);
 
 	file->gfile = page->gf;
@@ -323,10 +323,7 @@ gboolean litos_file_save(LitosFile *file, GError *error)
 
 void litos_file_save_as(LitosFile* file, GFile *new_file)
 {
-	if (new_file != NULL)
-		g_object_ref(new_file);
-
-	file->gfile = new_file;
+	g_set_object(&file->gfile, new_file);
 
 	g_free (file->name);
 
