@@ -221,6 +221,16 @@ replace_btn_clicked (GtkButton *button, gpointer userData)
 
 	if (stringToSearch == NULL || replaceString == NULL)
 		return;
+		
+	GtkSourceSearchSettings *settings = gtk_source_search_settings_new ();
+
+	if (gtk_check_button_get_active(GTK_CHECK_BUTTON(win->btn_check_case)))
+		gtk_source_search_settings_set_case_sensitive (settings, TRUE);
+
+	else
+		gtk_source_search_settings_set_case_sensitive (settings, FALSE);
+
+	gtk_source_search_settings_set_search_text (settings, stringToSearch);
 
 	/* Search and Highlight replaced string */
 
