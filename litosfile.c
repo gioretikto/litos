@@ -303,8 +303,8 @@ gboolean litos_file_save(LitosFile *file, GError *error)
 
 		gtk_text_buffer_get_bounds(file->buffer, &start_iter, &end_iter);
 		contents = gtk_text_buffer_get_text(file->buffer, &start_iter, &end_iter, TRUE);
-
-		if (!g_file_replace_contents(file->gfile, contents, strlen(contents), NULL, TRUE, G_FILE_CREATE_NONE, NULL, NULL, &error))
+		
+		if (!g_file_replace_contents(file->gfile, contents, strlen(contents), NULL, false, G_FILE_CREATE_NONE, NULL, NULL, &error))
 		{
 			g_free(contents);
 			return FALSE;

@@ -51,7 +51,7 @@ uninstall:
 	$(GLIB_COMPILE_SCHEMAS) $(SCHEMADIR)
 install:
 	install $(TARGET) $(BINDIR)
-	install $(DESKTOP) $(DESKTOPDIR) 
+	install $(DESKTOP) $(DESKTOPDIR)
 	install $(ICON) $(ICONDIR)
 	install $(SCHEMA) $(SCHEMADIR)
 	$(GLIB_COMPILE_SCHEMAS) $(SCHEMADIR)
