@@ -10,7 +10,7 @@ Mousepad depends on the following packages:
 * make
 * pkg-config
 * libgtk-4-dev [GTK](https://www.gtk.org) >= 4.8.3
-* [GLib](https://wiki.gnome.org/Projects/GLib) >=2.42.0
+* libglib2.0-dev [GLib](https://wiki.gnome.org/Projects/GLib) >=2.42.0
 * libgtksourceview-5-dev [GtkSourceView](https://wiki.gnome.org/Projects/GtkSourceView) >=5.0
 * libaspell-dev
 
@@ -51,4 +51,3 @@ Giovanni Resta - giovannirestadev@gmail.com
 ### Reporting Bugs
 
 giovannirestadev@gmail.com
-
