@@ -322,7 +322,7 @@ void setAccels (GApplication *app)
 		{ "app.insert_html(\"<li><p>%s</p></li>\")", { "<Control>l", NULL} },
 		{ "app.insert_html(\"<sup>%s</sup>\")", { "<Control>e", NULL} },
 		{ "app.insert_html(\"<sub>%s</sub>\")", { "<Control>u", NULL} },
-		{ "app.insert_char('<div class=\"eq\">\n<p>this</p>\n</div>\')", { "<Control>g", NULL} },
+		{ "app.insert_html('<div class=\"eq\">\n<p>%s</p>\n</div>\')", { "<Control>g", NULL} },
 		{ "app.insert_char(\"−\")", { "<Control>m", NULL} },
 		{ "app.insert_char(\"⋅\")", { "<Control>d", NULL} },
 		{ "app.insert_char(\"⟶⟼⇒\")", { "<Control>y", NULL} },

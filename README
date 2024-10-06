@@ -42,7 +42,7 @@ From source code repository:
 * Shift + Ctrl+y insert ⇌⟵⇐ characters
 * Ctrl m insert — character
 
-To create file from Templates make sure you've the "Templates" dir in you home direcotry and the file $HOME/.config/user-dirs.dirs exists (see https://wiki.archlinux.org/title/XDG_user_directories)
+To create file from Templates make sure you've the "Templates" dir in you home direcotry and the file $HOME/.config/user-dirs.dirs exists (see https://wiki.archlinux.org/title/XDG_user_directories) is best to run "xdg-user-dirs-update" to create it.
 
 ###Authors
 
