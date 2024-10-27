@@ -275,9 +275,10 @@ find_selection (GSimpleAction *action, GVariant *parameter, gpointer app)
 {
 	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
 
-	LitosAppWindow *win = LITOS_APP_WINDOW(window);	
+	LitosAppWindow *win = LITOS_APP_WINDOW(window);
 
-	ctrl_f(win);
+	if (litos_app_window_get_array_len(win) != 0)
+		ctrl_f(win);
 }
 
 void setAccels (GApplication *app)
