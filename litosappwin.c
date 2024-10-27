@@ -439,6 +439,7 @@ litos_app_window_saveornot_dialog_cb(GtkWidget *dialog, int response, gpointer w
 	switch (response)
 	{
 		case GTK_RESPONSE_ACCEPT:
+			litos_app_window_save(win,file);
 			litos_app_window_remove_page(win,file);
 			break;
 
@@ -452,7 +453,7 @@ litos_app_window_saveornot_dialog_cb(GtkWidget *dialog, int response, gpointer w
 
 		default: /*close bottun was pressed*/
 			win->quit = FALSE;
-			g_print("The bottun(Close without Saving/Cancel/Save) was not pressed.");
+			g_print("The button(Close without Saving/Cancel/Save) was not pressed.");
 	}
 
 	gtk_window_destroy (GTK_WINDOW (dialog));
