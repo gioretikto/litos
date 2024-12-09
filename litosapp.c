@@ -151,7 +151,7 @@ litos_app_new (void)
 {
 	return g_object_new (LITOS_APP_TYPE,
 			"application-id", "org.gtk.litos",
-			"flags", G_APPLICATION_HANDLES_OPEN | G_APPLICATION_NON_UNIQUE,
+			"flags", G_APPLICATION_HANDLES_OPEN,
 			NULL);
 }
 
