@@ -1,3 +1,14 @@
+/*	Copyright (C) 2023-2024 Giovanni Resta <giovannirestadev@gmail.com>
+
+	This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+	This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <gtk/gtk.h>
 
 #include "litosapp.h"
@@ -325,7 +336,8 @@ void setAccels (GApplication *app)
 		{ "app.insert_html(\"<sub>%s</sub>\")", { "<Control>u", NULL} },
 		{ "app.insert_html('<div class=\"eq\">\n<p>%s</p>\n</div>\')", { "<Control>g", NULL} },
 		{ "app.insert_char(\"\\\\mathbf{}\")", { "<Control><Shift>m", NULL} },
-		{ "app.insert_char(\"\\\\frac{\\\\text{d}}{}\")", { "<Control><Shift>f", NULL} },
+		{ "app.insert_char(\"\\\\frac{}{}\")", { "<Control><Shift>f", NULL} },
+		{ "app.insert_char(\"\\\\text{}\")", { "<Control><Shift>t", NULL} },
 		{ "app.insert_char(\"−\")", { "<Control>m", NULL} },
 		{ "app.insert_char(\"⋅\")", { "<Control>d", NULL} },
 		{ "app.insert_char(\"⟶⟼⇒\")", { "<Control>y", NULL} },
