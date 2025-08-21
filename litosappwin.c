@@ -36,7 +36,7 @@ gboolean litos_file_load (LitosFile *file, GError **error);
 GtkTextBuffer *litos_file_get_buffer(LitosFile *file);
 
 GtkCssProvider * litos_app_get_css_provider(LitosApp *app);
-GSettings *litos_app_get_settings(LitosApp *app);;
+GSettings *litos_app_get_settings(LitosApp *app);
 
 GtkWidget* MyNewSourceview();
 
@@ -683,9 +683,11 @@ close_btn_clicked(GtkWidget *close_btn, gpointer user_data)
 static void
 lblToColor(LitosAppWindow *win, LitosFile* file, const char *color)
 {
-	const char *markup = g_markup_printf_escaped ("<span color='%s'>\%s</span>", color, litos_file_get_name(file));
+	char *markup = g_markup_printf_escaped ("<span color='%s'>\%s</span>", color, litos_file_get_name(file));
 
 	gtk_label_set_markup (GTK_LABEL(litos_file_get_lbl(file)), markup);
+
+	g_free(markup);
 }
 
 static void
