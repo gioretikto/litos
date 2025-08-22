@@ -53,7 +53,7 @@ struct _LitosAppWindow
 	GtkWidget *searchbar;
 	GtkWidget *search_entry;
 	GtkWidget *replace_entry;
-	GtkWidget *about;
+	GtkWidget *about_btn;
 	GtkWidget *btn_prev;
 	GtkWidget *btn_next;
 	GtkWidget *btn_check_case;
@@ -641,7 +641,7 @@ litos_app_window_class_init (LitosAppWindowClass *class)
 	BIND_CHILD (searchbar)
 	BIND_CHILD (search_entry)
 	BIND_CHILD (replace_entry)
-	BIND_CHILD (about)
+	BIND_CHILD (about_btn)
 	BIND_CHILD (btn_prev)
 	BIND_CHILD (btn_next)
 	BIND_CHILD (lbl_number_occurences)

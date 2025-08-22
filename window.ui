@@ -11,8 +11,8 @@
 					</object>
 				</child>
 				<child type="end">
-					<object class="GtkButton" id="about">
-						<property name="icon-name">logo-icon-about</property>
+					<object class="GtkButton" id="about_btn">
+						<property name="icon-name">help-about</property>
 						<signal name="clicked" handler="about_dialog"/>
 					</object>
 				</child>
