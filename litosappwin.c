@@ -339,12 +339,6 @@ void ctrl_f(LitosAppWindow *win)
 	set_search_entry(win);
 }
 
-void search_btn_clicked (GtkWidget *search_btn, gpointer user_data)
-{
-	/* auto grab search entry box on clicking search button */
-	gtk_widget_grab_focus(LITOS_APP_WINDOW(user_data)->search_entry);
-}
-
 static void
 visible_child_changed (GObject *notebook,
 			GParamSpec *pspec,
@@ -581,7 +575,6 @@ litos_app_window_init (LitosAppWindow *win)
 	g_signal_connect (GTK_WINDOW(win), "close-request", G_CALLBACK (litos_app_window_quit), win);
 	g_signal_connect (win->btn_prev, "clicked", G_CALLBACK(prev_match), win);
 	g_signal_connect (win->btn_next, "clicked", G_CALLBACK(next_match), win);
-	g_signal_connect (win->btn_find_icon, "clicked", G_CALLBACK(search_btn_clicked), win);
 	g_signal_connect (win->btn_replace, "clicked", G_CALLBACK(replace_btn_clicked), win);
 
 	/* allow search entry to be automatically focused */

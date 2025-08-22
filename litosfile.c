@@ -156,10 +156,10 @@ litos_file_class_init (LitosFileClass *class)
 	object_class->get_property = litos_file_get_property;
 
 	obj_properties[PROP_SAVED] =
-		g_param_spec_string ("saved",
+		g_param_spec_boolean ("saved",
 		                 "Save",
 		                 "File status",
-		                 NULL  /* default value */,
+		                 FALSE	/* default value */,
 		                 G_PARAM_READWRITE);
 
 	g_object_class_install_properties (object_class,
@@ -223,66 +223,69 @@ void litos_file_set_unsaved(LitosFile *file)
 	g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]);
 }
 
-LitosFile * litos_file_set(struct Page *page)
+LitosFile *litos_file_set(struct Page *page)
 {
-	LitosFile *file = litos_file_new();
+    // Create a new LitosFile object
+    LitosFile *file = litos_file_new();
 
-	if (page->gf != NULL)
-		g_object_ref(page->gf);
+    // Array of objects from the page structure that need to be referenced
+    GObject *objects[] = {(GObject *)page->gf, (GObject *)page->scrolled, (GObject *)page->tabbox, 
+                          (GObject *)page->close_btn_box, (GObject *)page->view, 
+                          (GObject *)page->lbl, (GObject *)page->buffer};
 
-	file->gfile = page->gf;
-	
-	file->name = page->name;	
-	
-	g_object_ref(page->scrolled);	
-	file->scrolled = page->scrolled;	
-	
-	g_object_ref(page->tabbox);	
-	file->tabbox = page->tabbox;	
-	
-	g_object_ref(page->close_btn_box);
-	file->close_btn_box = page->close_btn_box;	
-	
-	g_object_ref(page->view);
-	file->view = page->view;	
-	
-	g_object_ref(page->lbl);
-	file->lbl = page->lbl;	
-	
-	g_object_ref(page->buffer);	
-	file->buffer = page->buffer;	
-	
-	g_signal_connect (file->buffer, "notify::text", G_CALLBACK (_buffer_monitor_change), file);
+    // Array of fields in the LitosFile structure where these objects will be assigned
+    GObject **fields[] = {
+        (GObject **)&file->gfile, 
+        (GObject **)&file->scrolled, 
+        (GObject **)&file->tabbox, 
+        (GObject **)&file->close_btn_box, 
+        (GObject **)&file->view, 
+        (GObject **)&file->lbl, 
+        (GObject **)&file->buffer
+    };
 
-	return file;
+    // Loop through the objects and assign them to the corresponding fields in the file structure
+    // Also, increment reference count for each object (g_object_ref)
+    for (int i = 0; i < 7; ++i) {
+        // Check if the object is not NULL before referencing
+        if (objects[i] != NULL) {
+            g_object_ref(objects[i]);  // Increment the reference count for the object
+            *fields[i] = objects[i];   // Assign the object to the corresponding field in the LitosFile struct
+        }
+    }
+
+    // Assign the name from the page structure to the LitosFile object
+    file->name = page->name;
+
+    // Connect a signal to monitor changes in the 'buffer' object (specifically its 'text' property)
+    g_signal_connect(file->buffer, "notify::text", G_CALLBACK(_buffer_monitor_change), file);
+
+    // Return the populated LitosFile object
+    return file;
 }
 
 void litos_file_highlight_buffer(LitosFile *file) /* Apply different font styles depending on file extension .html .c, etc */
 {
 	GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();
-
 	GtkSourceLanguage *lang;
-
 	GtkSourceBuffer *source_buffer = GTK_SOURCE_BUFFER(file->buffer);
 
 	if ((lang = gtk_source_language_manager_guess_language(lm, file->name, NULL)) == NULL)
-		lang = gtk_source_language_manager_get_language(lm,"html");
+		lang = gtk_source_language_manager_get_language(lm, "html");
 
 	if (lang != NULL)
-	{	gtk_source_buffer_set_language (source_buffer, lang);
-		gtk_source_buffer_set_highlight_syntax (source_buffer, TRUE);
+	{
+		gtk_source_buffer_set_language(source_buffer, lang);
+		gtk_source_buffer_set_highlight_syntax(source_buffer, TRUE);
 	}
 
 	GtkSourceStyleSchemeManager *scheme_manager = gtk_source_style_scheme_manager_get_default();
-	const gchar * const* schemes = gtk_source_style_scheme_manager_get_scheme_ids(scheme_manager);
 
-	if (schemes != NULL && schemes[0] != NULL)
+	GtkSourceStyleScheme *scheme = gtk_source_style_scheme_manager_get_scheme(scheme_manager, "oblivion");
+
+	if (scheme != NULL)
 	{
-		GtkSourceStyleScheme *scheme = gtk_source_style_scheme_manager_get_scheme(scheme_manager,
-			schemes[8]);
-
-		if (scheme != NULL)
-			gtk_source_buffer_set_style_scheme(source_buffer, scheme);
+		gtk_source_buffer_set_style_scheme(source_buffer, scheme);
 	}
 }
 

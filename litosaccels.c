@@ -128,35 +128,39 @@ open_tmpl_cb (GtkWidget *dialog, gint response, gpointer window)
 
 static void
 open_tmpl (GSimpleAction *action,
-                       GVariant      *parameter,
-                       gpointer       app)
+           GVariant      *parameter,
+           gpointer       app)
 {
-	GtkWidget *dialog;
+    GtkWindow *win = gtk_application_get_active_window(GTK_APPLICATION(app));
+    if (!win) return;
 
-	GError *error = NULL;
+    GFile *gfile = g_file_new_for_path(g_get_user_special_dir(G_USER_DIRECTORY_TEMPLATES));
+    if (!gfile) {
+        g_warning("Impossibile ottenere la cartella Templates");
+        return;
+    }
 
-	GFile *gfile = g_file_new_for_path(g_get_user_special_dir (G_USER_DIRECTORY_TEMPLATES));
+    GtkWidget *dialog = gtk_file_chooser_dialog_new("Open File",
+        GTK_WINDOW(win),
+        GTK_FILE_CHOOSER_ACTION_OPEN,
+        "Cancel", GTK_RESPONSE_CANCEL,
+        "Open", GTK_RESPONSE_ACCEPT,
+        NULL);
 
-	GtkWindow *win = gtk_application_get_active_window (GTK_APPLICATION (app));
+    GError *error = NULL;
+    if (!gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), gfile, &error)) {
+        litos_app_error_dialog(GTK_WINDOW(win), error, "Templates");
+        g_clear_error(&error);
+    }
 
-	dialog = gtk_file_chooser_dialog_new ("Open File",
-		NULL,
-		GTK_FILE_CHOOSER_ACTION_OPEN,
-		"Cancel",
-		GTK_RESPONSE_CANCEL,
-		"Open",
-		GTK_RESPONSE_ACCEPT,
-		NULL);
+    gtk_window_set_transient_for(GTK_WINDOW(dialog), win);
+    gtk_widget_show(dialog);
 
-	if (!gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), gfile, &error))
-		litos_app_error_dialog(GTK_WINDOW(win), error, "Templates");
+    g_signal_connect(dialog, "response", G_CALLBACK(open_tmpl_cb), win);
 
-	gtk_window_set_transient_for(GTK_WINDOW(dialog), win);
-
-	gtk_widget_show(dialog);
-
-	g_signal_connect (dialog, "response", G_CALLBACK (open_tmpl_cb), win);
+    g_object_unref(gfile);
 }
+
 
 static void
 save(GSimpleAction *action, GVariant *parameter, gpointer app)
@@ -217,68 +221,75 @@ new_file (GSimpleAction *action,
 	LitosFile * file = litos_app_window_new_file(win);
 }
 
-/* Called when Ctrl+B, Ctrl+i, etc is toggled */
+/* Used to inser characters like ⟶⟼⇒ and the like */
 static void
 insertChar (GSimpleAction *action, GVariant *parameter, gpointer app)
 {
-	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
+    GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
+    if (!window) return;
 
-	LitosAppWindow *win = LITOS_APP_WINDOW(window);
+    LitosAppWindow *win = LITOS_APP_WINDOW(window);
+    if (!win) return;
 
-	LitosFile *file = litos_app_window_current_file(win);
+    LitosFile *file = litos_app_window_current_file(win);
+    if (!file) return;
 
-	GtkTextBuffer *buffer = litos_file_get_buffer(file);
+    GtkTextBuffer *buffer = litos_file_get_buffer(file);
+    if (!buffer) return;
 
-	gchar *insertChar;
+    gchar *insertChar = NULL;
+    g_variant_get(parameter, "s", &insertChar);
+    if (!insertChar) return;
 
-	g_variant_get (parameter, "s", &insertChar);
+    gtk_text_buffer_insert_at_cursor(buffer, insertChar, -1); // -1 = lunghezza automatica
 
-	gtk_text_buffer_insert_at_cursor (buffer, insertChar, (gint)strlen(insertChar));
-
-	g_free(insertChar);
+    g_free(insertChar);
 }
+
 
 /* Called when Ctrl+B, Ctrl+i, etc is toggled */
 static void
 insertHtmlTags (GSimpleAction *action, GVariant *parameter, gpointer app)
 {
-	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
+    GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
+    if (!window) return;
 
-	LitosAppWindow *win = LITOS_APP_WINDOW(window);
+    LitosAppWindow *win = LITOS_APP_WINDOW(window);
+    if (!win) return;
 
-	LitosFile *file = litos_app_window_current_file(win);
+    LitosFile *file = litos_app_window_current_file(win);
+    if (!file) return;
 
-	GtkTextBuffer *buffer = litos_file_get_buffer(file);
+    GtkTextBuffer *buffer = litos_file_get_buffer(file);
+    if (!buffer) return;
 
-	char *string = NULL;
+    gchar *tag = NULL;
+    g_variant_get(parameter, "s", &tag);
+    if (!tag) return;
 
-	char replaceString[650] = { 0 };
+    GtkTextIter start_sel, end_sel;
 
-	gchar *tag;
+    if (gtk_text_buffer_get_selection_bounds(buffer, &start_sel, &end_sel))
+    {
+        gchar *selected_text = gtk_text_buffer_get_text(buffer, &start_sel, &end_sel, FALSE);
+        if (selected_text)
+        {
+            gchar *wrapped_text = g_strdup_printf(tag, selected_text);
+            gtk_text_buffer_delete(buffer, &start_sel, &end_sel);
+            gtk_text_buffer_insert(buffer, &start_sel, wrapped_text, -1);
+            g_free(wrapped_text);
+            g_free(selected_text);
+        }
+    }
+    else
+    {
+        // Inserisce solo il tag di chiusura, es: </b>
+        gchar *closing_tag = g_strdup_printf("</%c>", tag[1]);
+        gtk_text_buffer_insert_at_cursor(buffer, closing_tag, -1);
+        g_free(closing_tag);
+    }
 
-	g_variant_get (parameter, "s", &tag);
-
-	GtkTextIter start_sel, end_sel;
-
-	if (gtk_text_buffer_get_selection_bounds(buffer, &start_sel, &end_sel))
-	{
-		string = gtk_text_buffer_get_text (buffer,
-							&start_sel,
-							&end_sel,
-							FALSE);
-
-		snprintf(replaceString, sizeof(replaceString), tag, string);
-		gtk_text_buffer_delete (buffer, &start_sel, &end_sel);
-		gtk_text_buffer_insert (buffer, &start_sel, replaceString, (gint)strlen(replaceString));
-	}
-
-	else
-	{
-		snprintf(replaceString, sizeof(replaceString), "</%c>", tag[1]);	/*e.g. enters </l> if Ctrl-l is pressed*/
-		gtk_text_buffer_insert_at_cursor (buffer, replaceString,(gint)strlen(replaceString));
-	}
-
-	g_free(tag);
+    g_free(tag);
 }
 
 static void

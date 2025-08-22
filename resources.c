@@ -1,14 +1,3 @@
-/*	Copyright (C) 2023-2024 Giovanni Resta <giovannirestadev@gmail.com>
-
-	This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-
-	This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include <gio/gio.h>
 
 #if defined (__ELF__) && ( __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 6))
@@ -17,7 +6,7 @@
 # define SECTION
 #endif
 
-static const SECTION union { const guint8 data[5837]; const double alignment; void * const ptr;}  litos_resource_data = {
+static const SECTION union { const guint8 data[5833]; const double alignment; void * const ptr;}  litos_resource_data = {
   "\107\126\141\162\151\141\156\164\000\000\000\000\000\000\000\000"
   "\030\000\000\000\344\000\000\000\000\000\000\050\007\000\000\000"
   "\000\000\000\000\001\000\000\000\003\000\000\000\004\000\000\000"
@@ -30,9 +19,9 @@ static const SECTION union { const guint8 data[5837]; const double alignment; vo
   "\001\000\114\000\164\007\000\000\170\007\000\000\232\166\370\170"
   "\006\000\000\000\170\007\000\000\015\000\166\000\210\007\000\000"
   "\116\014\000\000\076\077\246\020\006\000\000\000\116\014\000\000"
-  "\011\000\166\000\130\014\000\000\267\026\000\000\072\330\020\030"
-  "\002\000\000\000\267\026\000\000\006\000\114\000\300\026\000\000"
-  "\314\026\000\000\160\162\145\146\163\056\165\151\000\000\000\000"
+  "\011\000\166\000\130\014\000\000\266\026\000\000\072\330\020\030"
+  "\002\000\000\000\266\026\000\000\006\000\114\000\274\026\000\000"
+  "\310\026\000\000\160\162\145\146\163\056\165\151\000\000\000\000"
   "\135\006\000\000\000\000\000\000\074\077\170\155\154\040\166\145"
   "\162\163\151\157\156\075\042\061\056\060\042\040\145\156\143\157"
   "\144\151\156\147\075\042\125\124\106\055\070\042\077\076\012\074"
@@ -215,7 +204,7 @@ static const SECTION union { const guint8 data[5837]; const double alignment; vo
   "\040\040\040\040\074\057\163\145\143\164\151\157\156\076\012\040"
   "\040\074\057\155\145\156\165\076\012\074\057\151\156\164\145\162"
   "\146\141\143\145\076\012\000\000\050\165\165\141\171\051\167\151"
-  "\156\144\157\167\056\165\151\000\117\012\000\000\000\000\000\000"
+  "\156\144\157\167\056\165\151\000\116\012\000\000\000\000\000\000"
   "\074\077\170\155\154\040\166\145\162\163\151\157\156\075\042\061"
   "\056\060\042\040\145\156\143\157\144\151\156\147\075\042\125\124"
   "\106\055\070\042\077\076\012\074\151\156\164\145\162\146\141\143"
@@ -380,9 +369,9 @@ static const SECTION union { const guint8 data[5837]; const double alignment; vo
   "\011\011\011\011\074\057\143\150\151\154\144\076\012\011\011\011"
   "\074\057\157\142\152\145\143\164\076\012\011\011\074\057\143\150"
   "\151\154\144\076\012\011\074\057\164\145\155\160\154\141\164\145"
-  "\076\012\074\057\151\156\164\145\162\146\141\143\145\076\012\000"
-  "\000\050\165\165\141\171\051\154\151\164\157\163\057\000\000\000"
-  "\004\000\000\000\000\000\000\000\005\000\000\000" };
+  "\076\012\074\057\151\156\164\145\162\146\141\143\145\076\000\000"
+  "\050\165\165\141\171\051\154\151\164\157\163\057\004\000\000\000"
+  "\000\000\000\000\005\000\000\000" };
 
 static GStaticResource static_resource = { litos_resource_data.data, sizeof (litos_resource_data.data) - 1 /* nul terminator */, NULL, NULL, NULL };
 
