@@ -78,31 +78,35 @@ static void _buffer_monitor_change(GObject *gobject, GParamSpec *pspec, gpointer
 	g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]);
 }
 
-static void
-litos_file_dispose (GObject *object)
+void litos_file_reset_gfile(LitosFile *file)
 {
-	LitosFile *file = LITOS_FILE (object);
-
-	g_signal_handlers_disconnect_by_func(file->buffer, _buffer_monitor_change, file);
-
-	g_free (file->name);
-	
 	g_clear_object(&file->gfile);
-	
-	g_clear_object(&file->scrolled);	
-	
-	g_clear_object(&file->tabbox);	
-	
-	g_clear_object(&file->close_btn_box);
-	
-	g_clear_object(&file->view);
-	
-	g_clear_object(&file->lbl);
-
-	g_clear_object(&file->buffer);	
-
-	G_OBJECT_CLASS (litos_file_parent_class)->dispose (object);
 }
+
+static void
+litos_file_dispose(GObject *object)
+{
+    LitosFile *file = LITOS_FILE(object);
+
+    // Disconnette il segnale sul buffer (puoi farlo anche se buffer non è un GObject)
+    if (file->buffer)
+        g_signal_handlers_disconnect_by_func(file->buffer, _buffer_monitor_change, file);
+
+    // Libera la stringa del nome
+    g_free(file->name);
+    file->name = NULL;
+
+    // Rilascia l'oggetto GFile in modo sicuro
+    litos_file_reset_gfile(file);
+
+    // NOTA: Non fare g_object_unref su scrolled, tabbox, close_btn_box, view, lbl
+    // Sono gestiti automaticamente da GTK quando il widget viene distrutto.
+
+    // Chiamata al dispose della superclasse
+    G_OBJECT_CLASS(litos_file_parent_class)->dispose(object);
+}
+
+
 
 static void
 litos_file_set_property (GObject *object,
@@ -149,6 +153,10 @@ litos_file_get_property (GObject *object,
 static void
 litos_file_class_init (LitosFileClass *class)
 {
+
+	/*Nel sistema GObject, il metodo dispose non viene mai chiamato manualmente.
+	Viene invocato automaticamente dal sistema quando fai: g_object_unref(file); */
+
 	G_OBJECT_CLASS (class)->dispose = litos_file_dispose;
 	GObjectClass *object_class = G_OBJECT_CLASS (class);
 
@@ -202,11 +210,6 @@ gboolean litos_file_get_saved(LitosFile *file)
 	return file->saved;
 }
 
-void litos_file_reset_gfile(LitosFile *file)
-{
-	g_clear_object(&file->gfile);
-}
-
 GtkWidget * litos_file_get_tabbox(LitosFile *file)
 {
 	return file->tabbox;
@@ -225,42 +228,32 @@ void litos_file_set_unsaved(LitosFile *file)
 
 LitosFile *litos_file_set(struct Page *page)
 {
-    // Create a new LitosFile object
+    // Crea un nuovo oggetto LitosFile
     LitosFile *file = litos_file_new();
 
-    // Array of objects from the page structure that need to be referenced
-    GObject *objects[] = {(GObject *)page->gf, (GObject *)page->scrolled, (GObject *)page->tabbox, 
-                          (GObject *)page->close_btn_box, (GObject *)page->view, 
-                          (GObject *)page->lbl, (GObject *)page->buffer};
+    // Salva i puntatori (senza aumentare il refcount)
+    file->gfile         = page->gf;
+    file->scrolled      = page->scrolled;
+    file->tabbox        = page->tabbox;
+    file->close_btn_box = page->close_btn_box;
+    file->view          = page->view;
+    file->lbl           = page->lbl;
+    file->buffer        = page->buffer;
 
-    // Array of fields in the LitosFile structure where these objects will be assigned
-    GObject **fields[] = {
-        (GObject **)&file->gfile, 
-        (GObject **)&file->scrolled, 
-        (GObject **)&file->tabbox, 
-        (GObject **)&file->close_btn_box, 
-        (GObject **)&file->view, 
-        (GObject **)&file->lbl, 
-        (GObject **)&file->buffer
-    };
+    // Fai ref solo su gfile, se necessario
+    if (G_IS_OBJECT(file->gfile))
+        g_object_ref(file->gfile);
 
-    // Loop through the objects and assign them to the corresponding fields in the file structure
-    // Also, increment reference count for each object (g_object_ref)
-    for (int i = 0; i < 7; ++i) {
-        // Check if the object is not NULL before referencing
-        if (objects[i] != NULL) {
-            g_object_ref(objects[i]);  // Increment the reference count for the object
-            *fields[i] = objects[i];   // Assign the object to the corresponding field in the LitosFile struct
-        }
-    }
+    // Gli altri widget sono gestiti da GTK: non fare ref
+    // (GTK distrugge automaticamente i figli dei container)
 
-    // Assign the name from the page structure to the LitosFile object
-    file->name = page->name;
+    // Copia il nome del file, se presente
+    file->name = page->name ? g_strdup(page->name) : NULL;
 
-    // Connect a signal to monitor changes in the 'buffer' object (specifically its 'text' property)
-    g_signal_connect(file->buffer, "notify::text", G_CALLBACK(_buffer_monitor_change), file);
+    // Collega il segnale sul buffer, se è valido
+    if (GTK_IS_TEXT_BUFFER(file->buffer))
+        g_signal_connect(file->buffer, "notify::text", G_CALLBACK(_buffer_monitor_change), file);
 
-    // Return the populated LitosFile object
     return file;
 }
 
@@ -309,30 +302,34 @@ gboolean litos_file_load (LitosFile *file, GError **error)
 
 gboolean litos_file_save(LitosFile *file, GError **error)
 {
-	if (file->gfile != NULL)
-	{
-		char *contents;
-		GtkTextIter start_iter;
-		GtkTextIter end_iter;
+    if (file->gfile != NULL)
+    {
+        GtkTextIter start_iter;
+        GtkTextIter end_iter;
 
-		gtk_text_buffer_get_bounds(file->buffer, &start_iter, &end_iter);
-		contents = gtk_text_buffer_get_text(file->buffer, &start_iter, &end_iter, TRUE);
-		
-		if (!g_file_replace_contents(file->gfile, contents, strlen(contents), NULL, false, G_FILE_CREATE_NONE, NULL, NULL, error))
-		{
-			g_free(contents);
-			return FALSE;
-		}
+        gtk_text_buffer_get_bounds(file->buffer, &start_iter, &end_iter);
+        char *contents = gtk_text_buffer_get_text(file->buffer, &start_iter, &end_iter, TRUE);
 
-		else
-		{
-			file->saved = TRUE;
-			g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]);
-			g_free(contents);
-		}
-	}
+        gboolean success = g_file_replace_contents(file->gfile,
+                                                   contents,
+                                                   strlen(contents),
+                                                   NULL,
+                                                   FALSE,
+                                                   G_FILE_CREATE_NONE,
+                                                   NULL,
+                                                   NULL,
+                                                   error);
 
-	return TRUE;
+        g_free(contents);
+
+        if (!success)
+            return FALSE;
+
+        file->saved = TRUE;
+        g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
+    }
+
+    return TRUE;
 }
 
 void litos_file_save_as(LitosFile* file, GFile *new_file)

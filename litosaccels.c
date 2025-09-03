@@ -39,29 +39,35 @@ gboolean litos_app_check_duplicate(char *filename, LitosAppWindow *win);
 void set_search_entry(LitosAppWindow *win);
 
 static void
-open_cb (GtkWidget *dialog, gint response, gpointer window)
+file_dialog_open_cb(GObject *source_object, GAsyncResult *res, gpointer user_data)
 {
-	if (response == GTK_RESPONSE_ACCEPT)
-	{
-		GFile *gfile = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
+    GtkFileDialog *dialog = GTK_FILE_DIALOG(source_object);
+    GFile *gfile = gtk_file_dialog_open_finish(dialog, res, NULL);
+    LitosAppWindow *win = LITOS_APP_WINDOW(user_data);
 
-		LitosAppWindow *win = LITOS_APP_WINDOW(window);
+    if (gfile != NULL)
+    {
+        char *gfile_name = g_file_get_path(gfile);
 
-		if (gfile != NULL)
-		{
-			char *gfile_name = g_file_get_path(gfile);
+        if (gfile_name && !litos_app_check_duplicate(gfile_name, win))
+        {
+            litos_app_window_open(win, gfile);
+        }
 
-			if (!litos_app_check_duplicate(gfile_name,win))
-			{
-				LitosFile * file = litos_app_window_open(win, gfile);
-			}
+        g_free(gfile_name);
+        g_object_unref(gfile);
+    }
 
-			g_free(gfile_name);
-		}
-	}
-
-	gtk_window_destroy (GTK_WINDOW (dialog));
+    g_object_unref(dialog);
 }
+
+static void
+open_cb(GtkWidget *widget, gpointer user_data)
+{
+    GtkFileDialog *dialog = gtk_file_dialog_new();
+    gtk_file_dialog_open(dialog, GTK_WINDOW(user_data), NULL, file_dialog_open_cb, user_data);
+}
+
 
 static void
 esc_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
@@ -74,91 +80,66 @@ esc_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
 static void
 open_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
 {
-	GtkWidget *dialog;
+    GtkWindow *window = gtk_application_get_active_window(GTK_APPLICATION(app));
+    LitosAppWindow *win = LITOS_APP_WINDOW(window);
 
-	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
-	LitosAppWindow *win = LITOS_APP_WINDOW(window);
+    GtkFileDialog *dialog = gtk_file_dialog_new();
 
-	dialog = gtk_file_chooser_dialog_new ("Open File",
-		NULL,
-		GTK_FILE_CHOOSER_ACTION_OPEN,
-		"Cancel",
-		GTK_RESPONSE_CANCEL,
-		"Open",
-		GTK_RESPONSE_ACCEPT,
-		NULL);
+    // Imposta la cartella iniziale se disponibile
+    if (litos_app_window_get_array_len(win) != 0)
+    {
+        LitosFile *file = litos_app_window_current_file(win);
+        GFile *current_gfile = litos_file_get_gfile(file);
 
-	if (litos_app_window_get_array_len(win) != 0)
-	{
-		GError *error = NULL;
-		LitosFile *file = litos_app_window_current_file(win);
+        if (current_gfile != NULL)
+        {
+            GFile *parent = g_file_get_parent(current_gfile);
+            gtk_file_dialog_set_initial_folder(dialog, parent);
+            g_object_unref(parent);
+        }
+    }
 
-		if (litos_file_get_gfile(file) != NULL)
-		{
-			if (!gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_file_get_parent(litos_file_get_gfile(file)), &error))
-				litos_app_error_dialog(GTK_WINDOW(win), error, "Current Folder");
-		}
-	}
-
-	gtk_window_set_transient_for(GTK_WINDOW(dialog), window);
-
-	gtk_widget_show(dialog);
-
-	g_signal_connect (dialog, "response", G_CALLBACK (open_cb), window);
+    gtk_file_dialog_open(dialog, window, NULL, file_dialog_open_cb, win);
 }
 
+
 static void
-open_tmpl_cb (GtkWidget *dialog, gint response, gpointer window)
+open_tmpl_cb(GObject *source, GAsyncResult *res, gpointer user_data)
 {
-	if (response == GTK_RESPONSE_ACCEPT)
-	{
-		GFile *gfile = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
+    GtkFileDialog *dialog = GTK_FILE_DIALOG(source);
+    GFile *gfile = gtk_file_dialog_open_finish(dialog, res, NULL);
+    LitosAppWindow *win = LITOS_APP_WINDOW(user_data);
 
-		LitosAppWindow *win = LITOS_APP_WINDOW(window);
+    if (gfile != NULL)
+    {
+        LitosFile *file = litos_app_window_open(win, gfile);
+        litos_file_reset_gfile(file);  // evita sovrascrittura del template
+        g_object_unref(gfile);
+    }
 
-		if (gfile != NULL) /*gfile could be NULL in maybe some (unknown) edge case so you check gfile != NULL just in case so that it doesn't cause some error/crash */
-		{
-			LitosFile * file = litos_app_window_open(win, gfile);
-			litos_file_reset_gfile(file); /*we don't want to save over the template but on a new file */
-		}
-	}
-
-	gtk_window_destroy (GTK_WINDOW (dialog));
+    g_object_unref(dialog);
 }
 
 static void
-open_tmpl (GSimpleAction *action,
-           GVariant      *parameter,
-           gpointer       app)
+open_tmpl(GSimpleAction *action, GVariant *parameter, gpointer app)
 {
     GtkWindow *win = gtk_application_get_active_window(GTK_APPLICATION(app));
     if (!win) return;
 
-    GFile *gfile = g_file_new_for_path(g_get_user_special_dir(G_USER_DIRECTORY_TEMPLATES));
-    if (!gfile) {
+    GtkFileDialog *dialog = gtk_file_dialog_new();
+
+    // Imposta la cartella iniziale su "Templates"
+    const gchar *tmpl_path = g_get_user_special_dir(G_USER_DIRECTORY_TEMPLATES);
+    if (!tmpl_path) {
         g_warning("Impossibile ottenere la cartella Templates");
         return;
     }
 
-    GtkWidget *dialog = gtk_file_chooser_dialog_new("Open File",
-        GTK_WINDOW(win),
-        GTK_FILE_CHOOSER_ACTION_OPEN,
-        "Cancel", GTK_RESPONSE_CANCEL,
-        "Open", GTK_RESPONSE_ACCEPT,
-        NULL);
+    GFile *tmpl_folder = g_file_new_for_path(tmpl_path);
+    gtk_file_dialog_set_initial_folder(dialog, tmpl_folder);
+    g_object_unref(tmpl_folder);
 
-    GError *error = NULL;
-    if (!gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), gfile, &error)) {
-        litos_app_error_dialog(GTK_WINDOW(win), error, "Templates");
-        g_clear_error(&error);
-    }
-
-    gtk_window_set_transient_for(GTK_WINDOW(dialog), win);
-    gtk_widget_show(dialog);
-
-    g_signal_connect(dialog, "response", G_CALLBACK(open_tmpl_cb), win);
-
-    g_object_unref(gfile);
+    gtk_file_dialog_open(dialog, win, NULL, open_tmpl_cb, win);
 }
 
 
