@@ -220,6 +220,8 @@ litos_app_window_set_search_context(LitosAppWindow *win, const char *stringToSea
 
 	win->search_context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), settings);
 
+	g_object_unref(settings);
+
 	if (win->search_context == NULL)
 		return NULL;
 
