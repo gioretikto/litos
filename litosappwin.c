@@ -184,6 +184,23 @@ next_match(GtkWidget *close_btn, gpointer user_data)
 	}
 }
 
+static void update_occurrences_label(GtkSourceSearchContext *context,
+                                     GParamSpec *pspec,
+                                     LitosAppWindow *win)
+{
+    gint count = gtk_source_search_context_get_occurrences_count(context);
+
+    if (count >= 0) {
+        char buf[64];
+        g_snprintf(buf, sizeof(buf), "%d", count);
+        gtk_label_set_text(GTK_LABEL(win->lbl_number_occurences), buf);
+    } else {
+        // opzionale: mostra "..." finché il conteggio non è pronto
+        gtk_label_set_text(GTK_LABEL(win->lbl_number_occurences), "...");
+    }
+}
+
+
 static GtkSourceView *
 litos_app_window_set_search_context(LitosAppWindow *win, const char *stringToSearch)
 {
@@ -202,6 +219,14 @@ litos_app_window_set_search_context(LitosAppWindow *win, const char *stringToSea
 	gtk_source_search_settings_set_search_text (settings, stringToSearch);
 
 	win->search_context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), settings);
+
+	if (win->search_context == NULL)
+		return NULL;
+
+	g_signal_connect(win->search_context,
+		         "notify::occurrences-count",
+		         G_CALLBACK(update_occurrences_label),
+		         win);
 
 	return source_view;
 }
@@ -249,6 +274,8 @@ replace_btn_clicked (GtkButton *button, gpointer userData)
 		str
 	);
 }
+
+/* a word is entered or modified in the seach bar */
 
 static void
 search_text_changed (GtkEntry *entry,
