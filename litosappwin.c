@@ -482,41 +482,41 @@ litos_app_window_remove_page(LitosAppWindow *win, LitosFile *file)
 static void
 litos_app_window_saveornot_dialog_cb(GtkWidget *dialog, int response, gpointer window)
 {
-    GtkApplication *app = gtk_window_get_application(GTK_WINDOW(window));
-    LitosAppWindow *win = LITOS_APP_WINDOW(window);
-    LitosFile *file = litos_app_window_current_file(win);
+	GtkApplication *app = gtk_window_get_application(window);
 
-    switch (response)
-    {
-        case GTK_RESPONSE_ACCEPT:
-            litos_app_window_save(win, file);
-            litos_app_window_remove_page(win, file);
-            break;
+	LitosAppWindow *win = LITOS_APP_WINDOW(window);
 
-        case GTK_RESPONSE_CANCEL:
-            win->quit = FALSE;
-            break;
+	LitosFile *file = litos_app_window_current_file(win);
 
-        case GTK_RESPONSE_REJECT:
-		win->quit = TRUE;
-            litos_app_window_remove_page(win, file);
-            break;
+	switch (response)
+	{
+		case GTK_RESPONSE_ACCEPT:
+			litos_app_window_save(win,file);
+			litos_app_window_remove_page(win,file);
+			break;
 
-        default:
-            win->quit = FALSE;
-            g_print("The button(Close without Saving/Cancel/Save) was not pressed.");
-    }
+		case GTK_RESPONSE_CANCEL:
+			win->quit = FALSE;
+			break;
 
-    gtk_window_destroy(GTK_WINDOW(dialog));
+		case GTK_RESPONSE_REJECT:
+			litos_app_window_remove_page(win,file);
+			break;
+
+		default: /*close bottun was pressed*/
+			win->quit = FALSE;
+			g_print("The button(Close without Saving/Cancel/Save) was not pressed.");
+	}
+
+	gtk_window_destroy (GTK_WINDOW (dialog));
 
 	if (win->quit == TRUE)
 	{
-	    while (win->litosFileList->len > 0)
-		litos_app_window_remove_child(win);
-
-	    g_application_quit(G_APPLICATION(app));
+		if (win->litosFileList->len == 0)
+			g_application_quit (G_APPLICATION (app));
+		else
+			litos_app_window_remove_child(win);
 	}
-
 }
 
 
@@ -635,24 +635,21 @@ gboolean litos_app_window_quit(GtkWindow *window G_GNUC_UNUSED, gpointer user_da
     LitosAppWindow *win = LITOS_APP_WINDOW(user_data);
     GtkApplication *app = gtk_window_get_application(GTK_WINDOW(win));
 
-    if (litos_app_window_get_array_len(win) == 0)
-    {
+    if (litos_app_window_get_array_len(win) == 0) {
         g_application_quit(G_APPLICATION(app));
         return FALSE;
     }
 
     win->quit = TRUE;
 
-    while (win->quit == TRUE && litos_app_window_remove_child(win))
-        ;
-
-    if (litos_app_window_get_array_len(win) == 0)
-    {
-        g_application_quit(G_APPLICATION(app));
-        return FALSE;
+    // Inizia a chiudere un file per volta
+    if (!litos_app_window_remove_child(win)) {
+        // Se il file non è salvato, è stato aperto il dialog → aspetta callback
+        return TRUE;
     }
 
-    return TRUE;
+    // Se era già salvato, prova subito col prossimo
+    return litos_app_window_quit(NULL, win);
 }
 
 
