@@ -15,14 +15,9 @@
 #include "litosapp.h"
 #include "litosappprefs.h"
 #include "litosfile.h"
+#include "litosappwin.h"
 
-void setAccels (GApplication *app);
-LitosFile * litos_app_window_open(LitosAppWindow *win, GFile *gf);
-GFile *litos_file_get_gfile(LitosFile* file);
-
-guint litos_app_window_get_array_len(LitosAppWindow *win);
-LitosFile * litos_app_window_get_file(LitosAppWindow *win, int *i);
-GtkNotebook * litos_app_window_get_nb(LitosAppWindow *win);
+void litos_accels_setAccels (GApplication *app);
 
 struct _LitosApp
 {
@@ -35,30 +30,16 @@ struct _LitosApp
 
 G_DEFINE_TYPE(LitosApp, litos_app, GTK_TYPE_APPLICATION);
 
-static void
-litos_app_init (LitosApp *app)
+static void litos_app_init (LitosApp *app)
 {
 	app->settings = g_settings_new("org.gtk.litos");
 	app->css_provider = gtk_css_provider_new ();
 }
 
 static void
-preferences_activated (GSimpleAction *action,
-                       GVariant      *parameter,
-                       gpointer       app)
-{
-	LitosAppPrefs *prefs;
-	GtkWindow *win;
-
-	win = gtk_application_get_active_window (GTK_APPLICATION (app));
-	prefs = litos_app_prefs_new (LITOS_APP_WINDOW (win));
-	gtk_window_present (GTK_WINDOW (prefs));
-}
-
-static void
 litos_app_startup (GApplication *app)
 {
-	setAccels(app);
+	litos_accels_setAccels(app);
 
 	G_APPLICATION_CLASS (litos_app_parent_class)->startup (app);
 
@@ -115,11 +96,10 @@ static void
 litos_app_open (GApplication  *app,
                   GFile **files,
                   int            n_files,
-                  const char    *hint)
+                  const char    *hint G_GNUC_UNUSED)
 {
 	GList *windows;
 	LitosAppWindow *win;
-	GError *error = NULL;
 	int i;
 
 	windows = gtk_application_get_windows (GTK_APPLICATION (app));
@@ -137,7 +117,7 @@ litos_app_open (GApplication  *app,
 
 			if (!litos_app_check_duplicate(filename,win))
 			{
-				LitosFile *litos_file = litos_app_window_open(win,files[i]);
+				litos_app_window_open(win,files[i]);
 			}
 
 			g_free(filename);

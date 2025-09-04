@@ -14,32 +14,11 @@
 #include "litosapp.h"
 #include "litosappprefs.h"
 #include "litosfile.h"
-
-gboolean litos_file_load (GFile *file, GtkTextBuffer *buffer, GError **error);
-void litos_file_highlight_buffer(LitosFile *file);
-GtkTextBuffer *litos_file_get_buffer(LitosFile *file);
-GFile *litos_file_get_gfile(LitosFile* file);
-void litos_file_reset_gfile(LitosFile *file);
-gchar *litos_file_get_name(LitosFile *file);
-
-gboolean litos_app_window_remove_child(LitosAppWindow *win);
-void litos_app_window_save(LitosAppWindow *win, LitosFile *file);
-void litos_app_window_save_as(LitosAppWindow *app);
-LitosFile * litos_app_window_open(LitosAppWindow *win, GFile *gf);
-LitosFile * litos_app_window_current_file(LitosAppWindow *win);
-LitosFile * litos_app_window_new_file(LitosAppWindow *win);
-guint litos_app_window_get_array_len(LitosAppWindow *win);
-gboolean litos_app_window_quit (GtkWindow *window, gpointer user_data);
-void ctrl_f(LitosAppWindow *win);
-void Esc(LitosAppWindow *win);
-
-void litos_app_error_dialog(GtkWindow *window, GError *error, char *filename);
+#include "litosappwin.h"
 
 gboolean litos_app_check_duplicate(char *filename, LitosAppWindow *win);
-void set_search_entry(LitosAppWindow *win);
 
-static void
-file_dialog_open_cb(GObject *source_object, GAsyncResult *res, gpointer user_data)
+static void litos_accels_open_dialog_cb(GObject *source_object, GAsyncResult *res, gpointer user_data)
 {
     GtkFileDialog *dialog = GTK_FILE_DIALOG(source_object);
     GFile *gfile = gtk_file_dialog_open_finish(dialog, res, NULL);
@@ -61,16 +40,14 @@ file_dialog_open_cb(GObject *source_object, GAsyncResult *res, gpointer user_dat
     g_object_unref(dialog);
 }
 
-static void
-esc_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
+static void litos_accels_esc_activated(GSimpleAction *action G_GNUC_UNUSED, GVariant *parameter G_GNUC_UNUSED, gpointer app)
 {
 	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
 	LitosAppWindow *win = LITOS_APP_WINDOW(window);
-	Esc(win);
+	litos_app_window_Esc(win);
 }
 
-static void
-open_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
+static void litos_accels_open_activated(GSimpleAction *action G_GNUC_UNUSED, GVariant *parameter G_GNUC_UNUSED, gpointer app)
 {
 	GtkWindow *window = gtk_application_get_active_window(GTK_APPLICATION(app));
 	LitosAppWindow *win = LITOS_APP_WINDOW(window);
@@ -92,12 +69,11 @@ open_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
 
 	}
 
-	gtk_file_dialog_open(dialog, window, NULL, file_dialog_open_cb, win);
+	gtk_file_dialog_open(dialog, window, NULL, litos_accels_open_dialog_cb, win);
 }
 
 
-static void
-open_tmpl_cb(GObject *source, GAsyncResult *res, gpointer user_data)
+static void litos_accels_open_tmpl_cb(GObject *source, GAsyncResult *res, gpointer user_data)
 {
 	GtkFileDialog *dialog = GTK_FILE_DIALOG(source);
 	GFile *gfile = gtk_file_dialog_open_finish(dialog, res, NULL);
@@ -113,8 +89,7 @@ open_tmpl_cb(GObject *source, GAsyncResult *res, gpointer user_data)
 	g_object_unref(dialog);
 }
 
-static void
-open_tmpl(GSimpleAction *action, GVariant *parameter, gpointer app)
+static void litos_accels_open_tmpl(GSimpleAction *action G_GNUC_UNUSED, GVariant *parameter G_GNUC_UNUSED, gpointer app)
 {
     GtkWindow *win = gtk_application_get_active_window(GTK_APPLICATION(app));
     if (!win) return;
@@ -132,12 +107,11 @@ open_tmpl(GSimpleAction *action, GVariant *parameter, gpointer app)
     gtk_file_dialog_set_initial_folder(dialog, tmpl_folder);
     g_object_unref(tmpl_folder);
 
-    gtk_file_dialog_open(dialog, win, NULL, open_tmpl_cb, win);
+    gtk_file_dialog_open(dialog, win, NULL, litos_accels_open_tmpl_cb, win);
 }
 
 
-static void
-save(GSimpleAction *action, GVariant *parameter, gpointer app)
+static void litos_accels_save(GSimpleAction *action G_GNUC_UNUSED, GVariant *parameter G_GNUC_UNUSED, gpointer app)
 {
 	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
 	LitosAppWindow *win = LITOS_APP_WINDOW(window);
@@ -146,36 +120,20 @@ save(GSimpleAction *action, GVariant *parameter, gpointer app)
 	litos_app_window_save(win, file);
 }
 
-static void
-save_as_dialog (GSimpleAction *action, GVariant *parameter, gpointer app)
+static void litos_accels_save_as_dialog (GSimpleAction *action G_GNUC_UNUSED, GVariant *parameter G_GNUC_UNUSED, gpointer app)
 {
 	GtkWindow *win = gtk_application_get_active_window (GTK_APPLICATION (app));
 	litos_app_window_save_as(LITOS_APP_WINDOW(win));
 }
 
-static void
-preferences_activated (GSimpleAction *action,
-                       GVariant      *parameter,
-                       gpointer       app)
-{
-	LitosAppPrefs *prefs;
-	GtkWindow *win;
-
-	win = gtk_application_get_active_window (GTK_APPLICATION (app));
-	prefs = litos_app_prefs_new (LITOS_APP_WINDOW (win));
-	gtk_window_present (GTK_WINDOW (prefs));
-}
-
-static void
-close_activated (GSimpleAction *action, GVariant *parameter, gpointer app)
+static void litos_accels_close_activated (GSimpleAction *action G_GNUC_UNUSED, GVariant *parameter G_GNUC_UNUSED, gpointer app)
 {
 	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
 	LitosAppWindow *win = LITOS_APP_WINDOW(window);
 	litos_app_window_remove_child(win);
 }
 
-static void
-quit_activated (GSimpleAction *action, GVariant *parameter, gpointer app)
+static void litos_accels_quit_activated (GSimpleAction *action G_GNUC_UNUSED, GVariant *parameter G_GNUC_UNUSED, gpointer app)
 {
 	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
 	LitosAppWindow *win = LITOS_APP_WINDOW(window);
@@ -183,19 +141,15 @@ quit_activated (GSimpleAction *action, GVariant *parameter, gpointer app)
 	litos_app_window_quit(window, win);
 }
 
-static void
-new_file (GSimpleAction *action,
-                GVariant *parameter,
-                gpointer app)
+static void litos_accels_new_file (GSimpleAction *action G_GNUC_UNUSED, GVariant *parameter G_GNUC_UNUSED, gpointer app)
 {
 	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
 	LitosAppWindow *win = LITOS_APP_WINDOW(window);
-	LitosFile * file = litos_app_window_new_file(win);
+	litos_app_window_new_file(win);
 }
 
 /* Used to inser characters like ⟶⟼⇒ and the like */
-static void
-insertChar (GSimpleAction *action, GVariant *parameter, gpointer app)
+static void litos_accels_insertChar (GSimpleAction *action G_GNUC_UNUSED, GVariant *parameter, gpointer app)
 {
 	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
 	if (!window) return;
@@ -220,8 +174,7 @@ insertChar (GSimpleAction *action, GVariant *parameter, gpointer app)
 
 
 /* Called when Ctrl+B, Ctrl+i, etc is toggled */
-static void
-insertHtmlTags (GSimpleAction *action, GVariant *parameter, gpointer app)
+static void litos_accels_insertHtmlTags (GSimpleAction *action G_GNUC_UNUSED, GVariant *parameter, gpointer app)
 {
 	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
 	if (!window) return;
@@ -266,34 +219,33 @@ insertHtmlTags (GSimpleAction *action, GVariant *parameter, gpointer app)
 }
 
 static void
-find_selection (GSimpleAction *action, GVariant *parameter, gpointer app)
+litos_accels_find_selection (GSimpleAction *action G_GNUC_UNUSED, GVariant *parameter G_GNUC_UNUSED, gpointer app)
 {
 	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
 
 	LitosAppWindow *win = LITOS_APP_WINDOW(window);
 
 	if (litos_app_window_get_array_len(win) != 0)
-		ctrl_f(win);
+		litos_app_window_ctrl_f(win);
 }
 
-void setAccels (GApplication *app)
+void litos_accels_setAccels (GApplication *app)
 {
 	long unsigned int i;
 
 	/* map actions to callbacks */
 	const GActionEntry app_entries[] = {
-		{"preferences", preferences_activated, NULL, NULL, NULL },
-		{"insert_html", insertHtmlTags, "s", NULL, NULL, {0,0,0}},
-		{"insert_char", insertChar, "s", NULL, NULL, {0,0,0}},
-		{"open", open_activated, NULL, NULL, NULL},
-		{"esc", esc_activated, NULL, NULL, NULL},
-		{"open_tmpl", open_tmpl, NULL, NULL, NULL},
-		{"new", new_file, NULL, NULL, NULL},
-		{"save", save, NULL, NULL, NULL, {0,0,0}},
-		{"save_as", save_as_dialog, NULL, NULL, NULL, {0,0,0}},
-		{"close", close_activated, NULL, NULL, NULL},
-		{"find", find_selection, NULL, NULL, NULL, {0,0,0}},
-		{"quit", quit_activated, NULL, NULL, NULL }
+	    {"insert_html", litos_accels_insertHtmlTags, "s", NULL, NULL, {0}},
+	    {"insert_char", litos_accels_insertChar, "s", NULL, NULL, {0}},
+	    {"open", litos_accels_open_activated, NULL, NULL, NULL, {0}},
+	    {"esc", litos_accels_esc_activated, NULL, NULL, NULL, {0}},
+	    {"open_tmpl", litos_accels_open_tmpl, NULL, NULL, NULL, {0}},
+	    {"new", litos_accels_new_file, NULL, NULL, NULL, {0}},
+	    {"save", litos_accels_save, NULL, NULL, NULL, {0}},
+	    {"save_as", litos_accels_save_as_dialog, NULL, NULL, NULL, {0}},
+	    {"close", litos_accels_close_activated, NULL, NULL, NULL, {0}},
+	    {"find", litos_accels_find_selection, NULL, NULL, NULL, {0}},
+	    {"quit", litos_accels_quit_activated, NULL, NULL, NULL, {0}}
 	};
 
 	/* define keyboard accelerators*/

@@ -12,8 +12,24 @@
 #ifndef __LITOSAPPWIN_H
 #define __LITOSAPPWIN_H
 
-#include <gtk/gtk.h>
-#include "litosapp.h"
+//Forward declarations
+typedef struct _LitosAppWindow LitosAppWindow;
+typedef struct _LitosFile LitosFile;
+typedef struct _LitosApp LitosApp;
+
+void litos_app_window_ctrl_f(LitosAppWindow *win);
+LitosFile * litos_app_window_current_file(LitosAppWindow *win);
+void litos_app_window_Esc(LitosAppWindow *win);
+guint litos_app_window_get_array_len(LitosAppWindow *win);
+LitosFile * litos_app_window_get_file(LitosAppWindow *win, int *i);
+GtkNotebook * litos_app_window_get_nb(LitosAppWindow *win);
+LitosFile * litos_app_window_open(LitosAppWindow *win, GFile *gf);
+void litos_app_window_new_file(LitosAppWindow *win);
+gboolean litos_app_window_save(LitosAppWindow *win, LitosFile *file);
+void litos_app_window_save_as(LitosAppWindow *app);
+gboolean litos_app_window_quit (GtkWindow *window, gpointer user_data);
+gboolean litos_app_window_remove_child(LitosAppWindow *win);
+void litos_app_window_update_font();
 
 #define LITOS_APP_WINDOW_TYPE (litos_app_window_get_type ())
 G_DECLARE_FINAL_TYPE (LitosAppWindow, litos_app_window, LITOS, APP_WINDOW, GtkApplicationWindow)

@@ -15,7 +15,6 @@
 #include "litosappwin.h"
 #include "litosappprefs.h"
 
-void litos_app_window_update_font ();
 GSettings *litos_app_get_settings(LitosApp *app);
 
 struct _LitosAppPrefs
@@ -27,10 +26,7 @@ struct _LitosAppPrefs
 
 G_DEFINE_TYPE (LitosAppPrefs, litos_app_prefs, GTK_TYPE_DIALOG)
 
-static gboolean
-string_to_font_desc (GValue   *value,
-                     GVariant *variant,
-                     gpointer  user_data)
+static gboolean string_to_font_desc (GValue *value,  GVariant *variant, gpointer  user_data G_GNUC_UNUSED)
 {
 	const char *s = g_variant_get_string (variant, NULL);
 	PangoFontDescription *desc;
@@ -43,26 +39,12 @@ string_to_font_desc (GValue   *value,
 
 static GVariant *
 font_desc_to_string (const GValue       *value,
-                     const GVariantType *expected_type,
-                     gpointer            user_data)
+                     const GVariantType *expected_type G_GNUC_UNUSED,
+                     gpointer            user_data G_GNUC_UNUSED)
 {
 	PangoFontDescription *desc = g_value_get_boxed (value);
 	char *s = pango_font_description_to_string (desc);
 	return g_variant_new_take_string (s);
-}
-
-static GVariant *
-pos_to_transition (const GValue       *value,
-                   const GVariantType *expected_type,
-                   gpointer            user_data)
-{
-	switch (g_value_get_uint (value))
-	{
-		case 0: return g_variant_new_string ("none");
-		case 1: return g_variant_new_string ("crossfade");
-		case 2: return g_variant_new_string ("slide-left-right");
-		default: g_assert_not_reached ();
-	}
 }
 
 void _application_set_font(LitosAppPrefs *prefs)
@@ -90,10 +72,6 @@ litos_app_prefs_init (LitosAppPrefs *prefs)
 static void
 litos_app_prefs_dispose (GObject *object)
 {
-	LitosAppPrefs *prefs;
-
-	prefs = LITOS_APP_PREFS (object);
-
 	G_OBJECT_CLASS (litos_app_prefs_parent_class)->dispose (object);
 }
 

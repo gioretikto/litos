@@ -16,7 +16,23 @@ G_BEGIN_DECLS
 
 #define LITOS_TYPE_FILE (litos_file_get_type ())
 
-#include "litosappwin.h"
+// forward declarations
+typedef struct _LitosFile LitosFile;
+struct Page;
+
+gboolean litos_file_load (LitosFile *file, GError **error);
+gboolean litos_file_save(LitosFile *file, GError **error);
+void litos_file_save_as(LitosFile* file, GFile *new_file);
+GtkTextBuffer *litos_file_get_buffer(LitosFile *file);
+GFile *litos_file_get_gfile(LitosFile* file);
+GtkWidget * litos_file_get_lbl(LitosFile *file);
+gchar *litos_file_get_name(LitosFile *file);
+gboolean litos_file_get_saved(LitosFile *file);
+GtkWidget * litos_file_get_tabbox(LitosFile *file);
+GtkWidget * litos_file_get_view(LitosFile *file);
+void litos_file_highlight_buffer(LitosFile *file);
+void litos_file_reset_gfile(LitosFile *file);
+LitosFile * litos_file_set(struct Page *page);
 
 G_DECLARE_FINAL_TYPE(LitosFile, litos_file, LITOS, FILE, GObject)
 

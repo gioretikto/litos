@@ -13,7 +13,7 @@
 				<child type="end">
 					<object class="GtkButton" id="about_btn">
 						<property name="icon-name">help-about</property>
-						<signal name="clicked" handler="about_dialog"/>
+						<signal name="clicked" handler="litos_app_window_about_dialog"/>
 					</object>
 				</child>
 				<child type="start">
@@ -36,7 +36,7 @@
 								<property name="orientation">horizontal</property>
 								<child>
 									<object class="GtkSearchEntry" id="search_entry">
-										<signal name="search-changed" handler="search_text_changed"/>
+										<signal name="search-changed" handler="litos_app_window_search_text_changed"/>
 									</object>
 								</child>
 								<child type="end">

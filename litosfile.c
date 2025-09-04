@@ -14,8 +14,7 @@
 
 #include "litosfile.h"
 #include "page.h"
-
-void litos_file_set_unsaved(LitosFile *file);
+#include "litosappwin.h"
 
 struct _LitosFile
 {
@@ -71,7 +70,13 @@ typedef enum
 
 static GParamSpec *obj_properties[N_PROPERTIES] = { NULL, };
 
-static void _buffer_monitor_change(GObject *gobject, GParamSpec *pspec, gpointer userdata)
+void litos_file_set_unsaved(LitosFile *file)
+{
+	file->saved = FALSE;
+	g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]);
+}
+
+static void _buffer_monitor_change(GObject *gobject G_GNUC_UNUSED, GParamSpec *pspec G_GNUC_UNUSED, gpointer userdata)
 {
 	LitosFile *file = LITOS_FILE(userdata);
 	litos_file_set_unsaved(file);
@@ -105,8 +110,6 @@ litos_file_dispose(GObject *object)
     // Chiamata al dispose della superclasse
     G_OBJECT_CLASS(litos_file_parent_class)->dispose(object);
 }
-
-
 
 static void
 litos_file_set_property (GObject *object,
@@ -218,12 +221,6 @@ GtkWidget * litos_file_get_tabbox(LitosFile *file)
 void litos_file_set_saved(LitosFile *file)
 {
 	file->saved = TRUE;
-}
-
-void litos_file_set_unsaved(LitosFile *file)
-{
-	file->saved = FALSE;
-	g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]);
 }
 
 LitosFile *litos_file_set(struct Page *page)

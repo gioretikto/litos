@@ -41,5 +41,3 @@ GtkWidget* MyNewSourceview()
 
 	return source_view;
 }
-
-
