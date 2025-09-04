@@ -607,24 +607,28 @@ litos_app_window_saveornot_dialog(LitosAppWindow *win, LitosFile *file)
 
 gboolean litos_app_window_remove_child(LitosAppWindow *win)
 {
-	GtkWidget *tabbox = gtk_notebook_get_nth_page (win->notebook, gtk_notebook_get_current_page ((win->notebook)));
+    GtkWidget *tabbox = gtk_notebook_get_nth_page(win->notebook, gtk_notebook_get_current_page(win->notebook));
 
-	if (tabbox != NULL)
-	{
-		LitosFile *file = litos_app_window_current_file(win);
+    if (tabbox != NULL)
+    {
+        LitosFile *file = litos_app_window_current_file(win);
 
-		if (litos_file_get_saved(file))
-		{
-			litos_app_window_remove_page(win,file);
-			return TRUE;
-		}
+        if (litos_file_get_saved(file))
+        {
+            litos_app_window_remove_page(win, file);
+            return TRUE;
+        }
+        else
+        {
+            // Mostra la finestra di dialogo e ritorna FALSE per interrompere il ciclo
+            litos_app_window_saveornot_dialog(win, file);
+            return FALSE;
+        }
+    }
 
-		else
-			litos_app_window_saveornot_dialog(win, file);
-	}
-
-	return FALSE;	
+    return FALSE;
 }
+
 
 gboolean litos_app_window_quit(GtkWindow *window G_GNUC_UNUSED, gpointer user_data)
 {
