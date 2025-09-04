@@ -62,14 +62,6 @@ file_dialog_open_cb(GObject *source_object, GAsyncResult *res, gpointer user_dat
 }
 
 static void
-open_cb(GtkWidget *widget, gpointer user_data)
-{
-    GtkFileDialog *dialog = gtk_file_dialog_new();
-    gtk_file_dialog_open(dialog, GTK_WINDOW(user_data), NULL, file_dialog_open_cb, user_data);
-}
-
-
-static void
 esc_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
 {
 	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
@@ -80,44 +72,45 @@ esc_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
 static void
 open_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
 {
-    GtkWindow *window = gtk_application_get_active_window(GTK_APPLICATION(app));
-    LitosAppWindow *win = LITOS_APP_WINDOW(window);
+	GtkWindow *window = gtk_application_get_active_window(GTK_APPLICATION(app));
+	LitosAppWindow *win = LITOS_APP_WINDOW(window);
 
-    GtkFileDialog *dialog = gtk_file_dialog_new();
+	GtkFileDialog *dialog = gtk_file_dialog_new();
 
-    // Imposta la cartella iniziale se disponibile
-    if (litos_app_window_get_array_len(win) != 0)
-    {
-        LitosFile *file = litos_app_window_current_file(win);
-        GFile *current_gfile = litos_file_get_gfile(file);
+	// Imposta la cartella iniziale se disponibile
+	if (litos_app_window_get_array_len(win) != 0)
+	{
+		LitosFile *file = litos_app_window_current_file(win);
+		GFile *current_gfile = litos_file_get_gfile(file);
 
-        if (current_gfile != NULL)
-        {
-            GFile *parent = g_file_get_parent(current_gfile);
-            gtk_file_dialog_set_initial_folder(dialog, parent);
-            g_object_unref(parent);
-        }
-    }
+		if (current_gfile != NULL)
+		{
+			GFile *parent = g_file_get_parent(current_gfile);
+			gtk_file_dialog_set_initial_folder(dialog, parent);
+			g_object_unref(parent);
+		}
 
-    gtk_file_dialog_open(dialog, window, NULL, file_dialog_open_cb, win);
+	}
+
+	gtk_file_dialog_open(dialog, window, NULL, file_dialog_open_cb, win);
 }
 
 
 static void
 open_tmpl_cb(GObject *source, GAsyncResult *res, gpointer user_data)
 {
-    GtkFileDialog *dialog = GTK_FILE_DIALOG(source);
-    GFile *gfile = gtk_file_dialog_open_finish(dialog, res, NULL);
-    LitosAppWindow *win = LITOS_APP_WINDOW(user_data);
+	GtkFileDialog *dialog = GTK_FILE_DIALOG(source);
+	GFile *gfile = gtk_file_dialog_open_finish(dialog, res, NULL);
+	LitosAppWindow *win = LITOS_APP_WINDOW(user_data);
 
-    if (gfile != NULL)
-    {
-        LitosFile *file = litos_app_window_open(win, gfile);
-        litos_file_reset_gfile(file);  // evita sovrascrittura del template
-        g_object_unref(gfile);
-    }
+	if (gfile != NULL)
+	{
+		LitosFile *file = litos_app_window_open(win, gfile);
+		litos_file_reset_gfile(file);  // evita sovrascrittura del template
+		g_object_unref(gfile);
+	}
 
-    g_object_unref(dialog);
+	g_object_unref(dialog);
 }
 
 static void
@@ -177,9 +170,7 @@ static void
 close_activated (GSimpleAction *action, GVariant *parameter, gpointer app)
 {
 	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
-
 	LitosAppWindow *win = LITOS_APP_WINDOW(window);
-
 	litos_app_window_remove_child(win);
 }
 
@@ -206,25 +197,25 @@ new_file (GSimpleAction *action,
 static void
 insertChar (GSimpleAction *action, GVariant *parameter, gpointer app)
 {
-    GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
-    if (!window) return;
+	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
+	if (!window) return;
 
-    LitosAppWindow *win = LITOS_APP_WINDOW(window);
-    if (!win) return;
+	LitosAppWindow *win = LITOS_APP_WINDOW(window);
+	if (!win) return;
 
-    LitosFile *file = litos_app_window_current_file(win);
-    if (!file) return;
+	LitosFile *file = litos_app_window_current_file(win);
+	if (!file) return;
 
-    GtkTextBuffer *buffer = litos_file_get_buffer(file);
-    if (!buffer) return;
+	GtkTextBuffer *buffer = litos_file_get_buffer(file);
+	if (!buffer) return;
 
-    gchar *insertChar = NULL;
-    g_variant_get(parameter, "s", &insertChar);
-    if (!insertChar) return;
+	gchar *insertChar = NULL;
+	g_variant_get(parameter, "s", &insertChar);
+	if (!insertChar) return;
 
-    gtk_text_buffer_insert_at_cursor(buffer, insertChar, -1); // -1 = lunghezza automatica
+	gtk_text_buffer_insert_at_cursor(buffer, insertChar, -1); // -1 = lunghezza automatica
 
-    g_free(insertChar);
+	g_free(insertChar);
 }
 
 
@@ -232,45 +223,46 @@ insertChar (GSimpleAction *action, GVariant *parameter, gpointer app)
 static void
 insertHtmlTags (GSimpleAction *action, GVariant *parameter, gpointer app)
 {
-    GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
-    if (!window) return;
+	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
+	if (!window) return;
 
-    LitosAppWindow *win = LITOS_APP_WINDOW(window);
-    if (!win) return;
+	LitosAppWindow *win = LITOS_APP_WINDOW(window);
+	if (!win) return;
 
-    LitosFile *file = litos_app_window_current_file(win);
-    if (!file) return;
+	LitosFile *file = litos_app_window_current_file(win);
+	if (!file) return;
 
-    GtkTextBuffer *buffer = litos_file_get_buffer(file);
-    if (!buffer) return;
+	GtkTextBuffer *buffer = litos_file_get_buffer(file);
+	if (!buffer) return;
 
-    gchar *tag = NULL;
-    g_variant_get(parameter, "s", &tag);
-    if (!tag) return;
+	gchar *tag = NULL;
+	g_variant_get(parameter, "s", &tag);
+	if (!tag) return;
 
-    GtkTextIter start_sel, end_sel;
+	GtkTextIter start_sel, end_sel;
 
-    if (gtk_text_buffer_get_selection_bounds(buffer, &start_sel, &end_sel))
-    {
-        gchar *selected_text = gtk_text_buffer_get_text(buffer, &start_sel, &end_sel, FALSE);
-        if (selected_text)
-        {
-            gchar *wrapped_text = g_strdup_printf(tag, selected_text);
-            gtk_text_buffer_delete(buffer, &start_sel, &end_sel);
-            gtk_text_buffer_insert(buffer, &start_sel, wrapped_text, -1);
-            g_free(wrapped_text);
-            g_free(selected_text);
-        }
-    }
-    else
-    {
-        // Inserisce solo il tag di chiusura, es: </b>
-        gchar *closing_tag = g_strdup_printf("</%c>", tag[1]);
-        gtk_text_buffer_insert_at_cursor(buffer, closing_tag, -1);
-        g_free(closing_tag);
-    }
+	if (gtk_text_buffer_get_selection_bounds(buffer, &start_sel, &end_sel))
+	{
+		gchar *selected_text = gtk_text_buffer_get_text(buffer, &start_sel, &end_sel, FALSE);
+		if (selected_text)
+		{
+			gchar *wrapped_text = g_strdup_printf(tag, selected_text);
+			gtk_text_buffer_delete(buffer, &start_sel, &end_sel);
+			gtk_text_buffer_insert(buffer, &start_sel, wrapped_text, -1);
+			g_free(wrapped_text);
+			g_free(selected_text);
+		}
+	}
 
-    g_free(tag);
+	else
+	{
+		// Inserisce solo il tag di chiusura, es: </b>
+		gchar *closing_tag = g_strdup_printf("</%c>", tag[1]);
+		gtk_text_buffer_insert_at_cursor(buffer, closing_tag, -1);
+		g_free(closing_tag);
+	}
+
+	g_free(tag);
 }
 
 static void

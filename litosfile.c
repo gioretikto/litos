@@ -338,7 +338,10 @@ void litos_file_save_as(LitosFile* file, GFile *new_file)
 
 	g_free (file->name);
 
-	file->name = g_file_get_basename(new_file);
+	if (new_file != NULL)
+		file->name = g_file_get_basename(new_file);
+	else
+		file->name = NULL;
 
 	litos_file_save(file, NULL);
 }
