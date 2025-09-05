@@ -23,6 +23,7 @@ void litos_app_window_Esc(LitosAppWindow *win);
 guint litos_app_window_get_array_len(LitosAppWindow *win);
 LitosFile * litos_app_window_get_file(LitosAppWindow *win, int *i);
 GtkNotebook * litos_app_window_get_nb(LitosAppWindow *win);
+void litos_app_window_initialize_star_if_needed(LitosFile *file);
 LitosFile * litos_app_window_open(LitosAppWindow *win, GFile *gf);
 void litos_app_window_new_file(LitosAppWindow *win);
 gboolean litos_app_window_save(LitosAppWindow *win, LitosFile *file);

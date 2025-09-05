@@ -18,6 +18,7 @@
 #include "litosappwin.h"
 
 void litos_accels_setAccels (GApplication *app);
+void litos_app_window_open_favorites(LitosAppWindow *win);
 
 struct _LitosApp
 {
@@ -58,6 +59,8 @@ litos_app_activate (GApplication *app)
 	gtk_window_set_title (window, "Litos");
 	gtk_window_maximize (window);
 	gtk_window_present (window);
+
+	litos_app_window_open_favorites(win);
 }
 
 gboolean litos_app_check_duplicate(char *filename, LitosAppWindow *win)
@@ -94,40 +97,42 @@ gboolean litos_app_check_duplicate(char *filename, LitosAppWindow *win)
 
 static void
 litos_app_open (GApplication  *app,
-                  GFile **files,
-                  int            n_files,
-                  const char    *hint G_GNUC_UNUSED)
+                GFile        **files,
+                int            n_files,
+                const char    *hint G_GNUC_UNUSED)
 {
-	GList *windows;
-	LitosAppWindow *win;
-	int i;
+    GList *windows;
+    LitosAppWindow *win;
+    int i;
 
-	windows = gtk_application_get_windows (GTK_APPLICATION (app));
+    windows = gtk_application_get_windows (GTK_APPLICATION (app));
 
-	if (windows)
-		win = LITOS_APP_WINDOW (windows->data);
-	else
-		win = litos_app_window_new (LITOS_APP (app));
+    if (windows)
+        win = LITOS_APP_WINDOW (windows->data);
+    else
+        win = litos_app_window_new (LITOS_APP (app));
 
-	for (i = 0; i < n_files; i++)
-	{
-		if (files[i] != NULL)
-		{
-			char *filename = g_file_get_path(files[i]);
+    // 🔹 Apri i file passati da riga di comando
+    for (i = 0; i < n_files; i++) {
+        if (files[i] != NULL) {
+            char *filename = g_file_get_path(files[i]);
 
-			if (!litos_app_check_duplicate(filename,win))
-			{
-				litos_app_window_open(win,files[i]);
-			}
+            if (!litos_app_check_duplicate(filename, win)) {
+                litos_app_window_open(win, files[i]);
+            }
 
-			g_free(filename);
-		}
-	}
+            g_free(filename);
+        }
+    }
 
-	gtk_window_set_title (GTK_WINDOW(win), "Litos");
-	gtk_window_maximize (GTK_WINDOW(win));
-	gtk_window_present (GTK_WINDOW(win));
+    // Apri i file preferiti salvati in GSettings
+    litos_app_window_open_favorites(win);
+
+    gtk_window_set_title(GTK_WINDOW(win), "Litos");
+    gtk_window_maximize(GTK_WINDOW(win));
+    gtk_window_present(GTK_WINDOW(win));
 }
+
 
 static void
 litos_app_class_init (LitosAppClass *class)

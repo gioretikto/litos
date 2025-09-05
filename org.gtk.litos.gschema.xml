@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
   <schema path="/org/gtk/litos/" id="org.gtk.litos">
     <key name="font" type="s">
@@ -6,6 +5,7 @@
       <summary>Font</summary>
       <description>The font to be used for content.</description>
     </key>
+
     <key name="transition" type="s">
       <choices>
         <choice value='none'/>
@@ -16,5 +16,12 @@
       <summary>Transition</summary>
       <description>The transition to use when switching tabs.</description>
     </key>
+
+    <key name="favorite-files" type="as">
+      <default>[]</default>
+      <summary>File preferiti</summary>
+      <description>Contiene gli URI dei file contrassegnati come preferiti dall'utente.</description>
+    </key>
   </schema>
 </schemalist>
+

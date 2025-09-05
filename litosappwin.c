@@ -95,8 +95,7 @@ LitosFile * litos_app_window_current_file(LitosAppWindow *win)
 		return g_ptr_array_index(win->litosFileList, index);
 }
 
-static
-GtkSourceView* currentTabSourceView(LitosAppWindow *win)
+static GtkSourceView* litos_app_window_current_tab_sourceView(LitosAppWindow *win)
 {
 	LitosFile *file = litos_app_window_current_file(win);
 
@@ -114,7 +113,7 @@ static void litos_app_window_prev_match(GtkWidget *close_btn G_GNUC_UNUSED, gpoi
 		GtkTextIter selection_begin, selection_end;
 		GtkTextIter match_start, match_end;
 
-		GtkSourceView *view = currentTabSourceView(win);
+		GtkSourceView *view = litos_app_window_current_tab_sourceView(win);
 
 		buffer = gtk_source_search_context_get_buffer (win->search_context);
 
@@ -145,7 +144,7 @@ static void litos_app_window_next_match(GtkWidget *close_btn G_GNUC_UNUSED, gpoi
 		GtkSourceBuffer *buffer;
 		GtkTextIter start, match_start, match_end;
 
-		GtkSourceView *view = currentTabSourceView(win);
+		GtkSourceView *view = litos_app_window_current_tab_sourceView(win);
 
 		buffer = gtk_source_search_context_get_buffer (win->search_context);
 
@@ -168,67 +167,68 @@ static void litos_app_window_next_match(GtkWidget *close_btn G_GNUC_UNUSED, gpoi
 
 }
 
-static void update_occurrences_label(GtkSourceSearchContext *context,
+static void litow_app_window_update_match_label(GtkSourceSearchContext *context,
                                      GParamSpec *pspec G_GNUC_UNUSED,
                                      LitosAppWindow *win)
 {
-    gint count = gtk_source_search_context_get_occurrences_count(context);
+	gint count = gtk_source_search_context_get_occurrences_count(context);
 
-    if (count >= 0) {
-        char buf[64];
-        g_snprintf(buf, sizeof(buf), "%d matches", count);
-        gtk_label_set_text(GTK_LABEL(win->lbl_number_occurences), buf);
-    } else {
-        // opzionale: mostra "..." finché il conteggio non è pronto
-        gtk_label_set_text(GTK_LABEL(win->lbl_number_occurences), "...");
-    }
+	if (count >= 0){
+		char buf[64];
+		g_snprintf(buf, sizeof(buf), "%d matches", count);
+		gtk_label_set_text(GTK_LABEL(win->lbl_number_occurences), buf);
+	}
+
+	else {
+		// opzionale: mostra "..." finché il conteggio non è pronto
+		gtk_label_set_text(GTK_LABEL(win->lbl_number_occurences), "...");
+	}
 }
-
 
 static GtkSourceView *
 litos_app_window_set_search_context(LitosAppWindow *win, const char *stringToSearch)
 {
-    GtkSourceView *source_view = currentTabSourceView(win);
-    if (!GTK_IS_TEXT_VIEW(source_view)) {
-        g_warning("source_view non valido o non inizializzato");
-        return NULL;
-    }
+	GtkSourceView *source_view = litos_app_window_current_tab_sourceView(win);
+	if (!GTK_IS_TEXT_VIEW(source_view)) {
+		g_warning("source_view non valido o non inizializzato");
+		return NULL;
+	}
 
-    GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(source_view));
-    if (!GTK_IS_TEXT_BUFFER(buffer)) {
-        g_warning("buffer non valido");
-        return NULL;
-    }
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(source_view));
+	if (!GTK_IS_TEXT_BUFFER(buffer)) {
+		g_warning("buffer non valido");
+		return NULL;
+	}
 
-    GtkSourceSearchSettings *settings = gtk_source_search_settings_new();
-    gtk_source_search_settings_set_search_text(settings, stringToSearch);
+	GtkSourceSearchSettings *settings = gtk_source_search_settings_new();
+	gtk_source_search_settings_set_search_text(settings, stringToSearch);
 
-    gboolean case_sensitive = gtk_check_button_get_active(GTK_CHECK_BUTTON(win->btn_check_case));
-    gtk_source_search_settings_set_case_sensitive(settings, case_sensitive);
+	gboolean case_sensitive = gtk_check_button_get_active(GTK_CHECK_BUTTON(win->btn_check_case));
+	gtk_source_search_settings_set_case_sensitive(settings, case_sensitive);
 
-    // Disconnetti e libera il vecchio search_context se esiste
-    if (win->search_context != NULL) {
-        g_signal_handlers_disconnect_by_func(win->search_context,
-                                             G_CALLBACK(update_occurrences_label),
-                                             win);
-        g_object_unref(win->search_context);
-        win->search_context = NULL;
-    }
+	// Disconnetti e libera il vecchio search_context se esiste
+	if (win->search_context != NULL) {
+		g_signal_handlers_disconnect_by_func(win->search_context,
+			G_CALLBACK(litow_app_window_update_match_label),
+			win);
+		g_object_unref(win->search_context);
+		win->search_context = NULL;
+	}
 
-    win->search_context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), settings);
-    g_object_unref(settings); // settings non più necessario
+	win->search_context = gtk_source_search_context_new(GTK_SOURCE_BUFFER(buffer), settings);
+	g_object_unref(settings); // settings non più necessario
 
-    if (win->search_context == NULL) {
-        g_warning("Impossibile creare GtkSourceSearchContext");
-        return NULL;
-    }
+	if (win->search_context == NULL) {
+		g_warning("Impossibile creare GtkSourceSearchContext");
+		return NULL;
+	}
 
-    g_signal_connect(win->search_context,
-                     "notify::occurrences-count",
-                     G_CALLBACK(update_occurrences_label),
-                     win);
+	g_signal_connect(win->search_context,
+		"notify::occurrences-count",
+		G_CALLBACK(litow_app_window_update_match_label),
+		win);
 
-    return source_view;
+	return source_view;
 }
 
 
@@ -287,7 +287,7 @@ static void litos_app_window_search_text_changed (GtkEntry *entry, LitosAppWindo
 	if (win->search_context != NULL)
 	{
 		g_signal_handlers_disconnect_by_func(win->search_context,
-			G_CALLBACK(update_occurrences_label),
+			G_CALLBACK(litow_app_window_update_match_label),
 			win);
 		g_object_unref(win->search_context);
 		win->search_context = NULL;
@@ -595,18 +595,18 @@ gboolean litos_app_window_remove_child(LitosAppWindow *win)
 	{
 		LitosFile *file = litos_app_window_current_file(win);
 
-	if (litos_file_get_saved(file))
-	{
-		litos_app_window_remove_page(win, file);
-		return TRUE;
-	}
+		if (litos_file_get_saved(file))
+		{
+			litos_app_window_remove_page(win, file);
+			return TRUE;
+		}
 
-	else
-        {
-		// Mostra la finestra di dialogo e ritorna FALSE per interrompere il ciclo
-		litos_app_window_saveornot_dialog(win, file);
-		return FALSE;
-	}
+		else
+		{
+			// Mostra la finestra di dialogo e ritorna FALSE per interrompere il ciclo
+			litos_app_window_saveornot_dialog(win, file);
+			return FALSE;
+		}
 	}
 
 	return FALSE;
@@ -654,7 +654,7 @@ void litos_app_window_update_font ()
 	css_string = g_strdup_printf(
 		"textview { font: %dpt %s; }",
 		pango_font_description_get_size(font_desc) / PANGO_SCALE,
-	pango_font_description_get_family(font_desc)
+		pango_font_description_get_family(font_desc)
 	);
 
 	// Usa la nuova funzione non deprecata
@@ -730,7 +730,7 @@ void litos_app_window_about_dialog (GtkButton *button G_GNUC_UNUSED, gpointer us
 
 	gtk_show_about_dialog (NULL,
 			"program-name", "Litos",
-			"version", "4.1.1",
+			"version", "4.1.2",
 			"license-type", GTK_LICENSE_GPL_3_0,
 			"website", "https://github.com/gioretikto/litos",
 			"authors", authors,
@@ -772,12 +772,12 @@ LitosAppWindow * litos_app_window_new (LitosApp *app)
 
 void litos_app_window_save_as(LitosAppWindow *win)
 {
-    if (!win->notebook || gtk_notebook_get_n_pages(GTK_NOTEBOOK(win->notebook)) == 0) {
-        g_warning("No tab opened: impossible execute 'Save as'.");
-        return;
-    }
+	if (!win->notebook || gtk_notebook_get_n_pages(GTK_NOTEBOOK(win->notebook)) == 0) {
+		g_warning("No tab opened: impossible execute 'Save as'.");
+		return;
+	}
 
-    litos_app_window_save_as_dialog(NULL, NULL, win);
+	litos_app_window_save_as_dialog(NULL, NULL, win);
 }
 
 static void litos_app_window_close_btn_clicked(GtkWidget *close_btn, gpointer user_data)
@@ -810,8 +810,7 @@ static void litos_app_window_lblToColor(LitosAppWindow *win G_GNUC_UNUSED, Litos
 	g_free(markup);
 }
 
-static void
-_file_monitor_saved_change(GObject *gobject, GParamSpec *pspec G_GNUC_UNUSED, gpointer win)
+static void litos_app_window_monitor_saved_change(GObject *gobject, GParamSpec *pspec G_GNUC_UNUSED, gpointer win)
 {
 	LitosAppWindow *lwin = LITOS_APP_WINDOW(win);
 	LitosFile *file = LITOS_FILE(gobject);
@@ -823,7 +822,7 @@ _file_monitor_saved_change(GObject *gobject, GParamSpec *pspec G_GNUC_UNUSED, gp
 		litos_app_window_lblToColor(lwin, file, "gray");
 }
 
-void litos_app_error_dialog(GtkWindow *parent, GError *error, const char *filename)
+void litos_app_window_error_dialog(GtkWindow *parent, GError *error, const char *filename)
 {
 	GtkWidget *dialog;
 	GtkWidget *box;
@@ -865,59 +864,233 @@ void litos_app_error_dialog(GtkWindow *parent, GError *error, const char *filena
 	g_error_free(error);
 }
 
-static LitosFile *litos_app_window_new_tab(LitosAppWindow *win, struct Page *page)
+void update_star_button(GtkButton *button, gboolean is_favorite)
 {
-	GtkWidget *close_btn;
+    const char *icon_name = is_favorite ? "starred-symbolic" : "non-starred-symbolic";
+    const char *tooltip = is_favorite ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti";
 
-	// 1. Inizializza i contenitori
-	page->tabbox        = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
-	page->close_btn_box  = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
-	page->scrolled       = gtk_scrolled_window_new();
-
-	// 2. Crea la view con il buffer
-	page->view = MyNewSourceview();
-	if (!page->view) {
-		g_warning("MyNewSourceview() ha restituito NULL");
-		return NULL;
-	}
-	page->buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(page->view));
-
-	// 3. Inserisci la view nello scrolled window
-	gtk_widget_set_hexpand(page->scrolled, TRUE);
-	gtk_widget_set_vexpand(page->scrolled, TRUE);
-	gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(page->scrolled), page->view);
-
-	// 4. Crea label e bottone di chiusura
-	page->lbl = gtk_label_new(page->name ? page->name : "Senza nome");
-	close_btn = gtk_button_new_from_icon_name("window-close-symbolic");
-
-	// 5. Costruisci la tab
-	gtk_box_append(GTK_BOX(page->close_btn_box), page->lbl);
-	gtk_box_append(GTK_BOX(page->close_btn_box), close_btn);
-	gtk_box_append(GTK_BOX(page->tabbox), page->scrolled);
-
-	// 6. Aggiungi la tab al notebook
-	gint page_num = gtk_notebook_append_page_menu(
-		win->notebook,
-		page->tabbox,
-		page->close_btn_box,
-		page->close_btn_box
-	);
-	gtk_notebook_set_current_page(win->notebook, page_num);
-	gtk_notebook_set_tab_reorderable(win->notebook, page->tabbox, TRUE);
-
-	// 7. Registra il file
-	LitosFile *file = litos_file_set(page);
-	g_ptr_array_add(win->litosFileList, file);
-
-	// 8. Collega il file al bottone di chiusura
-	g_object_set_data(G_OBJECT(close_btn), "litos-file", file);
-	g_signal_connect(close_btn, "clicked", G_CALLBACK(litos_app_window_close_btn_clicked), win);
-
-	gtk_widget_grab_focus(page->view);
-
-	return file;
+    GtkWidget *new_icon = gtk_image_new_from_icon_name(icon_name);
+    gtk_button_set_child(button, new_icon);
+    gtk_widget_set_tooltip_text(GTK_WIDGET(button), tooltip);
 }
+
+
+static gboolean uri_in_list(const gchar **list, const gchar *uri)
+{
+    for (int i = 0; list && list[i]; i++) {
+        if (g_strcmp0(list[i], uri) == 0)
+            return TRUE;
+    }
+    return FALSE;
+}
+
+
+static gchar **add_uri_to_list(const gchar **list, const gchar *uri)
+{
+    GPtrArray *array = g_ptr_array_new_with_free_func(g_free);
+    for (int i = 0; list && list[i]; i++)
+        g_ptr_array_add(array, g_strdup(list[i]));
+
+    if (uri && g_utf8_validate(uri, -1, NULL))
+        g_ptr_array_add(array, g_strdup(uri));
+
+    g_ptr_array_add(array, NULL);
+    return (gchar **)g_ptr_array_free(array, FALSE);
+}
+
+static gchar **remove_uri_from_list(const gchar **list, const gchar *uri)
+{
+    GPtrArray *array = g_ptr_array_new_with_free_func(g_free);
+    for (int i = 0; list && list[i]; i++) {
+        if (g_strcmp0(list[i], uri) != 0)
+            g_ptr_array_add(array, g_strdup(list[i]));
+    }
+
+    g_ptr_array_add(array, NULL);
+    return (gchar **)g_ptr_array_free(array, FALSE);
+}
+
+
+void litos_app_window_save_favorites(LitosAppWindow *win)
+{
+    GPtrArray *valid_uris = g_ptr_array_new_with_free_func(g_free);
+
+    for (guint i = 0; i < win->litosFileList->len; i++) {
+        LitosFile *file = g_ptr_array_index(win->litosFileList, i);
+        GFile *gf = litos_file_get_gfile(file);
+
+        if (!gf)
+            continue;
+
+        gchar *uri = g_file_get_uri(gf);
+
+        if (uri && g_utf8_validate(uri, -1, NULL)) {
+            g_ptr_array_add(valid_uris, g_strdup(uri));
+        } else {
+            g_warning("URI non valido, ignorato: %s", uri ? uri : "(null)");
+        }
+
+        g_free(uri);
+    }
+
+    g_ptr_array_add(valid_uris, NULL); // terminatore per strv
+    g_settings_set_strv(win->settings, "favorite-files", (const gchar * const *)valid_uris->pdata);
+    g_ptr_array_free(valid_uris, TRUE);
+}
+
+
+void litos_app_window_star_btn_clicked(GtkButton *button, gpointer user_data)
+{
+    LitosAppWindow *win = LITOS_APP_WINDOW(user_data);
+    LitosFile *file = g_object_get_data(G_OBJECT(button), "litos-file");
+
+    GFile *gf = litos_file_get_gfile(file);
+    gchar *uri = gf ? g_file_get_uri(gf) : NULL;
+
+    if (!uri || !g_utf8_validate(uri, -1, NULL)) {
+        g_warning("URI non valido o NULL");
+        g_free(uri);
+        return;
+    }
+
+    gchar **favorites = g_settings_get_strv(win->settings, "favorite-files");
+
+    gboolean is_fav = uri_in_list((const gchar **)favorites, uri);
+    gchar **updated = is_fav
+        ? remove_uri_from_list((const gchar **)favorites, uri)
+        : add_uri_to_list((const gchar **)favorites, uri);
+
+    g_settings_set_strv(win->settings, "favorite-files", (const gchar * const *)updated);
+    update_star_button(button, !is_fav);
+
+    g_strfreev(favorites);
+    g_strfreev(updated);
+    g_free(uri);
+}
+
+
+static gboolean is_favorite(const char *uri)
+{
+    if (!uri || !g_utf8_validate(uri, -1, NULL))
+        return FALSE;
+
+    GSettings *settings = g_settings_new("org.gtk.litos");
+    gchar **favorites = g_settings_get_strv(settings, "favorite-files");
+
+    gboolean found = uri_in_list((const gchar **)favorites, uri);
+
+    g_strfreev(favorites);
+    g_object_unref(settings);
+    return found;
+}
+
+
+static LitosFile *
+litos_app_window_new_tab(LitosAppWindow *win, struct Page *page)
+{
+    GtkWidget *close_btn;
+    GtkWidget *star_btn;
+
+    // 1. Inizializza i contenitori
+    page->tabbox        = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
+    page->close_btn_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+    page->scrolled      = gtk_scrolled_window_new();
+
+    // 2. Crea la view con il buffer
+    page->view = MyNewSourceview();
+    if (!page->view) {
+        g_warning("MyNewSourceview() ha restituito NULL");
+        return NULL;
+    }
+    page->buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(page->view));
+
+    // 3. Inserisci la view nello scrolled window
+    gtk_widget_set_hexpand(page->scrolled, TRUE);
+    gtk_widget_set_vexpand(page->scrolled, TRUE);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(page->scrolled), page->view);
+
+    // 4. Crea label e bottone di chiusura
+    page->lbl = gtk_label_new(page->name ? page->name : "Senza nome");
+    close_btn = gtk_button_new();
+    GtkWidget *close_icon = gtk_image_new_from_icon_name("window-close-symbolic");
+    gtk_button_set_child(GTK_BUTTON(close_btn), close_icon);
+
+    // 4b. Crea bottone stella
+    star_btn = gtk_button_new();
+    gtk_widget_set_tooltip_text(star_btn, "Aggiungi ai preferiti");
+
+    // 5. Costruisci la tab
+    gtk_box_append(GTK_BOX(page->close_btn_box), page->lbl);
+    gtk_box_append(GTK_BOX(page->close_btn_box), star_btn);
+    gtk_box_append(GTK_BOX(page->close_btn_box), close_btn);
+    gtk_box_append(GTK_BOX(page->tabbox), page->scrolled);
+
+    // 6. Aggiungi la tab al notebook
+    gint page_num = gtk_notebook_append_page_menu(
+        win->notebook,
+        page->tabbox,
+        page->close_btn_box,
+        page->close_btn_box
+    );
+    gtk_notebook_set_current_page(win->notebook, page_num);
+    gtk_notebook_set_tab_reorderable(win->notebook, page->tabbox, TRUE);
+
+    // 7. Registra il file
+    LitosFile *file = litos_file_set(page);
+    g_ptr_array_add(win->litosFileList, file);
+
+    // 8. Collega il file al bottone di chiusura
+    g_object_set_data(G_OBJECT(close_btn), "litos-file", file);
+    g_signal_connect(close_btn, "clicked",
+                     G_CALLBACK(litos_app_window_close_btn_clicked), win);
+
+    // 9. Collega il file al bottone stella
+    g_object_set_data(G_OBJECT(star_btn), "litos-file", file);
+    g_signal_connect(star_btn, "clicked",
+                     G_CALLBACK(litos_app_window_star_btn_clicked), win);
+
+    // 10. Salva il bottone stella nel file per uso futuro
+    g_object_set_data(G_OBJECT(file), "star-button", star_btn);
+    g_object_set_data(G_OBJECT(file), "star-initialized", GINT_TO_POINTER(FALSE));
+
+    // 11. Se il file è già salvato, inizializza subito la stella
+    GFile *gf = litos_file_get_gfile(file);
+    gchar *uri = gf ? g_file_get_uri(gf) : NULL;
+
+    if (uri && g_utf8_validate(uri, -1, NULL)) {
+        gboolean is_fav = is_favorite(uri);
+        update_star_button(GTK_BUTTON(star_btn), is_fav);
+        g_object_set_data(G_OBJECT(file), "star-initialized", GINT_TO_POINTER(TRUE));
+        g_free(uri);
+    }
+
+    // 12. Focus sul contenuto
+    gtk_widget_grab_focus(page->view);
+
+    return file;
+}
+
+void litos_app_window_initialize_star_if_needed(LitosFile *file)
+{
+    if (GPOINTER_TO_INT(g_object_get_data(G_OBJECT(file), "star-initialized")))
+        return;
+
+    GtkButton *star_btn = GTK_BUTTON(g_object_get_data(G_OBJECT(file), "star-button"));
+    if (!star_btn)
+        return;
+
+    GFile *gf = litos_file_get_gfile(file);
+    gchar *uri = gf ? g_file_get_uri(gf) : NULL;
+
+    if (uri && g_utf8_validate(uri, -1, NULL)) {
+        gboolean is_fav = is_favorite(uri);
+        update_star_button(star_btn, is_fav);
+        g_object_set_data(G_OBJECT(file), "star-initialized", GINT_TO_POINTER(TRUE));
+    }
+
+    g_free(uri);
+}
+
 
 LitosFile * litos_app_window_open(LitosAppWindow *win, GFile *gf)
 {
@@ -933,14 +1106,14 @@ LitosFile * litos_app_window_open(LitosAppWindow *win, GFile *gf)
 
 	if (!litos_file_load(file,&error))
 	{
-		litos_app_error_dialog(GTK_WINDOW(win), error, page.name);
+		litos_app_window_error_dialog(GTK_WINDOW(win), error, page.name);
 		return NULL;
 	}
 
 	else
 	{
 		litos_file_highlight_buffer(file);
-		g_signal_connect(G_OBJECT(file), "notify::saved", G_CALLBACK (_file_monitor_saved_change), win);
+		g_signal_connect(G_OBJECT(file), "notify::saved", G_CALLBACK (litos_app_window_monitor_saved_change), win);
 		return file;
 	}
 }
@@ -957,7 +1130,7 @@ void litos_app_window_new_file(LitosAppWindow *win)
 
 	LitosFile *file = litos_app_window_new_tab(win,&page);
 
-	g_signal_connect(G_OBJECT(file), "notify::saved", G_CALLBACK (_file_monitor_saved_change), win);
+	g_signal_connect(G_OBJECT(file), "notify::saved", G_CALLBACK (litos_app_window_monitor_saved_change), win);
 }
 
 LitosFile * litos_app_window_get_file(LitosAppWindow *win, int *i)
@@ -969,3 +1142,17 @@ GtkNotebook * litos_app_window_get_nb(LitosAppWindow *win)
 {
 	return win->notebook;
 }
+
+void litos_app_window_open_favorites(LitosAppWindow *win)
+{
+    gchar **favorites = g_settings_get_strv(win->settings, "favorite-files");
+
+    for (int i = 0; favorites && favorites[i]; i++) {
+        GFile *gf = g_file_new_for_uri(favorites[i]);
+        litos_app_window_open(win, gf);
+        g_object_unref(gf);
+    }
+
+    g_strfreev(favorites);
+}
+
