@@ -730,7 +730,7 @@ void litos_app_window_about_dialog (GtkButton *button G_GNUC_UNUSED, gpointer us
 
 	gtk_show_about_dialog (NULL,
 			"program-name", "Litos",
-			"version", "4.1.2",
+			"version", "4.2.1",
 			"license-type", GTK_LICENSE_GPL_3_0,
 			"website", "https://github.com/gioretikto/litos",
 			"authors", authors,
