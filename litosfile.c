@@ -218,6 +218,11 @@ GtkWidget * litos_file_get_tabbox(LitosFile *file)
 	return file->tabbox;
 }
 
+void litos_file_set_tabbox(LitosFile *file, GtkWidget *tabbox)
+{
+    file->tabbox = tabbox;
+}
+
 void litos_file_set_saved(LitosFile *file)
 {
 	file->saved = TRUE;
@@ -326,6 +331,7 @@ gboolean litos_file_save(LitosFile *file, GError **error)
 		g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
 
 		litos_app_window_initialize_star_if_needed(file);
+
 	}
 
 	return TRUE;

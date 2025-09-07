@@ -112,7 +112,7 @@ litos_app_open (GApplication  *app,
     else
         win = litos_app_window_new (LITOS_APP (app));
 
-    // 🔹 Apri i file passati da riga di comando
+    // Open file passed as arguments
     for (i = 0; i < n_files; i++) {
         if (files[i] != NULL) {
             char *filename = g_file_get_path(files[i]);
