@@ -33,6 +33,7 @@ GtkWidget * litos_file_get_view(LitosFile *file);
 void litos_file_highlight_buffer(LitosFile *file);
 void litos_file_reset_gfile(LitosFile *file);
 LitosFile * litos_file_set(struct Page *page);
+void litos_file_set_unsaved(LitosFile *file);
 
 G_DECLARE_FINAL_TYPE(LitosFile, litos_file, LITOS, FILE, GObject)
 

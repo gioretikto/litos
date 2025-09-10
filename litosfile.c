@@ -13,7 +13,7 @@
 #include <gtksourceview/gtksource.h>
 
 #include "litosfile.h"
-#include "page.h"
+#include "litospage.h"
 #include "litosappwin.h"
 
 struct _LitosFile
@@ -76,11 +76,12 @@ void litos_file_set_unsaved(LitosFile *file)
 	g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]);
 }
 
-static void _buffer_monitor_change(GObject *gobject G_GNUC_UNUSED, GParamSpec *pspec G_GNUC_UNUSED, gpointer userdata)
+static void litos_file_buffer_monitor_change(GtkTextBuffer *buffer G_GNUC_UNUSED,
+                                             gpointer userdata)
 {
-	LitosFile *file = LITOS_FILE(userdata);
-	litos_file_set_unsaved(file);
-	g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]);
+    LitosFile *file = LITOS_FILE(userdata);
+    litos_file_set_unsaved(file);
+    g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
 }
 
 void litos_file_reset_gfile(LitosFile *file)
@@ -88,28 +89,27 @@ void litos_file_reset_gfile(LitosFile *file)
 	g_clear_object(&file->gfile);
 }
 
-static void
-litos_file_dispose(GObject *object)
+static void litos_file_dispose(GObject *object)
 {
-	LitosFile *file = LITOS_FILE(object);
+    LitosFile *file = LITOS_FILE(object);
 
-	// Disconnette il segnale sul buffer (puoi farlo anche se buffer non è un GObject)
-	if (file->buffer)
-		g_signal_handlers_disconnect_by_func(file->buffer, _buffer_monitor_change, file);
+    // Disconnette il segnale sul buffer
+    if (GTK_IS_TEXT_BUFFER(file->buffer))
+        g_signal_handlers_disconnect_by_func(file->buffer, litos_file_buffer_monitor_change, file);
 
-	// Libera la stringa del nome
-	g_free(file->name);
-	file->name = NULL;
+    // Libera la stringa del nome
+    g_free(file->name);
+    file->name = NULL;
 
-	// Rilascia l'oggetto GFile in modo sicuro
-	litos_file_reset_gfile(file);
+    // Rilascia l'oggetto GFile in modo sicuro
+    litos_file_reset_gfile(file);
 
-	// NOTA: Non fare g_object_unref su scrolled, tabbox, close_btn_box, view, lbl
-	// Sono gestiti automaticamente da GTK quando il widget viene distrutto.
+    // I widget GTK sono gestiti dai container: non fare unref
 
-	// Chiamata al dispose della superclasse
-	G_OBJECT_CLASS(litos_file_parent_class)->dispose(object);
+    // Chiamata al dispose della superclasse
+    G_OBJECT_CLASS(litos_file_parent_class)->dispose(object);
 }
+
 
 static void
 litos_file_set_property (GObject *object,
@@ -254,7 +254,7 @@ LitosFile *litos_file_set(struct Page *page)
 
 	// Collega il segnale sul buffer, se è valido
 	if (GTK_IS_TEXT_BUFFER(file->buffer))
-		g_signal_connect(file->buffer, "notify::text", G_CALLBACK(_buffer_monitor_change), file);
+		g_signal_connect(file->buffer, "changed", G_CALLBACK(litos_file_buffer_monitor_change), file);
 
 	return file;
 }
@@ -284,22 +284,46 @@ void litos_file_highlight_buffer(LitosFile *file) /* Apply different font styles
 	}
 }
 
-gboolean litos_file_load (LitosFile *file, GError **error)
+gboolean litos_file_load(LitosFile *file, GError **error)
 {
-	char *contents;
-	gsize length;
+    char *contents;
+    gsize length;
 
-	if (g_file_load_contents (file->gfile, NULL, &contents, &length, NULL, error))
-	{
-		gtk_text_buffer_set_text (file->buffer, contents, length);
-		g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]);
-		file->saved = TRUE;
-		g_free (contents);
-		return TRUE;
-	}
+    if (g_file_load_contents(file->gfile, NULL, &contents, &length, NULL, error))
+    {
+        gchar *content_type = g_content_type_guess(g_file_get_path(file->gfile),
+                                                   (const guchar *)contents,
+                                                   length,
+                                                   NULL);
 
-	else
-		return FALSE;
+        if (!g_str_has_prefix(content_type, "text/")) {
+            gchar *type_copy = g_strdup(content_type);
+            g_free(content_type);
+            g_free(contents);
+            g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
+                        "Il file non è di tipo testuale (%s)", type_copy);
+            g_free(type_copy);
+            return FALSE;
+        }
+
+        if (!g_utf8_validate(contents, length, NULL)) {
+            g_free(content_type);
+            g_free(contents);
+            g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
+                        "Il contenuto del file non è UTF-8 valido.");
+            return FALSE;
+        }
+
+        gtk_text_buffer_set_text(file->buffer, contents, length);
+        g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
+        file->saved = TRUE;
+
+        g_free(content_type);
+        g_free(contents);
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 gboolean litos_file_save(LitosFile *file, GError **error)
@@ -331,7 +355,6 @@ gboolean litos_file_save(LitosFile *file, GError **error)
 		g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
 
 		litos_app_window_initialize_star_if_needed(file);
-
 	}
 
 	return TRUE;

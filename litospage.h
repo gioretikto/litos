@@ -9,14 +9,27 @@
 	You should have received a copy of the GNU General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-struct Page
-{
-	GtkWidget *tabbox;
-	GtkWidget *close_btn_box;
-	GtkWidget *scrolled;
-	GtkTextBuffer *buffer;
-	char *name;
-	GFile *gf;
-	GtkWidget *view;
-	GtkWidget *lbl;
+#ifndef LITOS_PAGE_H
+#define LITOS_PAGE_H
+
+#include <gtk/gtk.h>
+#include <gtksourceview/gtksource.h>
+#include <gio/gio.h>
+
+struct Page {
+    gchar *name;
+    GFile *gf;
+    GtkWidget *view;
+    GtkWidget *scrolled;
+    GtkWidget *lbl;
+    GtkWidget *tabbox;
+    GtkWidget *close_btn_box;
+    GtkTextBuffer *buffer;
 };
+
+struct Page litos_page_new_empty(const gchar *name);
+struct Page litos_page_new_from_file(GFile *gf);
+struct Page litos_page_new_from_template(const gchar *name, const gchar *template_text);
+
+#endif
+
