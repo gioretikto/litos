@@ -1,11 +1,5 @@
 <schemalist>
   <schema path="/org/gtk/litos/" id="org.gtk.litos">
-    <key name="font" type="s">
-      <default>'Monospace 12'</default>
-      <summary>Font</summary>
-      <description>The font to be used for content.</description>
-    </key>
-
     <key name="transition" type="s">
       <choices>
         <choice value='none'/>

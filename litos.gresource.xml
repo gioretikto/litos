@@ -3,6 +3,6 @@
   <gresource prefix="/org/gtk/litos">
     <file preprocess="xml-stripblanks">window.ui</file>
     <file preprocess="xml-stripblanks">gears-menu.ui</file>
-    <file preprocess="xml-stripblanks">prefs.ui</file>
+    <file>style.css</file>
   </gresource>
 </gresources>

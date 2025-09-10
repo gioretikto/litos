@@ -13,7 +13,6 @@
 #include <gtksourceview/gtksource.h>
 
 #include "litosapp.h"
-#include "litosappprefs.h"
 #include "litosfile.h"
 #include "litosappwin.h"
 
@@ -37,17 +36,35 @@ static void litos_app_init (LitosApp *app)
 	app->css_provider = gtk_css_provider_new ();
 }
 
+GtkCssProvider * litos_app_get_css_provider(LitosApp *app)
+{
+	return app->css_provider;
+}
+
 static void
 litos_app_startup (GApplication *app)
 {
-	litos_accels_setAccels(app);
+    litos_accels_setAccels(app);
 
-	G_APPLICATION_CLASS (litos_app_parent_class)->startup (app);
+    G_APPLICATION_CLASS (litos_app_parent_class)->startup (app);
 
-	gtk_source_init();
+    gtk_source_init();
 
-	g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", TRUE, NULL);
+    g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", TRUE, NULL);
+
+    // Carica il CSS da risorsa
+    LitosApp *litos = LITOS_APP(app);
+    GtkCssProvider *provider = litos_app_get_css_provider(litos);
+
+    gtk_css_provider_load_from_resource(provider, "/org/gtk/litos/style.css");
+
+    gtk_style_context_add_provider_for_display(
+        gdk_display_get_default(),
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
+    );
 }
+
 
 static void
 litos_app_activate (GApplication *app)
@@ -154,9 +171,4 @@ litos_app_new (void)
 GSettings *litos_app_get_settings(LitosApp *app)
 {
 	return app->settings;
-}
-
-GtkCssProvider * litos_app_get_css_provider(LitosApp *app)
-{
-	return app->css_provider;
 }

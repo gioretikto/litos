@@ -1,0 +1,10 @@
+/* Font per i textview */
+textview {
+	font: 12pt "Monospace";
+}
+
+/* Stile compatto per le tab quando sono troppe */
+.tab-label-small {
+	font-size: 10px;
+	padding: 2px;
+}

@@ -10,9 +10,7 @@
 */
 
 #include <gtk/gtk.h>
-
 #include "litosapp.h"
-#include "litosappprefs.h"
 #include "litosfile.h"
 #include "litosappwin.h"
 

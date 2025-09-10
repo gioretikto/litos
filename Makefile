@@ -17,7 +17,7 @@ SCHEMADIR = /usr/share/glib-2.0/schemas
 ICON = litos.png
 DESKTOP = org.litos.gtk.desktop
 SCHEMA = org.gtk.litos.gschema.xml
-SRC = litosapp.c litosappwin.c litosappprefs.c litosaccels.c litosfile.c litospage.c main.c
+SRC = litosapp.c litosappwin.c litosaccels.c litosfile.c litospage.c main.c
 BUILT_SRC = resources.c
 TARGET = litos
 OBJS = $(BUILT_SRC:.c=.o) $(SRC:.c=.o)
