@@ -21,6 +21,8 @@
 
 #define SCROLL_TO_MARK gtk_text_view_scroll_to_mark (GTK_TEXT_VIEW(view), mark, 0, FALSE, 0.0,	0.0);
 
+GtkWidget *litos_file_get_close_btn_box(LitosFile *file);
+
 struct _LitosAppWindow
 {
 	GtkApplicationWindow parent;
@@ -606,39 +608,42 @@ void litos_app_window_star_btn_clicked(GtkButton *button, gpointer user_data)
 
 static void litos_app_window_remove_page(LitosAppWindow *win, LitosFile *file)
 {
-	if (!win || !file)
-		return;
+    if (!win || !file)
+        return;
 
-	GtkWidget *tabbox = litos_file_get_tabbox(file);
-	if (!tabbox)
-		return;
+    GtkWidget *tabbox = litos_file_get_tabbox(file);
+    if (!tabbox)
+        return;
 
-	gint page_num = gtk_notebook_page_num(GTK_NOTEBOOK(win->notebook), tabbox);
-	if (page_num == -1)
-		return;
+    gint page_num = gtk_notebook_page_num(GTK_NOTEBOOK(win->notebook), tabbox);
+    if (page_num == -1)
+        return;
 
-	// Recupera i widget associati PRIMA di rimuovere la pagina
-	GtkWidget *close_btn = GTK_WIDGET(g_object_get_data(G_OBJECT(file), "close-button"));
-	GtkWidget *star_btn  = GTK_WIDGET(g_object_get_data(G_OBJECT(file), "star-button"));
+    // Disconnetti i segnali dei pulsanti
+    GtkWidget *close_btn = GTK_WIDGET(g_object_get_data(G_OBJECT(file), "close-button"));
+    GtkWidget *star_btn  = GTK_WIDGET(g_object_get_data(G_OBJECT(file), "star-button"));
 
-	// Disconnetti i segnali per evitare callback durante/dopo la rimozione
-	if (close_btn)
-		g_signal_handlers_disconnect_by_func(close_btn, G_CALLBACK(litos_app_window_close_btn_clicked), win);
-	if (star_btn)
-		g_signal_handlers_disconnect_by_func(star_btn, G_CALLBACK(litos_app_window_star_btn_clicked), win);
+    if (close_btn) {
+        g_signal_handlers_disconnect_by_func(close_btn, G_CALLBACK(litos_app_window_close_btn_clicked), win);
+        g_object_set_data(G_OBJECT(file), "close-button", NULL);
+    }
+    if (star_btn) {
+        g_signal_handlers_disconnect_by_func(star_btn, G_CALLBACK(litos_app_window_star_btn_clicked), win);
+        g_object_set_data(G_OBJECT(file), "star-button", NULL);
+    }
+    g_object_set_data(G_OBJECT(file), "star-initialized", NULL);
 
-	// Nascondi per evitare warning di layout (opzionale)
-	gtk_widget_set_visible(tabbox, FALSE);
+    // Rimuovi la pagina dal notebook
+    gtk_widget_set_visible(tabbox, FALSE);
+    gtk_notebook_remove_page(GTK_NOTEBOOK(win->notebook), page_num);
 
-	// Rimuovi la pagina UNA SOLA VOLTA
-	gtk_notebook_remove_page(GTK_NOTEBOOK(win->notebook), page_num);
+    // Aggiorna lo stato interno
+    g_ptr_array_remove(win->litosFileList, file);
 
-	// Aggiorna lo stato interno
-	g_ptr_array_remove(win->litosFileList, file);
-
-	// Aggiorna il titolo (potrebbe non esserci più pagina corrente)
-	litos_app_window_update_title(win);
+    // Aggiorna il titolo della finestra
+    litos_app_window_update_title(win);
 }
+
 
 static void litos_app_window_on_close_clicked(GtkButton *button, gpointer user_data)
 {
@@ -870,6 +875,16 @@ static void litos_app_window_dispose (GObject *object)
 {
 	LitosAppWindow *win = LITOS_APP_WINDOW (object);
 
+	// Disconnessione e rilascio del GtkSourceSearchContext, se presente
+	    if (win->search_context) {
+		g_signal_handlers_disconnect_by_func(
+		    win->search_context,
+		    G_CALLBACK(litow_app_window_update_match_label),
+		    win
+		);
+		g_clear_object(&win->search_context);
+	    }
+
 	g_clear_object (&win->settings);
 
 	g_ptr_array_unref(win->litosFileList);
@@ -1086,8 +1101,8 @@ litos_app_window_new_tab(LitosAppWindow *win, struct Page *page, LitosFile *file
 		win->notebook,
 		page->tabbox,
 		page->close_btn_box,
-		page->close_btn_box
-	);
+		NULL);
+
 	gtk_notebook_set_current_page(win->notebook, page_num);
 	gtk_notebook_set_tab_reorderable(win->notebook, page->tabbox, TRUE);
 

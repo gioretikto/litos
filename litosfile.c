@@ -253,6 +253,9 @@ LitosFile *litos_file_set(struct Page *page)
 	// (GTK distrugge automaticamente i figli dei container)
 
 	// Copia il nome del file, se presente
+	if (file->name)
+	    g_free(file->name);
+
 	file->name = page->name ? g_strdup(page->name) : NULL;
 
 	// Collega il segnale sul buffer, se è valido
@@ -289,7 +292,6 @@ void litos_file_highlight_buffer(LitosFile *file, LitosApp *app)
     if (scheme)
         gtk_source_buffer_set_style_scheme(source_buffer, scheme);
 }
-
 
 gboolean litos_file_load(LitosFile *file, GError **error)
 {
