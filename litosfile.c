@@ -15,6 +15,9 @@
 #include "litosfile.h"
 #include "litospage.h"
 #include "litosappwin.h"
+#include "litosapp.h"
+
+GtkSourceStyleScheme *litos_app_get_style_scheme(LitosApp *app);
 
 struct _LitosFile
 {
@@ -52,7 +55,7 @@ litos_file_init (LitosFile *file)
 
 	file->buffer = NULL;
 
-	file->name = NULL;
+	file->name = g_strdup("");
 
 	file->lbl = NULL;
 
@@ -259,30 +262,34 @@ LitosFile *litos_file_set(struct Page *page)
 	return file;
 }
 
-void litos_file_highlight_buffer(LitosFile *file) /* Apply different font styles depending on file extension .html .c, etc */
+void litos_file_highlight_buffer(LitosFile *file, LitosApp *app)
 {
-	GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();
-	GtkSourceLanguage *lang;
-	GtkSourceBuffer *source_buffer = GTK_SOURCE_BUFFER(file->buffer);
+    if (!file || !file->buffer || !GTK_IS_TEXT_BUFFER(file->buffer))
+        return;
 
-	if ((lang = gtk_source_language_manager_guess_language(lm, file->name, NULL)) == NULL)
-		lang = gtk_source_language_manager_get_language(lm, "html");
+    GtkSourceBuffer *source_buffer = GTK_SOURCE_BUFFER(file->buffer);
 
-	if (lang != NULL)
-	{
-		gtk_source_buffer_set_language(source_buffer, lang);
-		gtk_source_buffer_set_highlight_syntax(source_buffer, TRUE);
-	}
+    GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();
+    GtkSourceLanguage *lang = NULL;
 
-	GtkSourceStyleSchemeManager *scheme_manager = gtk_source_style_scheme_manager_get_default();
+    if (file->name && *file->name)
+        lang = gtk_source_language_manager_guess_language(lm, file->name, NULL);
 
-	GtkSourceStyleScheme *scheme = gtk_source_style_scheme_manager_get_scheme(scheme_manager, "oblivion");
+    if (!lang)
+        lang = gtk_source_language_manager_get_language(lm, "html");
 
-	if (scheme != NULL)
-	{
-		gtk_source_buffer_set_style_scheme(source_buffer, scheme);
-	}
+    if (lang)
+    {
+        gtk_source_buffer_set_language(source_buffer, lang);
+        gtk_source_buffer_set_highlight_syntax(source_buffer, TRUE);
+    }
+
+    // 👉 Qui usi la funzione centralizzata
+    GtkSourceStyleScheme *scheme = litos_app_get_style_scheme(app);
+    if (scheme)
+        gtk_source_buffer_set_style_scheme(source_buffer, scheme);
 }
+
 
 gboolean litos_file_load(LitosFile *file, GError **error)
 {

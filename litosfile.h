@@ -18,6 +18,8 @@ G_BEGIN_DECLS
 
 // forward declarations
 typedef struct _LitosFile LitosFile;
+typedef struct _LitosApp LitosApp;
+
 struct Page;
 
 gboolean litos_file_load (LitosFile *file, GError **error);
@@ -30,7 +32,7 @@ gchar *litos_file_get_name(LitosFile *file);
 gboolean litos_file_get_saved(LitosFile *file);
 GtkWidget * litos_file_get_tabbox(LitosFile *file);
 GtkWidget * litos_file_get_view(LitosFile *file);
-void litos_file_highlight_buffer(LitosFile *file);
+void litos_file_highlight_buffer(LitosFile *file, LitosApp *app);
 void litos_file_reset_gfile(LitosFile *file);
 LitosFile * litos_file_set(struct Page *page);
 void litos_file_set_tabbox(LitosFile *file, GtkWidget *tabbox);

@@ -15,6 +15,7 @@
 #include "litosappwin.h"
 
 gboolean litos_app_check_duplicate(char *filename, LitosAppWindow *win);
+gboolean litos_app_window_quit(GApplication *app, LitosAppWindow *win);
 
 static void litos_accels_open_dialog_cb(GObject *source_object, GAsyncResult *res, gpointer user_data)
 {
@@ -136,7 +137,7 @@ static void litos_accels_quit_activated (GSimpleAction *action G_GNUC_UNUSED, GV
 	GtkWindow *window = gtk_application_get_active_window (GTK_APPLICATION (app));
 	LitosAppWindow *win = LITOS_APP_WINDOW(window);
 
-	litos_app_window_quit(window, win);
+	litos_app_window_quit(NULL, win);
 }
 
 static void litos_accels_new_file (GSimpleAction *action G_GNUC_UNUSED, GVariant *parameter G_GNUC_UNUSED, gpointer app)

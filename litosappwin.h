@@ -28,7 +28,6 @@ LitosFile * litos_app_window_open(LitosAppWindow *win, GFile *gf);
 void litos_app_window_new_file(LitosAppWindow *win);
 gboolean litos_app_window_save(LitosAppWindow *win, LitosFile *file);
 void litos_app_window_save_as(LitosAppWindow *app);
-gboolean litos_app_window_quit (GtkWindow *window, gpointer user_data);
 gboolean litos_app_window_remove_child(LitosAppWindow *win);
 void litos_app_window_update_font();
 

@@ -24,11 +24,16 @@ struct _LitosApp
 	GtkApplication parent;
 
 	GSettings *settings;
-
 	GtkCssProvider *css_provider;
+	GtkSourceStyleScheme *style_scheme;
 };
 
 G_DEFINE_TYPE(LitosApp, litos_app, GTK_TYPE_APPLICATION);
+
+GtkSourceStyleScheme *litos_app_get_style_scheme(LitosApp *app)
+{
+    return app->style_scheme;
+}
 
 static void litos_app_init (LitosApp *app)
 {
@@ -41,6 +46,7 @@ GtkCssProvider * litos_app_get_css_provider(LitosApp *app)
 	return app->css_provider;
 }
 
+
 static void
 litos_app_startup (GApplication *app)
 {
@@ -52,10 +58,11 @@ litos_app_startup (GApplication *app)
 
     g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", TRUE, NULL);
 
-    // Carica il CSS da risorsa
+    // Ottieni il riferimento all'app
     LitosApp *litos = LITOS_APP(app);
-    GtkCssProvider *provider = litos_app_get_css_provider(litos);
 
+    // Carica il CSS da risorsa
+    GtkCssProvider *provider = litos_app_get_css_provider(litos);
     gtk_css_provider_load_from_resource(provider, "/org/gtk/litos/style.css");
 
     gtk_style_context_add_provider_for_display(
@@ -63,6 +70,13 @@ litos_app_startup (GApplication *app)
         GTK_STYLE_PROVIDER(provider),
         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
     );
+
+    // Carica lo schema di stile "oblivion"
+    GtkSourceStyleSchemeManager *scheme_manager = gtk_source_style_scheme_manager_get_default();
+    litos->style_scheme = gtk_source_style_scheme_manager_get_scheme(scheme_manager, "oblivion");
+
+    if (!litos->style_scheme)
+        g_warning("Schema di stile 'oblivion' non trovato");
 }
 
 
