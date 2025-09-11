@@ -21,8 +21,6 @@
 
 #define SCROLL_TO_MARK gtk_text_view_scroll_to_mark (GTK_TEXT_VIEW(view), mark, 0, FALSE, 0.0,	0.0);
 
-GtkWidget *litos_file_get_close_btn_box(LitosFile *file);
-
 struct _LitosAppWindow
 {
 	GtkApplicationWindow parent;
