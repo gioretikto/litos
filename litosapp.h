@@ -16,8 +16,10 @@
 G_DECLARE_FINAL_TYPE (LitosApp, litos_app, LITOS, APP, GtkApplication)
 
 typedef struct _LitosApp LitosApp;
+typedef struct _LitosAppWindow LitosAppWindow;
 
 LitosApp     *litos_app_new         (void);
 
+gboolean litos_app_check_duplicate(char *filename, LitosAppWindow *win);
 
 #endif /* __LITOSAPP_H */

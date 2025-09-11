@@ -14,9 +14,6 @@
 #include "litosfile.h"
 #include "litosappwin.h"
 
-gboolean litos_app_check_duplicate(char *filename, LitosAppWindow *win);
-gboolean litos_app_window_quit(GApplication *app, LitosAppWindow *win);
-
 static void litos_accels_open_dialog_cb(GObject *source_object, GAsyncResult *res, gpointer user_data)
 {
     GtkFileDialog *dialog = GTK_FILE_DIALOG(source_object);

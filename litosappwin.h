@@ -30,6 +30,7 @@ gboolean litos_app_window_save(LitosAppWindow *win, LitosFile *file);
 void litos_app_window_save_as(LitosAppWindow *app);
 gboolean litos_app_window_remove_child(LitosAppWindow *win);
 void litos_app_window_update_font();
+gboolean litos_app_window_quit(GtkWindow *window G_GNUC_UNUSED, gpointer user_data);
 
 #define LITOS_APP_WINDOW_TYPE (litos_app_window_get_type ())
 G_DECLARE_FINAL_TYPE (LitosAppWindow, litos_app_window, LITOS, APP_WINDOW, GtkApplicationWindow)

@@ -21,9 +21,6 @@
 
 #define SCROLL_TO_MARK gtk_text_view_scroll_to_mark (GTK_TEXT_VIEW(view), mark, 0, FALSE, 0.0,	0.0);
 
-static void litos_app_window_remove_page(LitosAppWindow *win, LitosFile *file);
-gboolean litos_app_window_quit(GtkWindow *window G_GNUC_UNUSED, gpointer user_data);
-
 struct _LitosAppWindow
 {
 	GtkApplicationWindow parent;
@@ -507,6 +504,142 @@ void litos_app_window_update_title(LitosAppWindow *win)
 	g_free(filepath);
 }
 
+static void litos_app_window_close_btn_clicked(GtkWidget *close_btn, gpointer user_data)
+{
+	LitosAppWindow *win = LITOS_APP_WINDOW(user_data);
+	if (!LITOS_IS_APP_WINDOW(win))
+	return;
+
+	GtkNotebook *notebook = GTK_NOTEBOOK(win->notebook);
+	GtkWidget *tab_label = gtk_widget_get_parent(close_btn); // Assumendo che il bottone sia figlio diretto del tab label
+
+	gint page_num = -1;
+	gint num_pages = gtk_notebook_get_n_pages(notebook);
+	for (gint i = 0; i < num_pages; i++) {
+		GtkWidget *tab = gtk_notebook_get_nth_page(notebook, i);
+		GtkWidget *label = gtk_notebook_get_tab_label(notebook, tab);
+		if (label == tab_label) {
+		page_num = i;
+		break;
+		}
+	}
+
+	if (page_num != -1) {
+		gtk_notebook_set_current_page(notebook, page_num);
+		litos_app_window_remove_child(win);
+	}
+}
+
+static gboolean uri_in_list(const gchar **list, const gchar *uri)
+{
+	for (int i = 0; list && list[i]; i++) {
+	if (g_strcmp0(list[i], uri) == 0)
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+static gchar **add_uri_to_list(const gchar **list, const gchar *uri)
+{
+	GPtrArray *array = g_ptr_array_new_with_free_func(g_free);
+	for (int i = 0; list && list[i]; i++)
+		g_ptr_array_add(array, g_strdup(list[i]));
+
+	if (uri && g_utf8_validate(uri, -1, NULL))
+		g_ptr_array_add(array, g_strdup(uri));
+
+	g_ptr_array_add(array, NULL);
+	return (gchar **)g_ptr_array_free(array, FALSE);
+}
+
+static gchar **remove_uri_from_list(const gchar **list, const gchar *uri)
+{
+	GPtrArray *array = g_ptr_array_new_with_free_func(g_free);
+	for (int i = 0; list && list[i]; i++) {
+		if (g_strcmp0(list[i], uri) != 0)
+			g_ptr_array_add(array, g_strdup(list[i]));
+	}
+
+	g_ptr_array_add(array, NULL);
+	return (gchar **)g_ptr_array_free(array, FALSE);
+}
+
+void update_star_button(GtkButton *button, gboolean litos_app_window_is_favorite)
+{
+	const char *icon_name = litos_app_window_is_favorite ? "starred-symbolic" : "non-starred-symbolic";
+	const char *tooltip = litos_app_window_is_favorite ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti";
+
+	GtkWidget *new_icon = gtk_image_new_from_icon_name(icon_name);
+	gtk_button_set_child(button, new_icon);
+	gtk_widget_set_tooltip_text(GTK_WIDGET(button), tooltip);
+}
+
+void litos_app_window_star_btn_clicked(GtkButton *button, gpointer user_data)
+{
+	LitosAppWindow *win = LITOS_APP_WINDOW(user_data);
+	LitosFile *file = g_object_get_data(G_OBJECT(button), "litos-file");
+
+	GFile *gf = litos_file_get_gfile(file);
+	gchar *uri = gf ? g_file_get_uri(gf) : NULL;
+
+	if (!uri || !g_utf8_validate(uri, -1, NULL)) {
+		g_warning("URI non valido o NULL");
+		g_free(uri);
+		return;
+	}
+
+	gchar **favorites = g_settings_get_strv(win->settings, "favorite-files");
+
+	gboolean is_fav = uri_in_list((const gchar **)favorites, uri);
+	gchar **updated = is_fav
+	? remove_uri_from_list((const gchar **)favorites, uri)
+	: add_uri_to_list((const gchar **)favorites, uri);
+
+	g_settings_set_strv(win->settings, "favorite-files", (const gchar * const *)updated);
+	update_star_button(button, !is_fav);
+
+	g_strfreev(favorites);
+	g_strfreev(updated);
+	g_free(uri);
+}
+
+static void litos_app_window_remove_page(LitosAppWindow *win, LitosFile *file)
+{
+	if (!win || !file)
+		return;
+
+	GtkWidget *tabbox = litos_file_get_tabbox(file);
+	if (!tabbox)
+		return;
+
+	gint page_num = gtk_notebook_page_num(GTK_NOTEBOOK(win->notebook), tabbox);
+	if (page_num == -1)
+		return;
+
+	// Recupera i widget associati PRIMA di rimuovere la pagina
+	GtkWidget *close_btn = GTK_WIDGET(g_object_get_data(G_OBJECT(file), "close-button"));
+	GtkWidget *star_btn  = GTK_WIDGET(g_object_get_data(G_OBJECT(file), "star-button"));
+
+	// Disconnetti i segnali per evitare callback durante/dopo la rimozione
+	if (close_btn)
+		g_signal_handlers_disconnect_by_func(close_btn, G_CALLBACK(litos_app_window_close_btn_clicked), win);
+	if (star_btn)
+		g_signal_handlers_disconnect_by_func(star_btn, G_CALLBACK(litos_app_window_star_btn_clicked), win);
+
+	// Nascondi per evitare warning di layout (opzionale)
+	gtk_widget_set_visible(tabbox, FALSE);
+
+	// Rimuovi la pagina UNA SOLA VOLTA
+	gtk_notebook_remove_page(GTK_NOTEBOOK(win->notebook), page_num);
+
+	// Aggiorna lo stato interno
+	g_ptr_array_remove(win->litosFileList, file);
+
+	// Aggiorna il titolo (potrebbe non esserci più pagina corrente)
+	litos_app_window_update_title(win);
+}
+
 static void litos_app_window_on_close_clicked(GtkButton *button, gpointer user_data)
 {
 	LitosAppWindow *win = LITOS_APP_WINDOW(user_data);
@@ -620,137 +753,6 @@ litos_app_window_saveornot_dialog(LitosAppWindow *win, LitosFile *file)
 
 	// Mostra la finestra
 	gtk_window_present(GTK_WINDOW(dialog));
-}
-
-static void litos_app_window_close_btn_clicked(GtkWidget *close_btn, gpointer user_data)
-{
-	LitosAppWindow *win = LITOS_APP_WINDOW(user_data);
-	if (!LITOS_IS_APP_WINDOW(win))
-		return;
-
-	GtkNotebook *notebook = GTK_NOTEBOOK(win->notebook);
-
-	// Trova il tab associato al bottone cliccato
-	gint num_pages = gtk_notebook_get_n_pages(notebook);
-	for (gint i = 0; i < num_pages; i++) {
-		GtkWidget *tab = gtk_notebook_get_nth_page(notebook, i);
-		GtkWidget *tab_label = gtk_notebook_get_tab_label(notebook, tab);
-		if (gtk_widget_is_ancestor(close_btn, tab_label)) {
-			gtk_notebook_set_current_page(notebook, i); // seleziona il tab
-			litos_app_window_remove_child(win); // rimuove il tab attivo
-			break;
-		}
-	}
-}
-
-static gboolean uri_in_list(const gchar **list, const gchar *uri)
-{
-	for (int i = 0; list && list[i]; i++) {
-	if (g_strcmp0(list[i], uri) == 0)
-		return TRUE;
-	}
-	return FALSE;
-}
-
-
-static gchar **add_uri_to_list(const gchar **list, const gchar *uri)
-{
-	GPtrArray *array = g_ptr_array_new_with_free_func(g_free);
-	for (int i = 0; list && list[i]; i++)
-		g_ptr_array_add(array, g_strdup(list[i]));
-
-	if (uri && g_utf8_validate(uri, -1, NULL))
-		g_ptr_array_add(array, g_strdup(uri));
-
-	g_ptr_array_add(array, NULL);
-	return (gchar **)g_ptr_array_free(array, FALSE);
-}
-
-static gchar **remove_uri_from_list(const gchar **list, const gchar *uri)
-{
-	GPtrArray *array = g_ptr_array_new_with_free_func(g_free);
-	for (int i = 0; list && list[i]; i++) {
-		if (g_strcmp0(list[i], uri) != 0)
-			g_ptr_array_add(array, g_strdup(list[i]));
-	}
-
-	g_ptr_array_add(array, NULL);
-	return (gchar **)g_ptr_array_free(array, FALSE);
-}
-
-void update_star_button(GtkButton *button, gboolean litos_app_window_is_favorite)
-{
-	const char *icon_name = litos_app_window_is_favorite ? "starred-symbolic" : "non-starred-symbolic";
-	const char *tooltip = litos_app_window_is_favorite ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti";
-
-	GtkWidget *new_icon = gtk_image_new_from_icon_name(icon_name);
-	gtk_button_set_child(button, new_icon);
-	gtk_widget_set_tooltip_text(GTK_WIDGET(button), tooltip);
-}
-
-void litos_app_window_star_btn_clicked(GtkButton *button, gpointer user_data)
-{
-	LitosAppWindow *win = LITOS_APP_WINDOW(user_data);
-	LitosFile *file = g_object_get_data(G_OBJECT(button), "litos-file");
-
-	GFile *gf = litos_file_get_gfile(file);
-	gchar *uri = gf ? g_file_get_uri(gf) : NULL;
-
-	if (!uri || !g_utf8_validate(uri, -1, NULL)) {
-		g_warning("URI non valido o NULL");
-		g_free(uri);
-		return;
-	}
-
-	gchar **favorites = g_settings_get_strv(win->settings, "favorite-files");
-
-	gboolean is_fav = uri_in_list((const gchar **)favorites, uri);
-	gchar **updated = is_fav
-	? remove_uri_from_list((const gchar **)favorites, uri)
-	: add_uri_to_list((const gchar **)favorites, uri);
-
-	g_settings_set_strv(win->settings, "favorite-files", (const gchar * const *)updated);
-	update_star_button(button, !is_fav);
-
-	g_strfreev(favorites);
-	g_strfreev(updated);
-	g_free(uri);
-}
-
-static void litos_app_window_remove_page(LitosAppWindow *win, LitosFile *file)
-{
-    if (!win || !file)
-        return;
-
-    GtkWidget *tabbox = litos_file_get_tabbox(file);
-    if (!tabbox)
-        return;
-
-    gint page_num = gtk_notebook_page_num(GTK_NOTEBOOK(win->notebook), tabbox);
-    if (page_num == -1)
-        return;
-
-    // Recupera i widget associati PRIMA di rimuovere la pagina
-    GtkWidget *close_btn = GTK_WIDGET(g_object_get_data(G_OBJECT(file), "close-button"));
-    GtkWidget *star_btn  = GTK_WIDGET(g_object_get_data(G_OBJECT(file), "star-button"));
-
-    // Disconnetti i segnali per evitare callback durante/dopo la rimozione
-    if (close_btn)
-        g_signal_handlers_disconnect_by_func(close_btn, G_CALLBACK(litos_app_window_close_btn_clicked), win);
-    if (star_btn)
-        g_signal_handlers_disconnect_by_func(star_btn, G_CALLBACK(litos_app_window_star_btn_clicked), win);
-
-    // Nascondi per evitare warning di layout (opzionale)
-    gtk_widget_set_visible(tabbox, FALSE);
-
-    // Rimuovi la pagina UNA SOLA VOLTA
-    gtk_notebook_remove_page(GTK_NOTEBOOK(win->notebook), page_num);
-
-    // Aggiorna lo stato interno
-    g_ptr_array_remove(win->litosFileList, file);
-
-    // Aggiorna il titolo (potrebbe non esserci più pagina corrente)
-    litos_app_window_update_title(win);
 }
 
 gboolean litos_app_window_quit(GtkWindow *window G_GNUC_UNUSED, gpointer user_data)
@@ -1042,67 +1044,66 @@ static void litos_app_window_saved_notify_cb(GObject *gobject G_GNUC_UNUSED,
 static void
 litos_app_window_new_tab(LitosAppWindow *win, struct Page *page, LitosFile *file)
 {
-    // Pulsante di chiusura
-    GtkWidget *close_btn = gtk_button_new();
-    GtkWidget *close_icon = gtk_image_new_from_icon_name("window-close-symbolic");
-    gtk_button_set_child(GTK_BUTTON(close_btn), close_icon);
-    gtk_widget_set_focusable(close_btn, FALSE);
+	// Pulsante di chiusura
+	GtkWidget *close_btn = gtk_button_new();
+	GtkWidget *close_icon = gtk_image_new_from_icon_name("window-close-symbolic");
+	gtk_button_set_child(GTK_BUTTON(close_btn), close_icon);
+	gtk_widget_set_focusable(close_btn, FALSE);
 
-    // Costruzione della tab
-    gtk_box_append(GTK_BOX(page->close_btn_box), page->lbl);
+	// Costruzione della tab
+	gtk_box_append(GTK_BOX(page->close_btn_box), page->lbl);
 
-    // Pulsante stella: creato sempre, ma visibile solo se il file è valido
-    GtkWidget *star_btn = gtk_button_new();
-    gtk_widget_set_tooltip_text(star_btn, "Aggiungi ai preferiti");
-    GtkWidget *star_icon = gtk_image_new_from_icon_name("starred-symbolic");
-    gtk_button_set_child(GTK_BUTTON(star_btn), star_icon);
-    gtk_widget_set_focusable(star_btn, FALSE);
+	// Pulsante stella: creato sempre, ma visibile solo se il file è valido
+	GtkWidget *star_btn = gtk_button_new();
+	gtk_widget_set_tooltip_text(star_btn, "Aggiungi ai preferiti");
+	GtkWidget *star_icon = gtk_image_new_from_icon_name("starred-symbolic");
+	gtk_button_set_child(GTK_BUTTON(star_btn), star_icon);
+	gtk_widget_set_focusable(star_btn, FALSE);
 
-    const gchar *name = litos_file_get_name(file);
-    GFile *gf = litos_file_get_gfile(file);
-    gboolean is_untitled = !name || g_str_has_prefix(name, "Untitled");
-    gboolean has_path = gf != NULL;
+	const gchar *name = litos_file_get_name(file);
+	GFile *gf = litos_file_get_gfile(file);
+	gboolean is_untitled = !name || g_str_has_prefix(name, "Untitled");
+	gboolean has_path = gf != NULL;
 
-    if (is_untitled || !has_path)
-        gtk_widget_set_visible(star_btn, FALSE);
+	if (is_untitled || !has_path)
+		gtk_widget_set_visible(star_btn, FALSE);
 
-    gtk_box_append(GTK_BOX(page->close_btn_box), star_btn);
+	gtk_box_append(GTK_BOX(page->close_btn_box), star_btn);
 
-    g_object_set_data(G_OBJECT(star_btn), "litos-file", file);
-    g_signal_connect(star_btn, "clicked", G_CALLBACK(litos_app_window_star_btn_clicked), win);
+	g_object_set_data(G_OBJECT(star_btn), "litos-file", file);
+	g_signal_connect(star_btn, "clicked", G_CALLBACK(litos_app_window_star_btn_clicked), win);
 
-    g_object_set_data(G_OBJECT(file), "star-button", star_btn);
-    g_object_set_data(G_OBJECT(file), "star-initialized", GINT_TO_POINTER(FALSE));
+	g_object_set_data(G_OBJECT(file), "star-button", star_btn);
+	g_object_set_data(G_OBJECT(file), "star-initialized", GINT_TO_POINTER(FALSE));
 
-    litos_app_window_initialize_star_if_needed(file);
+	litos_app_window_initialize_star_if_needed(file);
 
-    gtk_box_append(GTK_BOX(page->close_btn_box), close_btn);
-    gtk_box_append(GTK_BOX(page->tabbox), page->scrolled);
+	gtk_box_append(GTK_BOX(page->close_btn_box), close_btn);
+	gtk_box_append(GTK_BOX(page->tabbox), page->scrolled);
 
-    // Aggiunta al notebook
-    gint page_num = gtk_notebook_append_page_menu(
-        win->notebook,
-        page->tabbox,
-        page->close_btn_box,
-        page->close_btn_box
-    );
-    gtk_notebook_set_current_page(win->notebook, page_num);
-    gtk_notebook_set_tab_reorderable(win->notebook, page->tabbox, TRUE);
+	// Aggiunta al notebook
+	gint page_num = gtk_notebook_append_page_menu(
+		win->notebook,
+		page->tabbox,
+		page->close_btn_box,
+		page->close_btn_box
+	);
+	gtk_notebook_set_current_page(win->notebook, page_num);
+	gtk_notebook_set_tab_reorderable(win->notebook, page->tabbox, TRUE);
 
-    // Applica stile ridotto se ci sono più di 6 tab
-    if (gtk_notebook_get_n_pages(GTK_NOTEBOOK(win->notebook)) > 6) {
-        gtk_widget_add_css_class(page->lbl, "tab-label-small");
-    }
+	// Applica stile ridotto se ci sono più di 6 tab
+	if (gtk_notebook_get_n_pages(GTK_NOTEBOOK(win->notebook)) > 6)
+		gtk_widget_add_css_class(page->lbl, "tab-label-small");
 
-    // Associazione del file
-    g_ptr_array_add(win->litosFileList, file);
-    g_object_set_data(G_OBJECT(page->tabbox), "litos-file", file);
-    litos_file_set_tabbox(file, page->tabbox);
+	// Associazione del file
+	g_ptr_array_add(win->litosFileList, file);
+	g_object_set_data(G_OBJECT(page->tabbox), "litos-file", file);
+	litos_file_set_tabbox(file, page->tabbox);
 
-    g_object_set_data(G_OBJECT(close_btn), "litos-file", file);
-    g_signal_connect(close_btn, "clicked", G_CALLBACK(litos_app_window_close_btn_clicked), win);
+	g_object_set_data(G_OBJECT(close_btn), "litos-file", file);
+	g_signal_connect(close_btn, "clicked", G_CALLBACK(litos_app_window_close_btn_clicked), win);
 
-    gtk_widget_grab_focus(page->view);
+	gtk_widget_grab_focus(page->view);
 }
 
 LitosFile *litos_app_window_create_tab(LitosAppWindow *win, struct Page *page)
