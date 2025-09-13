@@ -76,15 +76,15 @@ static GParamSpec *obj_properties[N_PROPERTIES] = { NULL, };
 void litos_file_set_unsaved(LitosFile *file)
 {
 	file->saved = FALSE;
-	g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]);
+	g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]); //Emission of signal for the "saved" property
 }
 
 static void litos_file_buffer_monitor_change(GtkTextBuffer *buffer G_GNUC_UNUSED,
-                                             gpointer userdata)
+ gpointer userdata)
 {
-    LitosFile *file = LITOS_FILE(userdata);
-    litos_file_set_unsaved(file);
-    g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
+	LitosFile *file = LITOS_FILE(userdata);
+	litos_file_set_unsaved(file);
+	g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
 }
 
 void litos_file_reset_gfile(LitosFile *file)
@@ -94,31 +94,30 @@ void litos_file_reset_gfile(LitosFile *file)
 
 static void litos_file_dispose(GObject *object)
 {
-    LitosFile *file = LITOS_FILE(object);
+	LitosFile *file = LITOS_FILE(object);
 
-    // Disconnette il segnale sul buffer
-    if (GTK_IS_TEXT_BUFFER(file->buffer))
-        g_signal_handlers_disconnect_by_func(file->buffer, litos_file_buffer_monitor_change, file);
+	// Disconnette il segnale sul buffer
+	if (GTK_IS_TEXT_BUFFER(file->buffer))
+	g_signal_handlers_disconnect_by_func(file->buffer, litos_file_buffer_monitor_change, file);
 
-    // Libera la stringa del nome
-    g_free(file->name);
-    file->name = NULL;
+	// Libera la stringa del nome
+	g_free(file->name);
+	file->name = NULL;
 
-    // Rilascia l'oggetto GFile in modo sicuro
-    litos_file_reset_gfile(file);
+	// Rilascia l'oggetto GFile in modo sicuro
+	litos_file_reset_gfile(file);
 
-    // I widget GTK sono gestiti dai container: non fare unref
+	// I widget GTK sono gestiti dai container: non fare unref
 
-    // Chiamata al dispose della superclasse
-    G_OBJECT_CLASS(litos_file_parent_class)->dispose(object);
+	// Chiamata al dispose della superclasse
+	G_OBJECT_CLASS(litos_file_parent_class)->dispose(object);
 }
 
 
-static void
-litos_file_set_property (GObject *object,
-                          guint  property_id,
-                          const GValue *value,
-                          GParamSpec *pspec)
+static void litos_file_set_property (GObject *object,
+  guint  property_id,
+  const GValue *value,
+  GParamSpec *pspec)
 {
 	LitosFile *self = LITOS_FILE (object);
 
@@ -136,10 +135,7 @@ litos_file_set_property (GObject *object,
 }
 
 static void
-litos_file_get_property (GObject *object,
-                          guint property_id,
-                          GValue *value,
-                          GParamSpec *pspec)
+litos_file_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
 	LitosFile *self = LITOS_FILE (object);
 
@@ -171,10 +167,10 @@ litos_file_class_init (LitosFileClass *class)
 
 	obj_properties[PROP_SAVED] =
 		g_param_spec_boolean ("saved",
-		                 "Save",
-		                 "File status",
-		                 FALSE	/* default value */,
-		                 G_PARAM_READWRITE);
+		 "Save",
+		 "File status",
+		 FALSE	/* default value */,
+		 G_PARAM_READWRITE);
 
 	g_object_class_install_properties (object_class,
 		N_PROPERTIES,
@@ -223,7 +219,7 @@ GtkWidget * litos_file_get_tabbox(LitosFile *file)
 
 void litos_file_set_tabbox(LitosFile *file, GtkWidget *tabbox)
 {
-    file->tabbox = tabbox;
+file->tabbox = tabbox;
 }
 
 void litos_file_set_saved(LitosFile *file)
@@ -237,26 +233,30 @@ LitosFile *litos_file_set(struct Page *page)
 	LitosFile *file = litos_file_new();
 
 	// Salva i puntatori (senza aumentare il refcount)
-	file->gfile         = page->gf;
-	file->scrolled      = page->scrolled;
-	file->tabbox        = page->tabbox;
+	file->gfile = page->gf;
+	file->scrolled  = page->scrolled;
+	file->tabbox= page->tabbox;
 	file->close_btn_box = page->close_btn_box;
-	file->view          = page->view;
-	file->lbl           = page->lbl;
-	file->buffer        = page->buffer;
+	file->view  = page->view;
+	file->lbl   = page->lbl;
+	file->buffer= page->buffer;
 
 	// Fai ref solo su gfile, se necessario
 	if (G_IS_OBJECT(file->gfile))
 		g_object_ref(file->gfile);
 
-	// Gli altri widget sono gestiti da GTK: non fare ref
-	// (GTK distrugge automaticamente i figli dei container)
-
 	// Copia il nome del file, se presente
 	if (file->name)
-	    g_free(file->name);
+		g_free(file->name);
 
-	file->name = page->name ? g_strdup(page->name) : NULL;
+	if (page->name) {
+		file->name = page->name;
+		page->name = NULL;
+	} else if (G_IS_FILE(page->gf)) {
+		file->name = g_file_get_basename(page->gf); // va liberato in destroy
+	} else {
+	    file->name = NULL;
+	}
 
 	// Collega il segnale sul buffer, se è valido
 	if (GTK_IS_TEXT_BUFFER(file->buffer))
@@ -265,75 +265,102 @@ LitosFile *litos_file_set(struct Page *page)
 	return file;
 }
 
-void litos_file_highlight_buffer(LitosFile *file, LitosApp *app)
+void
+litos_file_highlight_buffer (LitosFile *file, LitosApp *app)
 {
-    if (!file || !file->buffer || !GTK_IS_TEXT_BUFFER(file->buffer))
-        return;
+	/* Controlli difensivi su file e buffer */
+	if (!file || !file->buffer) {
+		g_warning ("litos_file_highlight_buffer: file o buffer NULL");
+		return;
+	}
 
-    GtkSourceBuffer *source_buffer = GTK_SOURCE_BUFFER(file->buffer);
+	/* Verifica che sia davvero un GtkSourceBuffer */
+	if (!GTK_SOURCE_IS_BUFFER (file->buffer)) {
+		g_warning ("litos_file_highlight_buffer: il buffer non è un GtkSourceBuffer, salto evidenziazione");
+		return;
+	}
 
-    GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();
-    GtkSourceLanguage *lang = NULL;
+	GtkSourceBuffer *source_buffer = GTK_SOURCE_BUFFER (file->buffer);
+	GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default ();
+	GtkSourceLanguage *lang = NULL;
+	gchar *content_type = NULL;
 
-    if (file->name && *file->name)
-        lang = gtk_source_language_manager_guess_language(lm, file->name, NULL);
+	/* Prova a determinare la lingua dal nome file e dal content type */
+	if (file->name && *file->name) {
+		gchar *path = g_file_get_path (file->gfile);
+		if (path) {
+			/* content_type è una nuova stringa da liberare */
+			content_type = g_content_type_guess (path, NULL, 0, NULL);
+			g_free (path);
+		}
 
-    if (!lang)
-        lang = gtk_source_language_manager_get_language(lm, "html");
+		lang = gtk_source_language_manager_guess_language (lm, file->name, content_type);
 
-    if (lang)
-    {
-        gtk_source_buffer_set_language(source_buffer, lang);
-        gtk_source_buffer_set_highlight_syntax(source_buffer, TRUE);
-    }
+		/* libera content_type se allocata */
+		g_free (content_type);
+	}
 
-    // 👉 Qui usi la funzione centralizzata
-    GtkSourceStyleScheme *scheme = litos_app_get_style_scheme(app);
-    if (scheme)
-        gtk_source_buffer_set_style_scheme(source_buffer, scheme);
-}
+	/* Fallback a HTML se non riconosciuto */
+	if (!lang)
+		lang = gtk_source_language_manager_get_language (lm, "html");
+
+	/* Imposta sintassi solo se abbiamo una lingua valida */
+	if (lang) {
+		gtk_source_buffer_set_language (source_buffer, lang);
+		gtk_source_buffer_set_highlight_syntax (source_buffer, TRUE);
+	} else {
+		gtk_source_buffer_set_highlight_syntax (source_buffer, FALSE);
+	}
+
+	/* Applica lo schema di stile centralizzato se disponibile */
+	GtkSourceStyleScheme *scheme = litos_app_get_style_scheme (app);
+	if (scheme)
+		gtk_source_buffer_set_style_scheme (source_buffer, scheme);
+	}
 
 gboolean litos_file_load(LitosFile *file, GError **error)
 {
-    char *contents;
-    gsize length;
+	char *contents = NULL;
+	gsize length = 0;
 
-    if (g_file_load_contents(file->gfile, NULL, &contents, &length, NULL, error))
-    {
-        gchar *content_type = g_content_type_guess(g_file_get_path(file->gfile),
-                                                   (const guchar *)contents,
-                                                   length,
-                                                   NULL);
+	if (!file || !file->gfile || !file->buffer)
+		return FALSE;
 
-        if (!g_str_has_prefix(content_type, "text/")) {
-            gchar *type_copy = g_strdup(content_type);
-            g_free(content_type);
-            g_free(contents);
-            g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
-                        "Il file non è di tipo testuale (%s)", type_copy);
-            g_free(type_copy);
-            return FALSE;
-        }
+	if (!g_file_load_contents(file->gfile, NULL, &contents, &length, NULL, error))
+		return FALSE;
 
-        if (!g_utf8_validate(contents, length, NULL)) {
-            g_free(content_type);
-            g_free(contents);
-            g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
-                        "Il contenuto del file non è UTF-8 valido.");
-            return FALSE;
-        }
+	gchar *path = g_file_get_path(file->gfile);
+	gchar *content_type = g_content_type_guess(path, (const guchar *)contents, length, NULL);
+	g_free(path);
 
-        gtk_text_buffer_set_text(file->buffer, contents, length);
-        g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
-        file->saved = TRUE;
+	// Accetta solo file testuali
+	if (!g_content_type_is_a(content_type, "text/plain")) {
+		g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
+		"Il file non è di tipo testuale (%s)", content_type);
+		g_free(content_type);
+		g_free(contents);
+		return FALSE;
+	}
 
-        g_free(content_type);
-        g_free(contents);
-        return TRUE;
-    }
+	// Verifica che il contenuto sia UTF-8 valido
+	if (!g_utf8_validate(contents, length, NULL)) {
+			g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
+		"Il contenuto del file non è UTF-8 valido.");
+		g_free(content_type);
+		g_free(contents);
+		return FALSE;
+	}
 
-    return FALSE;
+	gtk_text_buffer_set_text(file->buffer, contents, length);
+	g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
+	file->saved = TRUE;
+
+	g_free(content_type);
+	g_free(contents);
+
+	return TRUE;
 }
+
 
 gboolean litos_file_save(LitosFile *file, GError **error)
 {

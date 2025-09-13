@@ -8,3 +8,12 @@ textview {
 	font-size: 10px;
 	padding: 2px;
 }
+
+.unsaved-label {
+	color: red;
+}
+
+.saved-label {
+	color: gray;
+}
+

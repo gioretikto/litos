@@ -29,12 +29,12 @@ GtkWidget* MyNewSourceview()
 	return source_view;
 }
 
-
 struct Page litos_page_new_empty(const gchar *name)
 {
 	struct Page page = {0};
 
-	page.name = name ? g_strdup(name) : g_strdup("Nuovo documento");
+	page.name = g_strdup(name);
+
 	page.gf = NULL;
 
 	page.view = MyNewSourceview();
