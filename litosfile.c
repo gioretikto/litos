@@ -316,7 +316,7 @@ litos_file_highlight_buffer (LitosFile *file, LitosApp *app)
 	GtkSourceStyleScheme *scheme = litos_app_get_style_scheme (app);
 	if (scheme)
 		gtk_source_buffer_set_style_scheme (source_buffer, scheme);
-	}
+}
 
 gboolean litos_file_load(LitosFile *file, GError **error)
 {
