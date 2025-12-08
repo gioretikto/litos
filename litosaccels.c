@@ -24,11 +24,11 @@ static void litos_accels_open_dialog_cb(GObject *source_object, GAsyncResult *re
 	{
 		char *gfile_name = g_file_get_path(gfile);
 
-	if (gfile_name && !litos_app_check_duplicate(gfile_name, win))
-		litos_app_window_open(win, gfile);
+		if (gfile_name && !litos_app_check_duplicate(gfile_name, win))
+			litos_app_window_open(win, gfile);
 
-	g_free(gfile_name);
-	g_object_unref(gfile);
+		g_free(gfile_name);
+		g_object_unref(gfile);
 	}
 
 	g_object_unref(dialog);
@@ -312,6 +312,7 @@ void litos_accels_setAccels (GApplication *app)
 		{ "app.insert_html(\"<sub>%s</sub>\")", { "<Control>u", NULL} },
 		{ "app.insert_html('<div class=\"eq\">\n<p>%s</p>\n</div>\')", { "<Control>g", NULL} },
 		{ "app.insert_char('<i>f</i>(<i>x</i>)')", { "<Control>KP_0", NULL} },
+		{ "app.insert_char('<i>x</i><sub>0</sub>')", { "<Control>KP_1", NULL} },
 		{ "app.insert_char(\"\\\\mathbf{}\")", { "<Control><Shift>m", NULL} },
 		{ "app.insert_char(\"ℝ\")", { "<Control><Shift>r", NULL} },
 		{ "app.insert_char(\"\\\\text{}\")", { "<Control><Shift>t", NULL} },
