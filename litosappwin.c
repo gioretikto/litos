@@ -743,19 +743,6 @@ gboolean litos_app_window_remove_child(LitosAppWindow *win)
 	return FALSE;
 }
 
-static void litos_app_window_on_switch_page(GtkNotebook *notebook G_GNUC_UNUSED,
-GtkWidget *page G_GNUC_UNUSED,
-guint page_num G_GNUC_UNUSED,
-gpointer user_data)
-{
-	LitosAppWindow *win = LITOS_APP_WINDOW(user_data);
-
-	if (!win || !win->notebook)
-		return;
-
-	litos_app_window_update_title(win);
-}
-
 static void
 litos_app_window_init_save_dialog(LitosAppWindow *win)
 {
@@ -828,12 +815,13 @@ litos_app_window_init (LitosAppWindow *win)
 	g_signal_connect(win->btn_prev, "clicked", G_CALLBACK(litos_app_window_prev_match), win);
 	g_signal_connect(win->btn_next, "clicked", G_CALLBACK(litos_app_window_next_match), win);
 	g_signal_connect(win->btn_replace, "clicked", G_CALLBACK(litos_app_window_replace_btn_clicked), win);
-	g_signal_connect(win->notebook, "switch-page", G_CALLBACK(litos_app_window_on_switch_page), win); /* to update the title with file path*/
+	g_signal_connect_data (win->notebook, "switch-page", G_CALLBACK (litos_app_window_update_title), win, NULL, G_CONNECT_SWAPPED | G_CONNECT_AFTER); /* to update the title with file path*/
 
 	litos_app_window_init_save_dialog(win);
 
 	// Focus automatico sulla barra di ricerca
 	gtk_widget_set_can_focus(win->search_entry, TRUE);
+
 
 	// Associa lo stato del pulsante alla visibilità della barra di ricerca
 	g_object_bind_property(win->btn_find_icon, "active",

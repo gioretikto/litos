@@ -214,12 +214,12 @@ gboolean litos_file_get_saved(LitosFile *file)
 
 GtkWidget * litos_file_get_tabbox(LitosFile *file)
 {
-	return file->tabbox;
+        return file->tabbox;
 }
 
 void litos_file_set_tabbox(LitosFile *file, GtkWidget *tabbox)
 {
-file->tabbox = tabbox;
+        file->tabbox = tabbox;
 }
 
 void litos_file_set_saved(LitosFile *file)
