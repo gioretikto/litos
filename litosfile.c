@@ -389,8 +389,6 @@ gboolean litos_file_save(LitosFile *file, GError **error)
 
 		file->saved = TRUE;
 		g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
-
-		litos_app_window_initialize_star_if_needed(file);
 	}
 
 	return TRUE;

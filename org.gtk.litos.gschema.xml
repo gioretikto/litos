@@ -11,11 +11,10 @@
       <description>The transition to use when switching tabs.</description>
     </key>
 
-    <key name="favorite-files" type="as">
+    <key name="last-session-files" type="as">
       <default>[]</default>
-      <summary>File preferiti</summary>
-      <description>Contiene gli URI dei file contrassegnati come preferiti dall'utente.</description>
+      <summary>File aperti nell'ultima sessione</summary>
+      <description>Elenco dei percorsi dei file da riaprire all'avvio.</description>
     </key>
   </schema>
 </schemalist>
-
