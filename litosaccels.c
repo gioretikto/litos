@@ -318,7 +318,7 @@ void litos_accels_setAccels (GApplication *app)
 		{ "app.insert_char(\"\\\\text{}\")", { "<Control><Shift>t", NULL} },
 		{ "app.insert_char(\"−\")", { "<Control>m", NULL} },
 		{ "app.insert_char(\"⋅\")", { "<Control>d", NULL} },
-		{ "app.insert_char(\"⟶⟼⇒\")", { "<Control>y", NULL} },
+		{ "app.insert_char(\"&rarr;⟼⇒\")", { "<Control>y", NULL} },
 		{ "app.insert_char(\"⇌⇔⟵⇐\")", { "<Control><Shift>y", NULL} },
 		{ "app.insert_char(\"<br>\")", { "<Control>r", NULL} },
 		{ "app.insert_char(\"&emsp;■□\")", { "<Control>t", NULL} },

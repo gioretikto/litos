@@ -974,6 +974,9 @@ litos_app_window_new_tab(LitosAppWindow *win, struct Page *page)
 		NULL);
 
 	gtk_notebook_set_current_page(win->notebook, page_num);
+	
+	gtk_widget_grab_focus(page->view);
+	
 	gtk_notebook_set_tab_reorderable(win->notebook, page->tabbox, TRUE);
 
 	// Applica stile ridotto se ci sono più di 6 tab

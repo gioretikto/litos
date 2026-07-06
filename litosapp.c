@@ -85,7 +85,6 @@ litos_app_activate (GApplication *app)
 {
 	LitosAppWindow *win = litos_app_window_new (LITOS_APP (app));
 
-
 	GtkWindow *window = GTK_WINDOW (win);
 
 	gtk_window_set_title (window, "Litos");
