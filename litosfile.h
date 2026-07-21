@@ -12,6 +12,9 @@
 #ifndef _LITOS_FILE_H
 #define _LITOS_FILE_H
 
+#include <gtk/gtk.h>
+#include <gio/gio.h>
+
 G_BEGIN_DECLS
 
 #define LITOS_TYPE_FILE (litos_file_get_type ())
@@ -25,22 +28,27 @@ struct Page;
 gboolean litos_file_load (LitosFile *file, GError **error);
 gboolean litos_file_save(LitosFile *file, GError **error);
 void litos_file_save_as(LitosFile* file, GFile *new_file);
+
 GtkTextBuffer *litos_file_get_buffer(LitosFile *file);
+
 GFile *litos_file_get_gfile(LitosFile* file);
-GtkWidget * litos_file_get_lbl(LitosFile *file);
+GtkWidget *litos_file_get_lbl(LitosFile *file);
 gchar *litos_file_get_name(LitosFile *file);
 gboolean litos_file_get_saved(LitosFile *file);
-GtkWidget * litos_file_get_tabbox(LitosFile *file);
-GtkWidget * litos_file_get_view(LitosFile *file);
+GtkWidget *litos_file_get_tabbox(LitosFile *file);
+GtkWidget *litos_file_get_view(LitosFile *file);
+
 void litos_file_highlight_buffer(LitosFile *file, LitosApp *app);
 void litos_file_reset_gfile(LitosFile *file);
-LitosFile * litos_file_set(struct Page *page);
+
+LitosFile *litos_file_set(struct Page *page);
+
 void litos_file_set_tabbox(LitosFile *file, GtkWidget *tabbox);
 void litos_file_set_unsaved(LitosFile *file);
 
 G_DECLARE_FINAL_TYPE(LitosFile, litos_file, LITOS, FILE, GObject)
 
-LitosFile *          litos_file_new           ();
+LitosFile *litos_file_new(void);
 
 G_END_DECLS
 

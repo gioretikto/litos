@@ -31,7 +31,7 @@ struct _LitosFile
 
 	GtkWidget* tabbox;
 
-	GtkWidget* close_btn_box;
+	GtkWidget* tab_label_box;
 
 	/*GtkSourceView*/
 
@@ -75,16 +75,21 @@ static GParamSpec *obj_properties[N_PROPERTIES] = { NULL, };
 
 void litos_file_set_unsaved(LitosFile *file)
 {
-	file->saved = FALSE;
-	g_object_notify_by_pspec (G_OBJECT (file), obj_properties[PROP_SAVED]); //Emission of signal for the "saved" property
+	if (!file) return;
+
+	if (file->saved) {
+		file->saved = FALSE;
+		g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
+	}
 }
 
-static void litos_file_buffer_monitor_change(GtkTextBuffer *buffer G_GNUC_UNUSED,
- gpointer userdata)
+static void litos_file_buffer_monitor_change(
+	GtkTextBuffer *buffer G_GNUC_UNUSED,
+	gpointer userdata)
 {
 	LitosFile *file = LITOS_FILE(userdata);
+
 	litos_file_set_unsaved(file);
-	g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
 }
 
 void litos_file_reset_gfile(LitosFile *file)
@@ -96,23 +101,22 @@ static void litos_file_dispose(GObject *object)
 {
 	LitosFile *file = LITOS_FILE(object);
 
-	// Disconnette il segnale sul buffer
+	// Disconnect the buffer signal
 	if (GTK_IS_TEXT_BUFFER(file->buffer))
 	g_signal_handlers_disconnect_by_func(file->buffer, litos_file_buffer_monitor_change, file);
 
-	// Libera la stringa del nome
+	// Free the string name
 	g_free(file->name);
 	file->name = NULL;
 
-	// Rilascia l'oggetto GFile in modo sicuro
+	// Free the GFile object safely
 	litos_file_reset_gfile(file);
 
-	// I widget GTK sono gestiti dai container: non fare unref
+	// Widgets are handled by containers: unref not necessary
 
-	// Chiamata al dispose della superclasse
+	// Call to the superclass dispose
 	G_OBJECT_CLASS(litos_file_parent_class)->dispose(object);
 }
-
 
 static void litos_file_set_property (GObject *object,
   guint  property_id,
@@ -224,98 +228,134 @@ void litos_file_set_tabbox(LitosFile *file, GtkWidget *tabbox)
 
 void litos_file_set_saved(LitosFile *file)
 {
-	file->saved = TRUE;
+	if (!file) return;
+
+	if (!file->saved) {
+		file->saved = TRUE;
+		g_object_notify_by_pspec(G_OBJECT(file),
+			obj_properties[PROP_SAVED]);
+	}
 }
 
 LitosFile *litos_file_set(struct Page *page)
 {
-	// Crea un nuovo oggetto LitosFile
+	if (!page)
+		return NULL;
+
 	LitosFile *file = litos_file_new();
 
-	// Salva i puntatori (senza aumentare il refcount)
-	file->gfile = page->gf;
-	file->scrolled  = page->scrolled;
-	file->tabbox= page->tabbox;
-	file->close_btn_box = page->close_btn_box;
-	file->view  = page->view;
-	file->lbl   = page->lbl;
-	file->buffer= page->buffer;
+	/* Widget associati alla pagina */
+	file->scrolled = page->scrolled;
+	file->tabbox = page->tabbox;
+	file->tab_label_box = page->tab_label_box;
+	file->view = page->view;
+	file->lbl = page->lbl;
 
-	// Fai ref solo su gfile, se necessario
-	if (G_IS_OBJECT(file->gfile))
-		g_object_ref(file->gfile);
+	/* GtkSourceBuffer deriva da GtkTextBuffer */
+	file->buffer = page->buffer;
 
-	// Copia il nome del file, se presente
-	if (file->name)
-		g_free(file->name);
+	/*
+	 * Prende il riferimento al GFile.
+	 * Questo mantiene valido il file anche dopo il close
+	 * del dialogo di apertura.
+	 */
+	file->gfile = page->gf ? g_object_ref(page->gf) : NULL;
 
-	if (page->name) {
+	/*
+	 * Nome del file.
+	 * Trasferiamo la proprietà di page->name.
+	 */
+	g_free(file->name);
+	file->name = NULL;
+
+	if (page->name)
+	{
 		file->name = page->name;
 		page->name = NULL;
-	} else if (G_IS_FILE(page->gf)) {
-		file->name = g_file_get_basename(page->gf); // va liberato in destroy
-	} else {
-	    file->name = NULL;
+	}
+	else if (file->gfile)
+	{
+		file->name = g_file_get_basename(file->gfile);
+	}
+	else
+	{
+		file->name = g_strdup("Nuovo documento");
 	}
 
-	// Collega il segnale sul buffer, se è valido
+	/*
+	 * Connette il segnale changed del buffer.
+	 */
 	if (GTK_IS_TEXT_BUFFER(file->buffer))
-		g_signal_connect(file->buffer, "changed", G_CALLBACK(litos_file_buffer_monitor_change), file);
+	{
+		g_signal_connect(
+			file->buffer,
+			"changed",
+			G_CALLBACK(litos_file_buffer_monitor_change),
+			file);
+	}
+
+	/*
+	 * Imposta il testo iniziale del tab.
+	 */
+	if (GTK_IS_LABEL(file->lbl))
+	{
+		gtk_label_set_text(
+			GTK_LABEL(file->lbl),
+			file->name);
+	}
 
 	return file;
 }
 
 void
-litos_file_highlight_buffer (LitosFile *file, LitosApp *app)
+litos_file_highlight_buffer(LitosFile *file, LitosApp *app)
 {
-	/* Controlli difensivi su file e buffer */
 	if (!file || !file->buffer) {
-		g_warning ("litos_file_highlight_buffer: file o buffer NULL");
+		g_warning("litos_file_highlight_buffer: file o buffer NULL");
 		return;
 	}
 
-	/* Verifica che sia davvero un GtkSourceBuffer */
-	if (!GTK_SOURCE_IS_BUFFER (file->buffer)) {
-		g_warning ("litos_file_highlight_buffer: il buffer non è un GtkSourceBuffer, salto evidenziazione");
+	if (!GTK_SOURCE_IS_BUFFER(file->buffer)) {
+		g_warning("litos_file_highlight_buffer: il buffer non è un GtkSourceBuffer");
 		return;
 	}
 
-	GtkSourceBuffer *source_buffer = GTK_SOURCE_BUFFER (file->buffer);
-	GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default ();
+	GtkSourceBuffer *source_buffer = GTK_SOURCE_BUFFER(file->buffer);
+	GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default();
 	GtkSourceLanguage *lang = NULL;
 	gchar *content_type = NULL;
 
-	/* Prova a determinare la lingua dal nome file e dal content type */
-	if (file->name && *file->name) {
-		gchar *path = g_file_get_path (file->gfile);
+	/* Determina il linguaggio dal nome file e dal content type */
+	if (file->name && *file->name && file->gfile) {
+
+		gchar *path = g_file_get_path(file->gfile);
+
 		if (path) {
-			/* content_type è una nuova stringa da liberare */
-			content_type = g_content_type_guess (path, NULL, 0, NULL);
-			g_free (path);
+			content_type = g_content_type_guess(path, NULL, 0, NULL);
+			g_free(path);
 		}
 
-		lang = gtk_source_language_manager_guess_language (lm, file->name, content_type);
+		lang = gtk_source_language_manager_guess_language(lm, file->name,content_type);
 
-		/* libera content_type se allocata */
-		g_free (content_type);
+		g_free(content_type);
 	}
 
-	/* Fallback a HTML se non riconosciuto */
+	/* Fallback se il linguaggio non è stato riconosciuto */
 	if (!lang)
-		lang = gtk_source_language_manager_get_language (lm, "html");
+		lang = gtk_source_language_manager_get_language(lm, "html");
 
-	/* Imposta sintassi solo se abbiamo una lingua valida */
 	if (lang) {
-		gtk_source_buffer_set_language (source_buffer, lang);
-		gtk_source_buffer_set_highlight_syntax (source_buffer, TRUE);
-	} else {
-		gtk_source_buffer_set_highlight_syntax (source_buffer, FALSE);
+		gtk_source_buffer_set_language(source_buffer, lang);
+		gtk_source_buffer_set_highlight_syntax(source_buffer, TRUE);
 	}
+	else
+		gtk_source_buffer_set_highlight_syntax(source_buffer, FALSE);
 
-	/* Applica lo schema di stile centralizzato se disponibile */
-	GtkSourceStyleScheme *scheme = litos_app_get_style_scheme (app);
+	/* Applica lo style scheme scelto dall'applicazione */
+	GtkSourceStyleScheme *scheme = litos_app_get_style_scheme(app);
+
 	if (scheme)
-		gtk_source_buffer_set_style_scheme (source_buffer, scheme);
+		gtk_source_buffer_set_style_scheme(source_buffer, scheme);
 }
 
 gboolean litos_file_load(LitosFile *file, GError **error)
@@ -336,24 +376,39 @@ gboolean litos_file_load(LitosFile *file, GError **error)
 	// Accetta solo file testuali
 	if (!g_content_type_is_a(content_type, "text/plain")) {
 		g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
-		"Il file non è di tipo testuale (%s)", content_type);
+			"Il file non è di tipo testuale (%s)", content_type);
 		g_free(content_type);
 		g_free(contents);
 		return FALSE;
 	}
 
-	// Verifica che il contenuto sia UTF-8 valido
+	// Check for valid UTF-8 content
 	if (!g_utf8_validate(contents, length, NULL)) {
-			g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
-		"Il contenuto del file non è UTF-8 valido.");
+		g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
+			"The file content is not valid UTF-8");
 		g_free(content_type);
 		g_free(contents);
 		return FALSE;
 	}
 
-	gtk_text_buffer_set_text(file->buffer, contents, length);
-	g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
+	/*
+	 * Il caricamento del file modifica il buffer e genera il segnale "changed".
+	 * Lo blocchiamo perché non è una modifica dell'utente.
+	 */
+	g_signal_handlers_block_by_func(file->buffer,
+		G_CALLBACK(litos_file_buffer_monitor_change),
+		file);
+
+	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(file->buffer), contents, length);
+
+	g_signal_handlers_unblock_by_func(file->buffer,
+		G_CALLBACK(litos_file_buffer_monitor_change),
+		file);
+
+	// Il file appena caricato è sicuramente salvato
 	file->saved = TRUE;
+	g_object_notify_by_pspec(G_OBJECT(file),
+		obj_properties[PROP_SAVED]);
 
 	g_free(content_type);
 	g_free(contents);
@@ -369,8 +424,8 @@ gboolean litos_file_save(LitosFile *file, GError **error)
 		GtkTextIter start_iter;
 		GtkTextIter end_iter;
 
-		gtk_text_buffer_get_bounds(file->buffer, &start_iter, &end_iter);
-		char *contents = gtk_text_buffer_get_text(file->buffer, &start_iter, &end_iter, TRUE);
+		gtk_text_buffer_get_bounds(GTK_TEXT_BUFFER(file->buffer), &start_iter, &end_iter);
+		char *contents = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(file->buffer), &start_iter, &end_iter, TRUE);
 
 		gboolean success = g_file_replace_contents(file->gfile,
 			contents,
@@ -384,8 +439,7 @@ gboolean litos_file_save(LitosFile *file, GError **error)
 
 		g_free(contents);
 
-		if (!success)
-			return FALSE;
+		if (!success) return FALSE;
 
 		file->saved = TRUE;
 		g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
@@ -394,16 +448,15 @@ gboolean litos_file_save(LitosFile *file, GError **error)
 	return TRUE;
 }
 
-void litos_file_save_as(LitosFile* file, GFile *new_file)
+void litos_file_save_as(LitosFile *file, GFile *new_file)
 {
+	if (!file) return;
+
 	g_set_object(&file->gfile, new_file);
 
-	g_free (file->name);
-
-	if (new_file != NULL)
-		file->name = g_file_get_basename(new_file);
-	else
-		file->name = NULL;
+	g_free(file->name);
+	
+	file->name = new_file ? g_file_get_basename(new_file) : g_strdup("Untitled");
 
 	litos_file_save(file, NULL);
 }

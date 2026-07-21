@@ -5,8 +5,9 @@ textview {
 
 /* Stile compatto per le tab quando sono troppe */
 .tab-label-small {
-	font-size: 10px;
-	padding: 2px;
+    font-size: 10px;
+    padding-left: 2px;
+    padding-right: 2px;
 }
 
 .unsaved-label {

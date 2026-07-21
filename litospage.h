@@ -23,13 +23,12 @@ struct Page {
     GtkWidget *scrolled;
     GtkWidget *lbl;
     GtkWidget *tabbox;
-    GtkWidget *close_btn_box;
+    GtkWidget *tab_label_box;
     GtkTextBuffer *buffer;
 };
 
 struct Page litos_page_new_empty(const gchar *name);
 struct Page litos_page_new_from_file(GFile *gf);
-struct Page litos_page_new_from_template(const gchar *name, const gchar *template_text);
 
 #endif
 
