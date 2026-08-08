@@ -113,7 +113,7 @@ static void litos_accels_open_tmpl(GSimpleAction *action G_GNUC_UNUSED, GVariant
 
 	GtkFileDialog *dialog = gtk_file_dialog_new();
 
-	// Imposta la cartella iniziale su "Templates"
+	// Set the initial directory "Templates"
 	const gchar *tmpl_path = g_get_user_special_dir(G_USER_DIRECTORY_TEMPLATES);
 	if (!tmpl_path) {
 		g_warning("Impossibile ottenere la cartella Templates");
@@ -208,7 +208,7 @@ static void litos_accels_insertChar (GSimpleAction *action G_GNUC_UNUSED, GVaria
 	g_variant_get(parameter, "s", &insertChar);
 	if (!insertChar) return;
 
-	gtk_text_buffer_insert_at_cursor(buffer, insertChar, -1); // -1 = lunghezza automatica
+	gtk_text_buffer_insert_at_cursor(buffer, insertChar, -1); // -1 = automatic length
 
 	g_free(insertChar);
 }
@@ -250,7 +250,7 @@ static void litos_accels_insertHtmlTags (GSimpleAction *action G_GNUC_UNUSED, GV
 
 	else
 	{
-		// Inserisce solo il tag di chiusura, es: </b>
+		// Insert only the closing tag, e.g.: </b>
 		gchar *closing_tag = g_strdup_printf("</%c>", tag[1]);
 		gtk_text_buffer_insert_at_cursor(buffer, closing_tag, -1);
 		g_free(closing_tag);
@@ -313,7 +313,7 @@ void litos_accels_setAccels(GApplication *app)
 		{"app.esc", {"Escape", NULL}},
 		{"app.find", {"<Control>f", NULL}},
 		// Openining of Symbol panel
-		{"app.symbols", {"<Control><Shift>r", NULL}},
+		{"app.symbols", {"<Control><Shift>w", NULL}},
 		{ "app.insert_html(\"<b>%s</b>\")", { "<Control>b", NULL} },
 		{ "app.insert_html(\"<i>%s</i>\")", { "<Control>i", NULL} },
 		{ "app.insert_html(\"<h2>%s</h2>\")", { "<Control>2", NULL} },
@@ -341,7 +341,7 @@ void litos_accels_setAccels(GApplication *app)
 		G_N_ELEMENTS(app_entries),
 		app);
 
-	//Register accelerators
+	// Register accelerators
 
 	for (i = 0; i < G_N_ELEMENTS(action_accels); i++)
 	{

@@ -46,39 +46,37 @@ GtkCssProvider * litos_app_get_css_provider(LitosApp *app)
 	return app->css_provider;
 }
 
-
 static void
 litos_app_startup (GApplication *app)
 {
-    litos_accels_setAccels(app);
+	litos_accels_setAccels(app);
 
-    G_APPLICATION_CLASS (litos_app_parent_class)->startup (app);
+	G_APPLICATION_CLASS (litos_app_parent_class)->startup (app);
 
-    gtk_source_init();
+	gtk_source_init();
 
-    g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", TRUE, NULL);
+	 g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", TRUE, NULL);
 
-    // Ottieni il riferimento all'app
-    LitosApp *litos = LITOS_APP(app);
+	// Ottieni il riferimento all'app
+	LitosApp *litos = LITOS_APP(app);
 
-    // Carica il CSS da risorsa
-    GtkCssProvider *provider = litos_app_get_css_provider(litos);
-    gtk_css_provider_load_from_resource(provider, "/org/gtk/litos/style.css");
+	// Carica il CSS da risorsa
+	GtkCssProvider *provider = litos_app_get_css_provider(litos);
+	gtk_css_provider_load_from_resource(provider, "/org/gtk/litos/style.css");
 
-    gtk_style_context_add_provider_for_display(
-        gdk_display_get_default(),
-        GTK_STYLE_PROVIDER(provider),
-        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
-    );
+	gtk_style_context_add_provider_for_display(
+		gdk_display_get_default(),
+		GTK_STYLE_PROVIDER(provider),
+		GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
+	);
 
-    // Carica lo schema di stile "oblivion"
-    GtkSourceStyleSchemeManager *scheme_manager = gtk_source_style_scheme_manager_get_default();
-    litos->style_scheme = gtk_source_style_scheme_manager_get_scheme(scheme_manager, "oblivion");
+	// Carica lo schema di stile "oblivion"
+	GtkSourceStyleSchemeManager *scheme_manager = gtk_source_style_scheme_manager_get_default();
+	litos->style_scheme = gtk_source_style_scheme_manager_get_scheme(scheme_manager, "oblivion");
 
-    if (!litos->style_scheme)
-        g_warning("Schema di stile 'oblivion' non trovato");
+	if (!litos->style_scheme)
+		g_warning("Schema di stile 'oblivion' non trovato");
 }
-
 
 static void
 litos_app_activate (GApplication *app)
@@ -162,7 +160,6 @@ litos_app_open (GApplication  *app,
     gtk_window_maximize(GTK_WINDOW(win));
     gtk_window_present(GTK_WINDOW(win));
 }
-
 
 static void
 litos_app_class_init (LitosAppClass *class)

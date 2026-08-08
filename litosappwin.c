@@ -98,10 +98,9 @@ static GtkSourceView*
 litos_app_window_current_tab_sourceView(LitosAppWindow *win)
 {
 	LitosFile *file = litos_app_window_current_file(win);
-	if (!file) return NULL; // Ritorna NULL se non c'è un file attivo
+	if (!file) return NULL; // Return NULL if there is no active file
 
 	GtkWidget *view = litos_file_get_view(file);
-	if (!GTK_IS_WIDGET(view)) return NULL;
 
 	return GTK_SOURCE_VIEW(view);
 }
@@ -127,8 +126,6 @@ static void litos_app_window_prev_match(GtkWidget *close_btn G_GNUC_UNUSED, gpoi
 		if (gtk_source_search_context_backward(win->search_context, &selection_begin, &match_start, &match_end, NULL))
 		{
 			mark = gtk_text_buffer_get_insert(GTK_TEXT_BUFFER(buffer));
-
-			SCROLL_TO_MARK
 
 			gtk_text_buffer_select_range(
 				GTK_TEXT_BUFFER(buffer),
@@ -670,7 +667,7 @@ litos_app_window_on_close_clicked(GtkButton *button, gpointer user_data)
 	// Close without saving
 	litos_app_window_remove_page(win, file);
 
-	// Nascondi il dialog invece di distruggerlo
+	// Hide the dialog instead of destroying it
 	if (GTK_IS_WIDGET(dialog))
 		gtk_widget_set_visible(dialog, FALSE);
 
@@ -941,7 +938,7 @@ void litos_app_window_about_dialog (GtkButton *button G_GNUC_UNUSED, gpointer us
 
 	gtk_show_about_dialog (NULL,
 			"program-name", "Litos",
-			"version", "4.3.1",
+			"version", "4.4.1",
 			"license-type", GTK_LICENSE_GPL_3_0,
 			"website", "https://github.com/gioretikto/litos",
 			"authors", authors,
@@ -1093,6 +1090,27 @@ litos_app_window_new_tab(LitosAppWindow *win, LitosFile *file, struct Page *page
 	return file;
 }
 
+void litos_page_clear(struct Page *page)
+{
+    if (!page)
+        return;
+
+    g_clear_object(&page->gf);
+
+    g_clear_pointer(&page->name, g_free);
+
+    if (page->tab_label_box)
+        gtk_widget_unparent(page->tab_label_box);
+
+    if (page->scrolled)
+        gtk_widget_unparent(page->scrolled);
+
+    page->tab_label_box = NULL;
+    page->scrolled = NULL;
+    page->lbl = NULL;
+    page->view = NULL;
+}
+
 LitosFile * litos_app_window_open(LitosAppWindow *win, GFile *gf)
 {
 	GError *error = NULL;
@@ -1103,10 +1121,10 @@ LitosFile * litos_app_window_open(LitosAppWindow *win, GFile *gf)
 	LitosFile *file = litos_file_set(&page);
 
 	if (!litos_file_load(file, &error)) {
-		litos_app_window_error_dialog(GTK_WINDOW(win), error, basename);
-		g_object_unref(file);
-		g_free(basename);
-		return NULL;
+	    litos_app_window_error_dialog(GTK_WINDOW(win), error, basename);
+	    g_object_unref(file);
+	    g_free(basename);
+	    return NULL;
 	}
 
 	LitosApp *app = LITOS_APP(gtk_window_get_application(GTK_WINDOW(win)));

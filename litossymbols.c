@@ -25,7 +25,6 @@ static const Symbol symbols_sets[] =
 
 	{"∅", "∅"},
 	{"∞", "∞"},
-	{"ā", "ā"},
 	{"ℰ", "ℰ"},
 	{"ℏ", "ℏ"},
 	{"Å", "Å"},
@@ -37,25 +36,27 @@ static const Symbol symbols_sets[] =
 
 static const Symbol symbols_arrows[] =
 {
-    {"→", "→"},
-    {"←", "←"},
-    {"↑", "↑"},
-    {"↓", "↓"},
+	{"→", "→"},
+	{"←", "←"},
 
-    {"↔", "↔"},
-    {"⇒", "⇒"},
-    {"⇐", "⇐"},
-    {"⇔", "⇔"},
+	{"↑", "↑"},
+	{"↓", "↓"},
 
-    {"⟶", "⟶"},
-    {"⟵", "⟵"},
-    {"⟼", "⟼"},
+	{"↔", "↔"},
+	{"⇒", "⇒"},
+	{"⇐", "⇐"},
+	{"⇔", "⇔"},
+	{"⟶", "⟶"},
+	{"⟵", "⟵"},
+	{"⟼", "⟼"},
 
-    {"↦", "↦"},
-    {"↪", "↪"},
-    {"↩", "↩"},
+	{"↛", "↛"},
 
-    {NULL, NULL}
+	{"↦", "↦"},
+	{"↪", "↪"},
+	{"↩", "↩"},
+
+	{NULL, NULL}
 };
 
 // RELATIONS
@@ -118,47 +119,66 @@ static const Symbol symbols_operators[] =
 	{NULL, NULL}
 };
 
+// LATIN
+
+static const Symbol symbols_latin[] =
+{
+	{"ā", "ā"},
+	{"ă", "ă"},
+	{"ē", "ē"},
+	{"ĕ", "ĕ"},
+	{"ī", "ī"},
+	{"ū", "ū"},
+	{"ŭ", "ŭ"},
+	{"ĭ", "ĭ"},
+	{"ō", "ō"},
+	{"ŏ", "ŏ"},
+	{"ό", "ό"},
+	{"ä", "ä"},
+	{"ö", "ö"},
+	{"ü", "ü"},
+
+	{NULL, NULL}
+};
+
 // GREEK
 
 static const Symbol symbols_greek[] =
 {
-    {"α", "α"},
-    {"β", "β"},
-    {"γ", "γ"},
-    {"δ", "δ"},
-    {"ε", "ε"},
-    {"ζ", "ζ"},
-    {"η", "η"},
-    {"θ", "θ"},
-
-    {"ι", "ι"},
-    {"κ", "κ"},
-    {"λ", "λ"},
-    {"μ", "μ"},
-    {"ν", "ν"},
-    {"ξ", "ξ"},
-    {"π", "π"},
-
-    {"ρ", "ρ"},
-    {"σ", "σ"},
-    {"τ", "τ"},
-    {"φ", "φ"},
-    {"χ", "χ"},
-    {"ψ", "ψ"},
-    {"ω", "ω"},
-
-    {"Γ", "Γ"},
-    {"Δ", "Δ"},
-    {"Θ", "Θ"},
-    {"Λ", "Λ"},
-    {"Ξ", "Ξ"},
-    {"Π", "Π"},
-    {"Σ", "Σ"},
-    {"Φ", "Φ"},
-    {"Ψ", "Ψ"},
-    {"Ω", "Ω"},
-
-    {NULL, NULL}
+	{"α", "α"},
+	{"β", "β"},
+	{"γ", "γ"},
+	{"δ", "δ"},
+	{"ε", "ε"},
+	{"ζ", "ζ"},
+	{"η", "η"},
+	{"θ", "θ"},
+	{"ι", "ι"},
+	{"κ", "κ"},
+	{"λ", "λ"},
+	{"μ", "μ"},
+	{"ν", "ν"},
+	{"ξ", "ξ"},
+	{"π", "π"},
+	{"ρ", "ρ"},
+	{"σ", "σ"},
+	{"ς", "ς"},
+	{"τ", "τ"},
+	{"φ", "φ"},
+	{"χ", "χ"},
+	{"ψ", "ψ"},
+	{"ω", "ω"},
+	{"Γ", "Γ"},
+	{"Δ", "Δ"},
+	{"Θ", "Θ"},
+	{"Λ", "Λ"},
+	{"Ξ", "Ξ"},
+	{"Π", "Π"},
+	{"Σ", "Σ"},
+	{"Φ", "Φ"},
+	{"Ψ", "Ψ"},
+	{"Ω", "Ω"},
+	{NULL, NULL}
 };
 
  // HTML
@@ -395,25 +415,15 @@ litos_symbols_dialog(LitosAppWindow *win)
 
 	main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
 
-	gtk_widget_set_margin_top(
-		main_box,
-		8);
+	gtk_widget_set_margin_top(main_box,8);
 
-	gtk_widget_set_margin_bottom(
-		main_box,
-		8);
+	gtk_widget_set_margin_bottom(main_box,8);
 
-	gtk_widget_set_margin_start(
-		main_box,
-		8);
+	gtk_widget_set_margin_start(main_box,8);
 
-	gtk_widget_set_margin_end(
-		main_box,
-		8);
+	gtk_widget_set_margin_end(main_box,8);
 
-	gtk_window_set_child(
-		GTK_WINDOW(window),
-		main_box);
+	gtk_window_set_child(GTK_WINDOW(window),main_box);
 
 	// Categories Stack
 
@@ -474,6 +484,14 @@ litos_symbols_dialog(LitosAppWindow *win)
 			buffer),
 		"operators",
 		"Operators");
+
+	gtk_stack_add_titled(
+		GTK_STACK(stack),
+		create_symbol_page(
+			symbols_latin,
+			buffer),
+		"latin",
+		"Latin");
 
 	gtk_stack_add_titled(
 		GTK_STACK(stack),

@@ -255,11 +255,11 @@ LitosFile *litos_file_set(struct Page *page)
 	file->buffer = page->buffer;
 
 	/*
-	 * Prende il riferimento al GFile.
-	 * Questo mantiene valido il file anche dopo il close
-	 * del dialogo di apertura.
+	 * Trasferisce la proprietà del GFile da Page a LitosFile.
+	 * Dopo questa operazione Page non possiede più il riferimento.
 	 */
-	file->gfile = page->gf ? g_object_ref(page->gf) : NULL;
+	file->gfile = page->gf;
+	page->gf = NULL;
 
 	/*
 	 * Nome del file.
@@ -401,14 +401,11 @@ gboolean litos_file_load(LitosFile *file, GError **error)
 
 	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(file->buffer), contents, length);
 
-	g_signal_handlers_unblock_by_func(file->buffer,
-		G_CALLBACK(litos_file_buffer_monitor_change),
-		file);
+	g_signal_handlers_unblock_by_func(file->buffer,	G_CALLBACK(litos_file_buffer_monitor_change), file);
 
 	// Il file appena caricato è sicuramente salvato
 	file->saved = TRUE;
-	g_object_notify_by_pspec(G_OBJECT(file),
-		obj_properties[PROP_SAVED]);
+	g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
 
 	g_free(content_type);
 	g_free(contents);
