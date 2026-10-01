@@ -360,57 +360,66 @@ litos_file_highlight_buffer(LitosFile *file, LitosApp *app)
 
 gboolean litos_file_load(LitosFile *file, GError **error)
 {
-	char *contents = NULL;
-	gsize length = 0;
+    char *contents = NULL;
+    gsize length = 0;
 
-	if (!file || !file->gfile || !file->buffer)
-		return FALSE;
+    if (!file || !file->gfile || !file->buffer)
+        return FALSE;
 
-	if (!g_file_load_contents(file->gfile, NULL, &contents, &length, NULL, error))
-		return FALSE;
+    if (!g_file_load_contents(
+            file->gfile,
+            NULL,
+            &contents,
+            &length,
+            NULL,
+            error)) {
+        return FALSE;
+    }
 
-	gchar *path = g_file_get_path(file->gfile);
-	gchar *content_type = g_content_type_guess(path, (const guchar *)contents, length, NULL);
-	g_free(path);
+    /* Il nostro editor lavora con testo UTF-8 */
+    if (!g_utf8_validate(contents, length, NULL)) {
+        g_set_error(
+            error,
+            G_FILE_ERROR,
+            G_FILE_ERROR_FAILED,
+            "Il contenuto del file non è UTF-8 valido"
+        );
 
-	// Accetta solo file testuali
-	if (!g_content_type_is_a(content_type, "text/plain")) {
-		g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
-			"Il file non è di tipo testuale (%s)", content_type);
-		g_free(content_type);
-		g_free(contents);
-		return FALSE;
-	}
+        g_free(contents);
+        return FALSE;
+    }
 
-	// Check for valid UTF-8 content
-	if (!g_utf8_validate(contents, length, NULL)) {
-		g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
-			"The file content is not valid UTF-8");
-		g_free(content_type);
-		g_free(contents);
-		return FALSE;
-	}
+    /*
+     * Il caricamento del file modifica il buffer e genera il segnale
+     * "changed". Lo blocchiamo perché non è una modifica dell'utente.
+     */
+    g_signal_handlers_block_by_func(
+        file->buffer,
+        G_CALLBACK(litos_file_buffer_monitor_change),
+        file
+    );
 
-	/*
-	 * Il caricamento del file modifica il buffer e genera il segnale "changed".
-	 * Lo blocchiamo perché non è una modifica dell'utente.
-	 */
-	g_signal_handlers_block_by_func(file->buffer,
-		G_CALLBACK(litos_file_buffer_monitor_change),
-		file);
+    gtk_text_buffer_set_text(
+        GTK_TEXT_BUFFER(file->buffer),
+        contents,
+        length
+    );
 
-	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(file->buffer), contents, length);
+    g_signal_handlers_unblock_by_func(
+        file->buffer,
+        G_CALLBACK(litos_file_buffer_monitor_change),
+        file
+    );
 
-	g_signal_handlers_unblock_by_func(file->buffer,	G_CALLBACK(litos_file_buffer_monitor_change), file);
+    file->saved = TRUE;
+    g_object_notify_by_pspec(
+        G_OBJECT(file),
+        obj_properties[PROP_SAVED]
+    );
 
-	// Il file appena caricato è sicuramente salvato
-	file->saved = TRUE;
-	g_object_notify_by_pspec(G_OBJECT(file), obj_properties[PROP_SAVED]);
+    g_free(contents);
 
-	g_free(content_type);
-	g_free(contents);
-
-	return TRUE;
+    return TRUE;
 }
 
 
